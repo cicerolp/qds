@@ -18,16 +18,25 @@
     <Filter Include="2.Source Files\loader">
       <UniqueIdentifier>{3b3fc9af-43b2-445f-a7cf-d656a5f3c663}</UniqueIdentifier>
     </Filter>
+    <Filter Include="2.Source Files\dimensions">
+      <UniqueIdentifier>{89893ef5-6ebd-44dc-ac8a-611d078f3366}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2.Source Files\pivots">
+      <UniqueIdentifier>{4685a1d9-6763-42a5-b9e4-f7c3b04ef790}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="nds.cpp">
-      <Filter>2.Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>0.Precompiled Headers</Filter>
     </ClCompile>
     <ClCompile Include="source\Data.cpp">
       <Filter>2.Source Files\loader</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CategoricalDimension.cpp">
+      <Filter>2.Source Files\dimensions</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>2.Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -42,6 +51,12 @@
     </ClInclude>
     <ClInclude Include="source\Schema.h">
       <Filter>2.Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\CategoricalDimension.h">
+      <Filter>2.Source Files\dimensions</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Pivot.h">
+      <Filter>2.Source Files\pivots</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

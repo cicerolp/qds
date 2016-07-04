@@ -9,18 +9,18 @@ struct Schema {
       boost::property_tree::read_xml(file, pt);
 
       name = pt.get<std::string>("config.name");
-      bytes = pt.get<std::uint32_t>("config.bytes");
+      bytes = pt.get<uint8_t>("config.bytes");
 
       for (auto &v : pt.get_child("config.schema")) {
          if (v.first == "spatial") {
             std::string key = v.second.get<std::string>("key");
-            binary_offset offset = v.second.get<binary_offset>("offset");
+			uint8_t offset = v.second.get<uint8_t>("offset");
             spatial.emplace_back(key, offset);
 
          } else {
             std::string key = v.second.get<std::string>("key");
-            uint32_t bin = v.second.get<uint32_t>("bin");
-            binary_offset offset = v.second.get<binary_offset>("offset");
+			uint8_t bin = v.second.get<uint8_t>("bin");
+			uint8_t offset = v.second.get<uint8_t>("offset");
 
             if (v.first == "categorical") {
                categorical.emplace_back(key, bin, offset);
@@ -34,7 +34,7 @@ struct Schema {
    std::string name;
    uint32_t bytes;
 
-   std::vector<std::tuple<std::string, binary_offset>> spatial;
-   std::vector<std::tuple<std::string, uint32_t, binary_offset>> categorical;
-   std::vector<std::tuple<std::string, uint32_t, binary_offset>> temporal;
+   std::vector<std::tuple<std::string, uint8_t>> spatial;
+   std::vector<std::tuple<std::string, uint8_t, uint8_t>> categorical;
+   std::vector<std::tuple<std::string, uint8_t, uint8_t>> temporal;
 };

@@ -13,7 +13,7 @@ public:
    void setHash(size_t id, uint8_t value);
 
    template<typename T>
-   T record(size_t id, binary_offset offset);
+   T record(size_t id, uint8_t offset);
 
 private:
    inline uint8_t getHash(size_t id) const;
@@ -30,7 +30,7 @@ private:
 };
 
 template<typename T>
-T Data::record(size_t id, binary_offset offset) {
+T Data::record(size_t id, uint8_t offset) {
    return *((T*)&_data[(_index[id] * _header.bytes) + offset]);
 }
 

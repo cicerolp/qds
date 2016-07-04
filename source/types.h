@@ -2,7 +2,7 @@
 
 #include "stdafx.h"
 
-typedef uint8_t binary_offset;
+typedef uint8_t categorical_t;
 
 struct BinaryHeader {
    uint32_t bytes;
