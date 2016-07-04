@@ -8,7 +8,7 @@ public:
 	CategoricalDimension(const std::string& key, const uint8_t bin, const uint8_t offset);
 	virtual ~CategoricalDimension();
 	
-	uint32_t build(const response_container& range, response_container& response, Data& data);
+	uint32_t build(const building_container& range, building_container& response, Data& data);
 
 private:
 	const std::string _key;

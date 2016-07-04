@@ -6,7 +6,7 @@ CategoricalDimension::CategoricalDimension(const std::string& key, const uint8_t
 
 CategoricalDimension::~CategoricalDimension() { }
 
-uint32_t CategoricalDimension::build(const response_container& range, response_container& response, Data& data) {
+uint32_t CategoricalDimension::build(const building_container& range, building_container& response, Data& data) {
 
 	uint32_t pivots_count = 0;
 

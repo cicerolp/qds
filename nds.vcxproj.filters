@@ -15,14 +15,17 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="2.Source Files\loader">
-      <UniqueIdentifier>{3b3fc9af-43b2-445f-a7cf-d656a5f3c663}</UniqueIdentifier>
+    <Filter Include="1.Include\nadeau">
+      <UniqueIdentifier>{0d9ca321-a53e-4016-bad1-07f39db1345b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="2.Source Files\dimensions">
+    <Filter Include="2.Source Files\util">
+      <UniqueIdentifier>{b8865246-5050-482d-8dab-c01477480ab8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="2.Source Files\core">
       <UniqueIdentifier>{89893ef5-6ebd-44dc-ac8a-611d078f3366}</UniqueIdentifier>
     </Filter>
-    <Filter Include="2.Source Files\pivots">
-      <UniqueIdentifier>{4685a1d9-6763-42a5-b9e4-f7c3b04ef790}</UniqueIdentifier>
+    <Filter Include="2.Source Files\data">
+      <UniqueIdentifier>{3b3fc9af-43b2-445f-a7cf-d656a5f3c663}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -30,13 +33,25 @@
       <Filter>0.Precompiled Headers</Filter>
     </ClCompile>
     <ClCompile Include="source\Data.cpp">
-      <Filter>2.Source Files\loader</Filter>
+      <Filter>2.Source Files\data</Filter>
     </ClCompile>
     <ClCompile Include="source\CategoricalDimension.cpp">
-      <Filter>2.Source Files\dimensions</Filter>
+      <Filter>2.Source Files\core</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>2.Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\NDSInstances.cpp">
+      <Filter>2.Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\NDS.cpp">
+      <Filter>2.Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\string_util.cpp">
+      <Filter>2.Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Query.cpp">
+      <Filter>2.Source Files\core</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -44,19 +59,37 @@
       <Filter>0.Precompiled Headers</Filter>
     </ClInclude>
     <ClInclude Include="source\Data.h">
-      <Filter>2.Source Files\loader</Filter>
-    </ClInclude>
-    <ClInclude Include="source\types.h">
-      <Filter>2.Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Schema.h">
-      <Filter>2.Source Files</Filter>
+      <Filter>2.Source Files\data</Filter>
     </ClInclude>
     <ClInclude Include="source\CategoricalDimension.h">
-      <Filter>2.Source Files\dimensions</Filter>
+      <Filter>2.Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="include\nadeau\ResidentSetSize.h">
+      <Filter>1.Include\nadeau</Filter>
+    </ClInclude>
+    <ClInclude Include="source\NDSInstances.h">
+      <Filter>2.Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Singleton.h">
+      <Filter>2.Source Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="source\types.h">
+      <Filter>2.Source Files\util</Filter>
     </ClInclude>
     <ClInclude Include="source\Pivot.h">
-      <Filter>2.Source Files\pivots</Filter>
+      <Filter>2.Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="source\NDS.h">
+      <Filter>2.Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\string_util.h">
+      <Filter>2.Source Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Schema.h">
+      <Filter>2.Source Files\data</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Query.h">
+      <Filter>2.Source Files\core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,15 +1,7 @@
 #include "stdafx.h"
 #include "Data.h"
 
-Data::Data(const Schema& schema) : _schema(schema) {
-
-}
-
-Data::~Data() {
-
-}
-
-void Data::read(const std::string& path) {
+Data::Data(const std::string& path) {
    
    std::ifstream infile(path, std::ios::binary);
    infile.unsetf(std::ios_base::skipws);
@@ -26,7 +18,6 @@ void Data::read(const std::string& path) {
    _index.resize(_header.records);
 
    for (size_t i = 0; i < _index.size(); i++) _index[i] = (uint32_t)i;
-
 }
 
 void Data::sort(size_t fromIndex, size_t toIndex) {

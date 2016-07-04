@@ -79,10 +79,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\nadeau\ResidentSetSize.h" />
     <ClInclude Include="source\CategoricalDimension.h" />
     <ClInclude Include="source\Data.h" />
+    <ClInclude Include="source\NDS.h" />
+    <ClInclude Include="source\NDSInstances.h" />
     <ClInclude Include="source\Pivot.h" />
+    <ClInclude Include="source\Query.h" />
     <ClInclude Include="source\Schema.h" />
+    <ClInclude Include="source\Singleton.h" />
+    <ClInclude Include="source\string_util.h" />
     <ClInclude Include="source\types.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
@@ -90,6 +96,10 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="source\CategoricalDimension.cpp" />
     <ClCompile Include="source\Data.cpp" />
+    <ClCompile Include="source\NDS.cpp" />
+    <ClCompile Include="source\NDSInstances.cpp" />
+    <ClCompile Include="source\Query.cpp" />
+    <ClCompile Include="source\string_util.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>

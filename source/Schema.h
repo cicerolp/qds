@@ -10,6 +10,7 @@ struct Schema {
 
       name = pt.get<std::string>("config.name");
       bytes = pt.get<uint8_t>("config.bytes");
+      file = pt.get<std::string>("config.file");
 
       for (auto &v : pt.get_child("config.schema")) {
          if (v.first == "spatial") {
@@ -31,7 +32,7 @@ struct Schema {
       }
    }
 
-   std::string name;
+   std::string name, file;
    uint32_t bytes;
 
    std::vector<std::tuple<std::string, uint8_t>> spatial;
