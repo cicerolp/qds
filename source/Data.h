@@ -30,7 +30,7 @@ private:
 
 template<typename T>
 T Data::record(size_t id, uint8_t offset) {
-   return *((T*)&_data[(_index[id] * _header.bytes) + offset]);
+   return *((T*)&_data[(_index[id] * sizeof(T)) + (_header.records * offset)]);
 }
 
 uint32_t Data::size() const {
