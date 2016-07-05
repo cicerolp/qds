@@ -37,4 +37,6 @@ uint32_t CategoricalDimension::build(const building_container& range, building_c
 	}
 
 	data.sort(range.front().front(), range.back().back());
+
+	return pivots_count;
 }

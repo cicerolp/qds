@@ -10,8 +10,8 @@ public:
    static void run(const std::vector<Schema>& args);
 
 private:
-   NDSInstances();
-   virtual ~NDSInstances();
+   NDSInstances() = default;
+   virtual ~NDSInstances() = default;
 
    bool _ready{ false };
    std::unordered_map<std::string, std::shared_ptr<NDS>> _container;

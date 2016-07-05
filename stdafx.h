@@ -11,6 +11,7 @@
 #include <regex>
 #include <array>
 #include <tuple>
+#include <thread>
 #include <vector>
 #include <string>
 #include <fstream>

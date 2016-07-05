@@ -5,6 +5,8 @@
 #include "Pivot.h"
 #include "Schema.h"
 
+#include "CategoricalDimension.h"
+
 class NDS {
 public:
 	NDS(const Schema& schema);
@@ -12,8 +14,8 @@ public:
 
    std::string query(const Query& query);
 
-protected:
+private:
    std::unique_ptr<Data> _data;
 
-private:
+   std::unordered_map<std::string, std::unique_ptr<CategoricalDimension>> _categorical;
 };

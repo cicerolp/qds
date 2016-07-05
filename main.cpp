@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
          }
       }
    } catch (...) {
-      std::cout << "error: invalid arguments" << std::endl;
+      std::cerr << "error: invalid arguments" << std::endl;
       exit(0);
    }
 
@@ -31,10 +31,10 @@ int main(int argc, char *argv[]) {
       schemas.emplace_back(str);
    }
 
-   //std::thread t1(HashedCubeInstances::write, args);
-   //t1.join();   
-
    NDSInstances& nds = NDSInstances::getInstance();
+
+   std::thread datastructure(NDSInstances::run, schemas);
+   datastructure.join();
 
    std::cout << getCurrentRSS() / (1024 * 1024) << std::endl;
 

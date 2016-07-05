@@ -1,7 +1,7 @@
 <config>
 	<name>delay</name>
 	<bytes>32</bytes>
-	<file>D:/My Data/NDS/example.nds<file>
+	<file>D:/My Data/NDS/example.nds</file>
 	<schema>
 		<categorical>
 			<key>day_of_week</key>
