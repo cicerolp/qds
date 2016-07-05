@@ -2,7 +2,7 @@
 #include "Data.h"
 
 Data::Data(const std::string& path) {
-   
+
    std::ifstream infile(path, std::ios::binary);
 
    infile.read((char*)&_header, sizeof BinaryHeader);
@@ -11,19 +11,17 @@ Data::Data(const std::string& path) {
    
    infile.read((char*)&_data[0], _header.bytes * _header.records);
 
-    infile.close();
+   infile.close();
 
-   _hash.resize(_header.records, 0);
-   _index.resize(_header.records);
+   _element.resize(_header.records);
 
-   for (size_t i = 0; i < _index.size(); i++) _index[i] = (uint32_t)i;
+   for (auto i = 0; i < _element.size(); i++) _element[i].index = (uint32_t)i;
 }
 
 void Data::sort(size_t fromIndex, size_t toIndex) {
-   const auto functor = std::bind(&Data::comparator, this, std::placeholders::_1, std::placeholders::_2);
-   std::sort(_index.begin() + fromIndex, _index.begin() + toIndex, functor);
+   std::sort(_element.begin() + fromIndex, _element.begin() + toIndex);
 }
 
 void Data::setHash(size_t id, uint8_t value) {
-   _hash[_index[id]] = value;
+   _element[id].hash = value;
 }
