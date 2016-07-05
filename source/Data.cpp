@@ -4,15 +4,14 @@
 Data::Data(const std::string& path) {
    
    std::ifstream infile(path, std::ios::binary);
-   infile.unsetf(std::ios_base::skipws);
 
    infile.read((char*)&_header, sizeof BinaryHeader);
 
    _data.resize(_header.bytes * _header.records);
    
-   infile.read((char*)&_data, _header.bytes * _header.records);
+   infile.read((char*)&_data[0], _header.bytes * _header.records);
 
-   infile.close();
+    infile.close();
 
    _hash.resize(_header.records, 0);
    _index.resize(_header.records);

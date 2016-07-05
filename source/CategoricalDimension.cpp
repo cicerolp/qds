@@ -11,7 +11,7 @@ uint32_t CategoricalDimension::build(const building_container& range, building_c
 	uint32_t pivots_count = 0;
 
 	for (const auto& ptr : range) {
-		std::vector<categorical_t> used(_bin, 0);
+		std::vector<uint32_t> used(_bin, 0);
 
 		for (auto i = ptr.front(); i < ptr.back(); ++i) {
 			categorical_t value = data.record<categorical_t>(i, _offset);
@@ -21,7 +21,7 @@ uint32_t CategoricalDimension::build(const building_container& range, building_c
 		}
 
 		uint32_t accum = ptr.front();
-		for (uint8_t i = 0; i < _bin; ++i) {
+		for (auto i = 0; i < _bin; ++i) {
 
 			if (used[i] == 0) continue;
 
@@ -33,10 +33,10 @@ uint32_t CategoricalDimension::build(const building_container& range, building_c
 
 			response.emplace_back(first, second);
 			pivots_count++;
-		}		
-	}
+		}
 
-	data.sort(range.front().front(), range.back().back());
+      data.sort(ptr.front(), ptr.back());
+	}	
 
 	return pivots_count;
 }

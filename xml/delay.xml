@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<name>delay</name>
+	<bytes>5</bytes>
+	<file>D:\OneDrive\PhD\nds_data\delay.nds</file>
+	<schema>
+		<categorical>
+			<key>day_of_week</key>
+			<bin>7</bin>
+			<offset>0</offset>
+		</categorical>
+		<categorical>
+			<key>year</key>
+			<bin>21</bin>
+			<offset>1</offset>
+		</categorical>
+		<categorical>
+			<key>carrier</key>
+			<bin>29</bin>
+			<offset>2</offset>
+		</categorical>
+		<categorical>
+			<key>arr_delay</key>
+			<bin>174</bin>
+			<offset>3</offset>
+		</categorical>
+		<categorical>
+			<key>dep_delay</key>
+			<bin>174</bin>
+			<offset>4</offset>
+		</categorical>
+	</schema>
+</config>

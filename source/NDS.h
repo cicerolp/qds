@@ -10,12 +10,10 @@
 class NDS {
 public:
 	NDS(const Schema& schema);
-	~NDS();
+	~NDS() = default;
 
    std::string query(const Query& query);
 
 private:
-   std::unique_ptr<Data> _data;
-
-   std::unordered_map<std::string, std::unique_ptr<CategoricalDimension>> _categorical;
+   std::map<std::string, std::unique_ptr<CategoricalDimension>> _categorical;
 };

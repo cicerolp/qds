@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
 
    try {
       if (argc < 2) {
-         inputFiles.emplace_back("./xml/example.xml");
+         inputFiles.emplace_back("./xml/delay.xml");
       } else {
          for (int i = 1; i < argc; i++) {
             if (argv[i][0] != '-') {
@@ -31,12 +31,12 @@ int main(int argc, char *argv[]) {
       schemas.emplace_back(str);
    }
 
-   NDSInstances& nds = NDSInstances::getInstance();
+   NDSInstances& instances = NDSInstances::getInstance();
 
-   std::thread datastructure(NDSInstances::run, schemas);
-   datastructure.join();
+   std::thread instances_run(NDSInstances::run, schemas);
+   instances_run.join();
 
-   std::cout << getCurrentRSS() / (1024 * 1024) << std::endl;
+   std::cout << "Current Resident Size: " << getCurrentRSS() / (1024 * 1024) << " MB" << std::endl;
 
    return 0;
 }

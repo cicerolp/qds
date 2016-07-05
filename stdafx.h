@@ -8,6 +8,7 @@
 #include <cstdio>
 
 // C++ includes
+#include <map>
 #include <regex>
 #include <array>
 #include <tuple>
