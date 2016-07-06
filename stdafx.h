@@ -4,7 +4,10 @@
 
 #pragma once
 
+#define _USE_MATH_DEFINES
+
 // C includes
+#include <cmath>
 #include <cstdio>
 
 // C++ includes

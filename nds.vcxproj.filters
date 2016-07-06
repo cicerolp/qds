@@ -109,5 +109,8 @@
     <ClInclude Include="source\date_util.h">
       <Filter>2.Source Files\util</Filter>
     </ClInclude>
+    <ClInclude Include="source\mercator_util.h">
+      <Filter>2.Source Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

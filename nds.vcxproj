@@ -84,6 +84,7 @@
     <ClInclude Include="source\Data.h" />
     <ClInclude Include="source\date_util.h" />
     <ClInclude Include="source\Dimension.h" />
+    <ClInclude Include="source\mercator_util.h" />
     <ClInclude Include="source\NDS.h" />
     <ClInclude Include="source\NDSInstances.h" />
     <ClInclude Include="source\Pivot.h" />
