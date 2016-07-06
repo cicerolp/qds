@@ -35,9 +35,6 @@
     <ClCompile Include="source\Data.cpp">
       <Filter>2.Source Files\data</Filter>
     </ClCompile>
-    <ClCompile Include="source\CategoricalDimension.cpp">
-      <Filter>2.Source Files\core</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>2.Source Files</Filter>
     </ClCompile>
@@ -53,6 +50,15 @@
     <ClCompile Include="source\Query.cpp">
       <Filter>2.Source Files\core</Filter>
     </ClCompile>
+    <ClCompile Include="source\Categorical.cpp">
+      <Filter>2.Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Temporal.cpp">
+      <Filter>2.Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Spatial.cpp">
+      <Filter>2.Source Files\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -60,9 +66,6 @@
     </ClInclude>
     <ClInclude Include="source\Data.h">
       <Filter>2.Source Files\data</Filter>
-    </ClInclude>
-    <ClInclude Include="source\CategoricalDimension.h">
-      <Filter>2.Source Files\core</Filter>
     </ClInclude>
     <ClInclude Include="include\nadeau\ResidentSetSize.h">
       <Filter>1.Include\nadeau</Filter>
@@ -90,6 +93,21 @@
     </ClInclude>
     <ClInclude Include="source\Query.h">
       <Filter>2.Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Categorical.h">
+      <Filter>2.Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Temporal.h">
+      <Filter>2.Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Spatial.h">
+      <Filter>2.Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Dimension.h">
+      <Filter>2.Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="source\date_util.h">
+      <Filter>2.Source Files\util</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

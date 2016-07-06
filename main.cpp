@@ -11,7 +11,9 @@ int main(int argc, char *argv[]) {
 
    try {
       if (argc < 2) {
-         inputFiles.emplace_back("./xml/delay.xml");
+         //inputFiles.emplace_back("./xml/delay.xml");
+         //inputFiles.emplace_back("./xml/brightkite.xml");
+         inputFiles.emplace_back("./xml/performance.xml");
       } else {
          for (int i = 1; i < argc; i++) {
             if (argv[i][0] != '-') {

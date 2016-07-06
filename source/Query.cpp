@@ -6,7 +6,7 @@ Query::Query(const std::string& url) : Query(string_util::split(url, "[/]+")) { 
 Query::Query(const std::vector<std::string>& tokens) : Query(tokens[3], tokens[4]) {
    for (auto it = tokens.begin() + 5; it != tokens.end(); ++it) {
       if ((*it) == "field") {
-         _filed.emplace(nextToken(it));
+         _field.emplace(nextToken(it));
 
       } else if ((*it) == "where") {
          std::vector<std::string> uri = string_util::split(nextToken(it), std::regex("&"));

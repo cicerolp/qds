@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<name>brightkite</name>
+	<bytes>14</bytes>
+	<file>D:\OneDrive\PhD\nds_data\brightkite.nds</file>
+	<schema>
+		<spatial>
+			<key>0</key>
+			<offset>0</offset>
+		</spatial>
+		<categorical>
+			<key>day_of_week</key>
+			<bin>7</bin>
+			<offset>8</offset>
+		</categorical>
+		<categorical>
+			<key>hour_of_day</key>
+			<bin>24</bin>
+			<offset>9</offset>
+		</categorical>
+		<temporal>
+			<key>tseries</key>
+			<bin>604800</bin>
+			<offset>10</offset>
+		</temporal>
+	</schema>
+</config>

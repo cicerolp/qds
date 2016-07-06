@@ -1,12 +1,10 @@
 #include "stdafx.h"
-#include "CategoricalDimension.h"
+#include "Categorical.h"
 
-CategoricalDimension::CategoricalDimension(const std::string& key, const uint8_t bin, const uint8_t offset)
-	: _key(key), _bin(bin), _offset(offset) { }
+Categorical::Categorical(const std::string& key, const uint32_t bin, const uint8_t offset)
+	: Dimension(key, bin, offset) { }
 
-CategoricalDimension::~CategoricalDimension() { }
-
-uint32_t CategoricalDimension::build(const building_container& range, building_container& response, Data& data) {
+uint32_t Categorical::build(const building_container& range, building_container& response, Data& data) {
 
 	uint32_t pivots_count = 0;
 

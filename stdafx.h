@@ -8,6 +8,7 @@
 #include <cstdio>
 
 // C++ includes
+#include <set>
 #include <map>
 #include <regex>
 #include <array>
@@ -28,3 +29,5 @@
 
 // ResidentSetSize
 #include <nadeau/ResidentSetSize.h>
+
+#include "types.h"

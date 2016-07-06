@@ -22,6 +22,6 @@ void Data::sort(size_t fromIndex, size_t toIndex) {
    std::sort(_element.begin() + fromIndex, _element.begin() + toIndex);
 }
 
-void Data::setHash(size_t id, uint8_t value) {
+void Data::setHash(size_t id, uint32_t value) {
    _element[id].hash = value;
 }

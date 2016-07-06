@@ -4,7 +4,7 @@
 
 class Data {
    struct DataElement {
-      uint8_t hash;
+      uint32_t hash;
       uint32_t index;
       
       bool operator<(const DataElement& e1) const {
@@ -17,7 +17,7 @@ public:
 	~Data() = default;
 
    void sort(size_t fromIndex, size_t toIndex);
-   void setHash(size_t id, uint8_t value);
+   void setHash(size_t id, uint32_t value);
 
    template<typename T>
    T record(size_t id, uint8_t offset);
@@ -25,8 +25,6 @@ public:
    inline uint32_t size() const;
 
 private:
-   inline uint8_t getHash(size_t id) const;
-
    inline bool comparator(const DataElement& bit0, const DataElement& bit1) const;
 
    BinaryHeader _header;
@@ -42,10 +40,6 @@ T Data::record(size_t id, uint8_t offset) {
 
 uint32_t Data::size() const {
    return _header.records;
-}
-
-uint8_t Data::getHash(size_t id) const {
-   return _element[id].hash;
 }
 
 bool Data::comparator(const DataElement& bit0, const DataElement& bit1) const {   
