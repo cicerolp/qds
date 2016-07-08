@@ -2,11 +2,11 @@
 <config>
 	<name>gowalla</name>
 	<bytes>14</bytes>
+	<leaf>32</leaf>
 	<file>gowalla.nds</file>
 	<schema>
 		<spatial>
 			<key>0</key>
-			<bin>32</bin>
 			<offset>0</offset>
 		</spatial>
 		<categorical>

@@ -2,16 +2,15 @@
 <config>
 	<name>performance</name>
 	<bytes>22</bytes>
+	<leaf>32</leaf>
 	<file>performance.nds</file>
 	<schema>
 		<spatial>
 			<key>0</key>
-			<bin>32</bin>
 			<offset>0</offset>
 		</spatial>
 		<spatial>
 			<key>1</key>
-			<bin>32</bin>
 			<offset>8</offset>
 		</spatial>
 		<categorical>

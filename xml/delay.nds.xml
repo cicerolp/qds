@@ -2,6 +2,7 @@
 <config>
 	<name>delay</name>
 	<bytes>5</bytes>
+	<leaf>32</leaf>
 	<file>delay.nds</file>
 	<schema>
 		<categorical>
