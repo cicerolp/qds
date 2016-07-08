@@ -2,7 +2,7 @@
 <config>
 	<name>delay</name>
 	<bytes>5</bytes>
-	<file>D:\OneDrive\PhD\nds_data\delay.nds</file>
+	<file>delay.nds</file>
 	<schema>
 		<categorical>
 			<key>day_of_week</key>

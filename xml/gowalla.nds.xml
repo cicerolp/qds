@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
-	<name>brightkite</name>
+	<name>gowalla</name>
 	<bytes>14</bytes>
-	<file>D:\OneDrive\PhD\nds_data\brightkite.nds</file>
+	<file>gowalla.nds</file>
 	<schema>
 		<spatial>
 			<key>0</key>
+			<bin>32</bin>
 			<offset>0</offset>
 		</spatial>
 		<categorical>
