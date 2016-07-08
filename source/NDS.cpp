@@ -28,7 +28,7 @@ NDS::NDS(const Schema& schema) {
 
       std::cout << "\tBuilding Spatial Dimension: " + std::get<0>(tuple) + " ... ";
 
-      _spatial = std::make_unique<Spatial>(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
+      _spatial = std::make_unique<Spatial>(std::get<0>(tuple), schema.leaf, std::get<1>(tuple));
 
       uint32_t curr_count = _spatial->build(current, expand, data);
       pivots_count += curr_count;

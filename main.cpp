@@ -6,14 +6,21 @@
 
 int main(int argc, char *argv[]) {
 
+   if (std::getenv("NDS_DATA") == nullptr) {
+      std::cerr << "error: invalid environment path %NDS_DATA%" << std::endl;
+      exit(-1);
+   }
+
    std::vector<Schema> schemas;
    std::vector<std::string> inputFiles;
 
    try {
-      if (argc < 2) {
-         //inputFiles.emplace_back("./xml/delay.xml");
-         //inputFiles.emplace_back("./xml/brightkite.xml");
-         inputFiles.emplace_back("./xml/performance.xml");
+      if (argc < 2) {         
+         inputFiles.emplace_back("./xml/brightkite.nds.xml");
+         //inputFiles.emplace_back("./xml/gowalla.nds.xml");
+         
+         //inputFiles.emplace_back("./xml/delay.nds.xml");
+         //inputFiles.emplace_back("./xml/performance.nds.xml");
       } else {
          for (int i = 1; i < argc; i++) {
             if (argv[i][0] != '-') {
@@ -23,7 +30,7 @@ int main(int argc, char *argv[]) {
       }
    } catch (...) {
       std::cerr << "error: invalid arguments" << std::endl;
-      exit(0);
+      exit(-1);
    }
 
    std::cout << "XML Files:" << std::endl;
