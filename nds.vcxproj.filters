@@ -59,6 +59,9 @@
     <ClCompile Include="source\Spatial.cpp">
       <Filter>2.Source Files\core</Filter>
     </ClCompile>
+    <ClCompile Include="source\SpatialElement.cpp">
+      <Filter>2.Source Files\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -111,6 +114,9 @@
     </ClInclude>
     <ClInclude Include="source\mercator_util.h">
       <Filter>2.Source Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="source\SpatialElement.h">
+      <Filter>2.Source Files\core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

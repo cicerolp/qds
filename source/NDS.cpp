@@ -2,17 +2,17 @@
 #include "NDS.h"
 
 NDS::NDS(const Schema& schema) {
-   
+
    std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
    start = std::chrono::high_resolution_clock::now();
 
    uint32_t pivots_count = 0;
 
-	Data data(schema.file);
+   Data data(schema.file);
 
    std::cout << "\nBuildind NDS: " << std::endl;
    std::cout << "\tName: " << schema.name << std::endl;
-   std::cout << "\tSize: " << data.size()  << std::endl;
+   std::cout << "\tSize: " << data.size() << std::endl;
 
    std::cout << std::endl;
 
@@ -22,12 +22,29 @@ NDS::NDS(const Schema& schema) {
    //current = cube->root();
    current.emplace_back(0, data.size());
 
+   // spatial
+   // BUG fix multiple spatial dimensions
+   for (const auto& tuple : schema.spatial) {
+
+      std::cout << "\tBuilding Spatial Dimension: " + std::get<0>(tuple) + " ... ";
+
+      _spatial = std::make_unique<Spatial>(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple));
+
+      uint32_t curr_count = _spatial->build(current, expand, data);
+      pivots_count += curr_count;
+
+      current.swap(expand);
+      expand.clear();
+
+      std::cout << "OK. \n\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
+   }
+
    // categorical
    for (const auto& tuple : schema.categorical) {
 
       std::cout << "\tBuilding Categorical Dimension: " + std::get<0>(tuple) + " ... ";
 
-	   _categorical.emplace(std::get<0>(tuple), std::make_unique<Categorical>(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple)));
+      _categorical.emplace(std::get<0>(tuple), std::make_unique<Categorical>(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple)));
 
       uint32_t curr_count = _categorical[std::get<0>(tuple)]->build(current, expand, data);
       pivots_count += curr_count;

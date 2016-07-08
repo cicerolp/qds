@@ -92,6 +92,7 @@
     <ClInclude Include="source\Schema.h" />
     <ClInclude Include="source\Singleton.h" />
     <ClInclude Include="source\Spatial.h" />
+    <ClInclude Include="source\SpatialElement.h" />
     <ClInclude Include="source\string_util.h" />
     <ClInclude Include="source\Temporal.h" />
     <ClInclude Include="source\types.h" />
@@ -105,6 +106,7 @@
     <ClCompile Include="source\NDSInstances.cpp" />
     <ClCompile Include="source\Query.cpp" />
     <ClCompile Include="source\Spatial.cpp" />
+    <ClCompile Include="source\SpatialElement.cpp" />
     <ClCompile Include="source\string_util.cpp" />
     <ClCompile Include="source\Temporal.cpp" />
     <ClCompile Include="stdafx.cpp">
