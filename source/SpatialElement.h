@@ -12,9 +12,9 @@ public:
 
    uint32_t build(building_container& response, Data& data, uint8_t zoom);
 
-   
-   const Pivot& _pivot;
-   spatial_t _tile;
-   std::array<std::unique_ptr<SpatialElement>, 4> _container;
-   const spatial_t& tile_;
+private:
+   const Pivot _pivot;
+   const spatial_t _tile;
+
+   std::array<std::unique_ptr<SpatialElement>, 4> _container;   
 };

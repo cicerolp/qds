@@ -2,14 +2,14 @@
 #include "SpatialElement.h"
 
 SpatialElement::SpatialElement(const Pivot& pivot, const spatial_t& tile)
-   : _pivot(pivot), tile_(tile) {}
+   : _pivot(pivot), _tile(tile) {}
 
 uint32_t SpatialElement::build(building_container& response, Data& data, uint8_t zoom) {
 
    uint32_t pivots_count = 1;
 
    // BUG fix leaf
-   if (zoom < 20 && _pivot.size() > 32) {
+   if (zoom < 25 && _pivot.size() > 1) {
 
       // increment zoom
       zoom += 1;

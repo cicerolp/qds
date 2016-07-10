@@ -17,7 +17,7 @@ class Temporal : public Dimension {
          return date < rhs.date;
       }
 
-      temporal_t date;
+      const temporal_t date;
       std::vector<Pivot> container;
    };
 public:

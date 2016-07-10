@@ -39,7 +39,7 @@ NDS::NDS(const Schema& schema) {
       std::cout << "OK. \n\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
    }
 
-   // categorical
+   /*// categorical
    for (const auto& tuple : schema.categorical) {
 
       std::cout << "\tBuilding Categorical Dimension: " + std::get<0>(tuple) + " ... ";
@@ -70,7 +70,7 @@ NDS::NDS(const Schema& schema) {
 
       std::cout << "OK. \n\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
    }
-
+*/
    std::cout << "\n\tTotal Number of Pivots: " << pivots_count << std::endl;
 
    end = std::chrono::high_resolution_clock::now();
