@@ -9,7 +9,7 @@ struct spatial_t {
 	spatial_t() = default;
 
 	spatial_t(uint32_t _x, uint32_t _y, uint8_t _z, uint8_t _l = 0)
-		: x(_x), y(_y), z(_z), l(_l) {}
+		: x(_x), y(_y), z(_z), leaf(_l) {}
 
 	inline bool operator ==(const spatial_t& other) const {
 		return (z == other.z && x == other.x && y == other.y);
@@ -23,10 +23,10 @@ struct spatial_t {
 		return stream;
 	}
 
-	uint64_t x : 28;
-	uint64_t y : 28;
-	uint64_t z : 5;
-	uint64_t l : 1;
+	uint64_t x    : 28;
+	uint64_t y    : 28;
+	uint64_t z    : 5;
+	uint64_t leaf : 1;
 };
 
 namespace std {

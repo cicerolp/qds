@@ -7,14 +7,16 @@
 
 class SpatialElement {
 public:
-   SpatialElement(const Pivot& pivot, const spatial_t& tile);
+   SpatialElement(const spatial_t& tile);
    ~SpatialElement() = default;
 
-   uint32_t build(building_container& response, Data& data, uint8_t zoom);
+   uint32_t build(const Pivot& range, building_container& response, Data& data, uint8_t zoom);
 
 private:
-   const Pivot _pivot;
+   uint32_t expand(building_container& parent, const Pivot& pivot, building_container& response, Data& data, uint8_t zoom);
+
    const spatial_t _tile;
 
+   std::vector<Pivot> _pivots;
    std::array<std::unique_ptr<SpatialElement>, 4> _container;   
 };

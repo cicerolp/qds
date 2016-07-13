@@ -22,24 +22,7 @@ NDS::NDS(const Schema& schema) {
    //current = cube->root();
    current.emplace_back(0, data.size());
 
-   // spatial
-   // BUG fix multiple spatial dimensions
-   for (const auto& tuple : schema.spatial) {
-
-      std::cout << "\tBuilding Spatial Dimension: " + std::get<0>(tuple) + " ... ";
-
-      _spatial = std::make_unique<Spatial>(std::get<0>(tuple), schema.leaf, std::get<1>(tuple));
-
-      uint32_t curr_count = _spatial->build(current, expand, data);
-      pivots_count += curr_count;
-
-      current.swap(expand);
-      expand.clear();
-
-      std::cout << "OK. \n\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
-   }
-
-   /*// categorical
+   // categorical
    for (const auto& tuple : schema.categorical) {
 
       std::cout << "\tBuilding Categorical Dimension: " + std::get<0>(tuple) + " ... ";
@@ -70,7 +53,25 @@ NDS::NDS(const Schema& schema) {
 
       std::cout << "OK. \n\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
    }
-*/
+
+   // spatial
+   // BUG fix multiple spatial dimensions
+   for (const auto& tuple : schema.spatial) {
+
+      std::cout << "\tBuilding Spatial Dimension: " + std::get<0>(tuple) + " ... ";
+
+      _spatial = std::make_unique<Spatial>(std::get<0>(tuple), schema.leaf, std::get<1>(tuple));
+
+      uint32_t curr_count = _spatial->build(current, expand, data);
+      pivots_count += curr_count;
+
+      current.swap(expand);
+      expand.clear();
+
+      std::cout << "OK. \n\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
+   }
+
+
    std::cout << "\n\tTotal Number of Pivots: " << pivots_count << std::endl;
 
    end = std::chrono::high_resolution_clock::now();

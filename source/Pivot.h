@@ -34,7 +34,7 @@ using pivot_container = std::vector<Pivot*>;
 using pivot_iterator = pivot_container::const_iterator;
 
 using building_container = std::vector<Pivot>;
-using response_iterator = building_container::const_iterator;
+using building_iterator = building_container::const_iterator;
 
 
 bool Pivot::empty() const {
