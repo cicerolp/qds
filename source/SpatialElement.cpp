@@ -4,10 +4,13 @@
 SpatialElement::SpatialElement(const spatial_t& tile)
    : _tile(tile) {}
 
-uint32_t SpatialElement::build(const Pivot& range, building_container& response, Data& data, uint8_t zoom) {
+uint32_t SpatialElement::build(const Pivot& range, Data& data, uint8_t zoom) {
 
    uint32_t pivots_count = 1;
    _pivots.emplace_back(range);
+
+   // increment zoom
+   zoom += 1;
 
    // BUG fix leaf
    if (zoom < 25 && range.size() > 1) {
@@ -41,31 +44,28 @@ uint32_t SpatialElement::build(const Pivot& range, building_container& response,
 
          if (_container[pair.first] == nullptr) {
             _container[pair.first] = std::make_unique<SpatialElement>(pair.first);
-
-            pivots_count += _container[pair.first]->expand(_pivots, Pivot(first, second), response, data, zoom);
+            pivots_count += _container[pair.first]->expand(_pivots, Pivot(first, second), data, zoom);
          } else {
-            pivots_count += _container[pair.first]->build(Pivot(first, second), response, data, zoom + 1);
+            pivots_count += _container[pair.first]->build(Pivot(first, second), data, zoom);
          }
          
          /*if (_container[pair.first] == nullptr) {
             _container[pair.first] = std::make_unique<SpatialElement>(pair.first);
          }
-         pivots_count += _container[pair.first]->build(Pivot(first, second), response, data, zoom + 1);*/
+         pivots_count += _container[pair.first]->build(Pivot(first, second), response, data, zoom);*/
          
       }
-   }
-   else {
+   } /*else {
       response.emplace_back(range);
-   }
+   }*/
 
    return pivots_count;
 }
 
-uint32_t SpatialElement::expand(building_container& parent, const Pivot& pivot, building_container& response, Data& data, uint8_t zoom) {
+uint32_t SpatialElement::expand(building_container& parent, const Pivot& pivot, Data& data, uint8_t zoom) {
 
    uint32_t pivots_count = 0;
 
-   // algum deles vai para mim
    for (const auto& ptr : parent) {
       if (ptr.size() == 1) {
          // BUG fix offset
@@ -74,18 +74,13 @@ uint32_t SpatialElement::expand(building_container& parent, const Pivot& pivot, 
          auto y = mercator_util::lat2tiley(value.lat, zoom);
          auto x = mercator_util::lon2tilex(value.lon, zoom);
 
-         spatial_t tile(x, y, zoom);
-
-         if (tile == _tile) {
+         if (spatial_t(x, y, zoom) == _tile) {
             _pivots.emplace_back(ptr);
-
             pivots_count += 1;
          }
       }
    }
 
-   // coloca o pivot
-   // chama build do pivot
-   return pivots_count + build(pivot, response, data, zoom + 1);
+   return pivots_count + build(pivot, data, zoom);
 }
 
