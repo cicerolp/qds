@@ -1,12 +1,12 @@
 #include "stdafx.h"
 #include "Schema.h"
-
+#include "Server.h"
 #include "NDSInstances.h"
-
-#include "BinnedPivot.h"
 
 
 int main(int argc, char *argv[]) {
+
+   bool no_server = false;
 
    if (std::getenv("NDS_DATA") == nullptr) {
       std::cerr << "error: invalid environment path %NDS_DATA%" << std::endl;
@@ -48,6 +48,15 @@ int main(int argc, char *argv[]) {
    instances_run.join();
 
    std::cout << "Current Resident Size: " << getCurrentRSS() / (1024 * 1024) << " MB" << std::endl;
+
+   if (no_server == false) {
+      std::thread server(Server::run, false, 8100);
+
+      getchar();
+
+      Server::getInstance().stop();
+      server.join();
+   }
 
    return 0;
 }

@@ -34,4 +34,7 @@
 // ResidentSetSize
 #include <nadeau/ResidentSetSize.h>
 
+// mongoose
+#include <mongoose/mongoose.h>
+
 #include "types.h"

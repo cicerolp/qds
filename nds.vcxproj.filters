@@ -27,6 +27,9 @@
     <Filter Include="2.Source Files\data">
       <UniqueIdentifier>{3b3fc9af-43b2-445f-a7cf-d656a5f3c663}</UniqueIdentifier>
     </Filter>
+    <Filter Include="1.Include\mongoose">
+      <UniqueIdentifier>{399fceb5-f278-47e2-92ec-10195a38ada3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -61,6 +64,12 @@
     </ClCompile>
     <ClCompile Include="source\SpatialElement.cpp">
       <Filter>2.Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="source\Server.cpp">
+      <Filter>2.Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="include\mongoose\mongoose.c">
+      <Filter>1.Include\mongoose</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -120,6 +129,12 @@
     </ClInclude>
     <ClInclude Include="source\BinnedPivot.h">
       <Filter>2.Source Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Server.h">
+      <Filter>2.Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\mongoose\mongoose.h">
+      <Filter>1.Include\mongoose</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
