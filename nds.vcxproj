@@ -80,6 +80,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\nadeau\ResidentSetSize.h" />
+    <ClInclude Include="source\BinnedPivot.h" />
     <ClInclude Include="source\Categorical.h" />
     <ClInclude Include="source\Data.h" />
     <ClInclude Include="source\date_util.h" />

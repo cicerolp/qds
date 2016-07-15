@@ -118,5 +118,8 @@
     <ClInclude Include="source\SpatialElement.h">
       <Filter>2.Source Files\core</Filter>
     </ClInclude>
+    <ClInclude Include="source\BinnedPivot.h">
+      <Filter>2.Source Files\core</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

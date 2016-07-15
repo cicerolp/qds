@@ -10,5 +10,5 @@ public:
 	virtual uint32_t build(const building_container& range, building_container& response, Data& data) override;
 
 private:
-	std::unordered_map<std::string, std::vector<Pivot>> _container;
+	std::unordered_map<categorical_t, std::vector<Pivot>> _container;
 };

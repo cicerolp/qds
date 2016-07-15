@@ -19,7 +19,7 @@ uint32_t Categorical::build(const building_container& range, building_container&
 		}
 
 		uint32_t accum = ptr.front();
-		for (auto i = 0; i < _bin; ++i) {
+		for (uint32_t i = 0; i < _bin; ++i) {
 
 			if (used[i] == 0) continue;
 
@@ -27,7 +27,7 @@ uint32_t Categorical::build(const building_container& range, building_container&
 			accum += used[i];
 			uint32_t second = accum;
 
-			_container[std::to_string(i)].emplace_back(first, second);
+			_container[i].emplace_back(first, second);
 
 			response.emplace_back(first, second);
 			pivots_count++;

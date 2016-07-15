@@ -3,6 +3,8 @@
 
 #include "NDSInstances.h"
 
+#include "BinnedPivot.h"
+
 
 int main(int argc, char *argv[]) {
 
