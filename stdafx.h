@@ -37,4 +37,9 @@
 // mongoose
 #include <mongoose/mongoose.h>
 
+// rapidjson
+#include <rapidjson/rapidjson.h>
+#include <rapidjson/writer.h>
+#include <rapidjson/stringbuffer.h>
+
 #include "types.h"

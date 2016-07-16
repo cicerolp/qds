@@ -17,18 +17,30 @@ uint32_t Spatial::build(const building_container& range, building_container& res
 
 bool Spatial::query(const Query& query, const response_container& range, response_container& response) const {
 
+   if (query.tile().first != _key) return false;
+
    std::vector<const SpatialElement*> subset;
    _container.query(query, subset);
+
+   int count = 0;
+   for (const auto& el : subset) {
+      for (const auto& r : el->pivots()) {
+         count += r.size();
+      }      
+   }
+   std::cout << "summed size: " << count << std::endl;
 
    for (const auto& r : range) {
       for (const auto& el : subset) {
 
-         const auto pivot_it = std::lower_bound(el->pivots().begin(), el->pivots().end(), r.pivot);
+         const auto it_lower = std::lower_bound(el->pivots().begin(), el->pivots().end(), r.pivot, Pivot::lower_bound_comp);
+         const auto it_upper = std::upper_bound(it_lower, el->pivots().end(), r.pivot, Pivot::upper_bound_comp);
+         
+         for (auto it = it_lower; it != it_upper; ++it) {
+            response.emplace_back((*it), el->tile());
 
-         if (pivot_it != el->pivots().end() && r.pivot.contains(*pivot_it)) {
-            response.emplace_back((*pivot_it), el->tile());
-
-            if (r.pivot.endsWith(*pivot_it)) break;
+            /*BUG remove comment*/
+            //if (r.pivot.endsWith(*it)) break;
          }
       }
    }

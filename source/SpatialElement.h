@@ -20,12 +20,12 @@ public:
    }
 
 private:
-   uint32_t expand(building_container& parent, const Pivot& pivot, Data& data, uint8_t zoom);
+   uint32_t expand(SpatialElement& parent, const Pivot& pivot, Data& data, uint8_t zoom);
    void aggregate_tile(const Query& query, std::vector<const SpatialElement*>& subset) const;
 
    static const uint32_t max_levels{ 25 };
 
-   const spatial_t _tile;
+   spatial_t _tile;
    std::vector<Pivot> _pivots;
    std::array<std::unique_ptr<SpatialElement>, 4> _container;   
 };

@@ -20,13 +20,17 @@ public:
 	inline uint32_t back() const;
 
 	inline bool operator< (const Pivot& other) const;
-	inline bool operator> (const Pivot& other) const;
 
    inline bool contains(const Pivot& other) const;
    inline bool endsWith(const Pivot& other) const;
 
    // implicit conversion
 	inline operator const Pivot*() const;
+
+   inline operator std::string() const;
+
+   static inline bool lower_bound_comp(const Pivot& lhs, const Pivot& rhs);
+   static inline bool upper_bound_comp(const Pivot& lhs, const Pivot& rhs);
 
 protected:
 	std::array<uint32_t, 2> _pivot;
@@ -56,11 +60,7 @@ uint32_t Pivot::back() const {
 }
 
 bool Pivot::operator<(const Pivot& other) const {
-	return back() < other.front();
-}
-
-bool Pivot::operator>(const Pivot& other) const {
-	return back() > other.front();
+	return front() < other.front();
 }
 
 bool Pivot::contains(const Pivot& other) const {
@@ -73,4 +73,16 @@ bool Pivot::endsWith(const Pivot& other) const {
 
 Pivot::operator const Pivot*() const {
 	return this;
+}
+
+Pivot::operator std::string() const {
+   return "[" + std::to_string(_pivot[0]) + "," + std::to_string(_pivot[1]) + "]";
+}
+
+bool Pivot::lower_bound_comp(const Pivot& lhs, const Pivot& rhs) {
+   return lhs.front() < rhs.front();
+}
+
+bool Pivot::upper_bound_comp(const Pivot& lhs, const Pivot& rhs) {
+   return lhs.back() <= rhs.front();
 }

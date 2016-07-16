@@ -14,6 +14,10 @@ public:
    BinnedPivot& operator=(const BinnedPivot& other) = default;
    BinnedPivot& operator=(BinnedPivot&& other) = default;
 
+   inline bool operator< (const BinnedPivot& other) const {
+      return pivot < other.pivot;
+   };
+
    Pivot pivot;
    uint64_t value;
 };

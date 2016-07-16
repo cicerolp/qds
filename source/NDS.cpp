@@ -85,38 +85,39 @@ NDS::NDS(const Schema& schema) {
 
 std::string NDS::query(const Query& query) {
 
-   /*
-   std::map<std::string, std::unique_ptr<Categorical>> _categorical;
-   std::map<std::string, std::unique_ptr<Temporal>> _temporal;
-   std::unique_ptr<Spatial> _spatial;
-   */
-
    response_container range, response;
    range.emplace_back(_root);
 
    for (const auto& d : _categorical) {
       if (d->query(query, range, response)) {
-         range.swap(response);
-         response.clear();
+         swap_and_sort(range, response);
       }
    }
 
    for (const auto& d : _temporal) {
       if (d->query(query, range, response)) {
-         range.swap(response);
-         response.clear();
+         swap_and_sort(range, response);
       }
    }
 
    if (_spatial->query(query, range, response)) {
-      range.swap(response);
-      response.clear();
+      swap_and_sort(range, response);
    }
 
+   rapidjson::StringBuffer buffer;
+   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
+   int count = 0;
+
+   writer.StartArray();
    for (const auto& ptr : range) {
-      std::cout << ptr.pivot;
-   }
-   std::cout << std::endl;
+      writer.String(static_cast<std::string>(ptr.pivot).c_str());
 
-   return ("");
+      count += ptr.pivot.size();
+   }
+
+   writer.Uint(count);
+   writer.EndArray();
+
+   return buffer.GetString();
 }

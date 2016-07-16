@@ -36,6 +36,9 @@
     <Filter Include="3.WebContent\css">
       <UniqueIdentifier>{e5e3cc6f-db54-4a6b-aacd-3b9b4d4ccc01}</UniqueIdentifier>
     </Filter>
+    <Filter Include="1.Include\rapidjson">
+      <UniqueIdentifier>{3f8b9905-ba83-40df-a319-c47c8d43e3ee}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -141,6 +144,9 @@
     </ClInclude>
     <ClInclude Include="include\mongoose\mongoose.h">
       <Filter>1.Include\mongoose</Filter>
+    </ClInclude>
+    <ClInclude Include="include\rapidjson\rapidjson.h">
+      <Filter>1.Include\rapidjson</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

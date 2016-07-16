@@ -18,6 +18,8 @@ int main(int argc, char *argv[]) {
 
    try {
       if (argc < 2) {         
+         //inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
+
          inputFiles.emplace_back("./xml/brightkite.nds.xml");
          //inputFiles.emplace_back("./xml/gowalla.nds.xml");
          
@@ -42,21 +44,17 @@ int main(int argc, char *argv[]) {
       schemas.emplace_back(str);
    }
 
-   NDSInstances& instances = NDSInstances::getInstance();
+   std::thread server(Server::run, false, 8100);
 
    std::thread instances_run(NDSInstances::run, schemas);
+   
    instances_run.join();
-
    std::cout << "Current Resident Size: " << getCurrentRSS() / (1024 * 1024) << " MB" << std::endl;
 
-   if (no_server == false) {
-      std::thread server(Server::run, false, 8100);
+   getchar();
 
-      getchar();
-
-      Server::getInstance().stop();
-      server.join();
-   }
+   Server::getInstance().stop();
+   server.join();
 
    return 0;
 }

@@ -44,31 +44,26 @@ uint32_t Temporal::build(const building_container& range, building_container& re
 
 bool Temporal::query(const Query& query, const response_container& range, response_container& response) const {
 
-   // BUG fix me
-   /*if (query.interval().find(_key) == query.where().end()) {
-      return false;
-   }*/
+   const auto interval_it = query.interval().find(_key);
 
-   /*auto lower = std::lower_bound(_container.begin(), _container.end(), interval.lower(),
-      [](const TemporalPivot& o1, const temporal_t& o2) { return o2 > o1.value(); }
-   );
+   if (interval_it == query.interval().end()) return false;
 
-   auto upper = std::lower_bound(lower, _container.end(), interval.upper(),
-      [](const TemporalPivot& o1, const temporal_t& o2) { return o2 > o1.value(); }
-   );*/
-      
-   auto lower = std::lower_bound(_container.begin(), _container.end(), query.interval().bound[0]);
-   auto upper = std::lower_bound(lower, _container.end(), query.interval().bound[1]);
+   auto it_lower_data = std::lower_bound(_container.begin(), _container.end(), (*interval_it).second.bound[0]);
+   auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), (*interval_it).second.bound[1]);
 
    for (const auto& r : range) {
-      for(auto date_it = lower; date_it != upper; ++date_it) {
-         
-         const auto pivot_it = std::lower_bound((*date_it).container.begin(), (*date_it).container.end(), r.pivot);
+      for(auto date_it = it_lower_data; date_it != it_upper_date; ++date_it) {
 
-         if (pivot_it != (*date_it).container.end() && r.pivot.contains(*pivot_it)) {
-            response.emplace_back((*pivot_it), (*date_it).date);
+         const auto& subset = (*date_it).container;
 
-            if (r.pivot.endsWith(*pivot_it)) break;
+         const auto it_lower = std::lower_bound(subset.begin(), subset.end(), r.pivot, Pivot::lower_bound_comp);
+         const auto it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
+
+         for (auto it = it_lower; it != it_upper; ++it) {
+            response.emplace_back((*it), r.value);
+
+            /*BUG remove comment*/
+            //if (r.pivot.endsWith(*it)) break;
          }
       }
    }

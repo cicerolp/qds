@@ -81,6 +81,7 @@
   <ItemGroup>
     <ClInclude Include="include\mongoose\mongoose.h" />
     <ClInclude Include="include\nadeau\ResidentSetSize.h" />
+    <ClInclude Include="include\rapidjson\rapidjson.h" />
     <ClInclude Include="source\BinnedPivot.h" />
     <ClInclude Include="source\Categorical.h" />
     <ClInclude Include="source\Data.h" />

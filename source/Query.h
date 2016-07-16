@@ -5,26 +5,26 @@
 
 class Query {
 public:
-   std::string instance() const {
+   const std::string& instance() const {
       return _instance;
    }
 
-   tile_t tile() const {
+   const std::pair<std::string, tile_t>& tile() const {
       return _tile;
    }
    const uint8_t& resolution() const {
       return _resolution;
    }
 
-   interval_t interval() const {
-      return _interval;
-   }
-
-   std::unordered_set<std::string> field() const {
+   const std::unordered_set<std::string>& field() const {
       return _field;
    }
 
-   std::unordered_map<std::string, std::vector<categorical_t>> where() const {
+   const std::unordered_map<std::string, interval_t>& interval() const {
+      return _interval;
+   }
+   
+   const std::unordered_map<std::string, std::vector<categorical_t>>& where() const {
       return _where;
    }
 
@@ -32,7 +32,9 @@ public:
 
    Query(const std::string& url);
    Query(const std::vector<std::string>& tokens);
-   
+
+   friend std::ostream& operator<< (std::ostream& stream, const Query& query);   
+
 private:
    Query(const std::string& instance, const std::string& type);
 
@@ -40,10 +42,9 @@ private:
    std::string _instance;
 
    uint8_t _resolution;
-   tile_t _tile;
-
-   interval_t _interval;
+   std::pair<std::string, tile_t> _tile;
 
    std::unordered_set<std::string> _field;
+   std::unordered_map<std::string, interval_t> _interval;
    std::unordered_map<std::string, std::vector<categorical_t>> _where;   
 };

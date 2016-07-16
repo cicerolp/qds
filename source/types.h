@@ -31,13 +31,6 @@ struct spatial_t {
    uint64_t leaf : 1;
 };
 
-template<>
-struct std::hash<spatial_t> {
-   std::size_t operator()(const spatial_t tile) const {
-      return (tile.x * ((2 << tile.z) - 1)) + tile.y;
-   }
-};
-
 struct coordinates_t { float lat, lon; };
 
 struct BinaryHeader {
@@ -45,11 +38,11 @@ struct BinaryHeader {
    uint32_t records;
 };
 
-struct tile_t {
+struct tile_t : public spatial_t {
    tile_t() = default;
 
-   tile_t(uint32_t x, uint32_t y, uint8_t z)
-      : x(x), y(y), z(z) {
+   tile_t(uint32_t x, uint32_t y, uint8_t z) :
+      spatial_t(x, y, z) {
       lat0 = mercator_util::tiley2lat(y, z);
       lon0 = mercator_util::tilex2lon(x, z);
 
@@ -61,9 +54,10 @@ struct tile_t {
       return z == spatial.z && x == spatial.x && y == spatial.y;
    }
 
-   uint64_t x : 28;
-   uint64_t y : 28;
-   uint64_t z : 5;
+   friend std::ostream& operator<< (std::ostream& stream, const tile_t& tile) {
+      stream << tile.x << "/" << tile.y << "/" << tile.z;
+      return stream;
+   }
 
    float lat0, lon0, lat1, lon1;
 };

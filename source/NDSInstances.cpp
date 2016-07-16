@@ -7,13 +7,36 @@ void NDSInstances::run(const std::vector<Schema>& args) {
 	}
 }
 
-std::string NDSInstances::query(const Query& query) {
+std::string NDSInstances::query(const Query& query) const {
 
-   auto it = _container.find(query.instance());
+   auto cube = get_instance(query.instance());
 
-   if (it == _container.end()) {
-      return ("");
+   if (!cube) {
+      return ("[]");
    } else {
-      return (*it).second->query(query);
+      return cube->query(query);
    }
+}
+
+std::string NDSInstances::schema(const std::string& instance) const {
+
+   auto cube = get_instance(instance);
+
+   if (!cube) return ("[]");
+
+   interval_t interval = cube->get_interval();
+
+   rapidjson::StringBuffer buffer;
+   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
+   writer.StartObject();
+   writer.String("totalcount");
+   writer.Int(cube->size());
+   writer.String("mindate");
+   writer.Uint(interval.bound[0]);
+   writer.String("maxdate");
+   writer.Uint(interval.bound[1]);
+   writer.EndObject();
+
+   return buffer.GetString();
 }

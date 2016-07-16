@@ -45,24 +45,23 @@ uint32_t Categorical::build(const building_container& range, building_container&
 
 bool Categorical::query(const Query& query, const response_container& range, response_container& response) const {
 
-   if (query.where().find(_key) == query.where().end()) {
-      return false;
-   }
+   const auto value_it = query.where().find(_key);
+
+   if (value_it == query.where().end()) return false;
 
    for (const auto& r : range) {
-      for (const auto& value : query.where()[_key]) {
+      for (const auto& value : (*value_it).second) {
 
-         /*const auto it = std::lower_bound(_container[value].container.begin(), _container[value].container.end(), r.pivot,
-                                          [](const Pivot& e1, const Pivot& e2) {
-                                             return e1.front() < e2.front();
-                                          });*/
+         const auto& subset = _container[value].container;
 
-         const auto pivot_it = std::lower_bound(_container[value].container.begin(), _container[value].container.end(), r.pivot);
+         const auto it_lower = std::lower_bound(subset.begin(), subset.end(), r.pivot, Pivot::lower_bound_comp);
+         const auto it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
 
-         if (pivot_it != _container[value].container.end() && r.pivot.contains(*pivot_it)) {
-            response.emplace_back((*pivot_it), value);
+         for (auto it = it_lower; it != it_upper; ++it) {
+            response.emplace_back((*it), r.value);
 
-            if (r.pivot.endsWith(*pivot_it)) break;
+            /*BUG remove comment*/
+            //if (r.pivot.endsWith(*it)) break;
          }
       }
    }
