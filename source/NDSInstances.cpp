@@ -8,5 +8,12 @@ void NDSInstances::run(const std::vector<Schema>& args) {
 }
 
 std::string NDSInstances::query(const Query& query) {
-   return std::string();
+
+   auto it = _container.find(query.instance());
+
+   if (it == _container.end()) {
+      return ("");
+   } else {
+      return (*it).second->query(query);
+   }
 }

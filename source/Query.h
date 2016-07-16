@@ -1,9 +1,33 @@
 #pragma once
 
+#include "types.h"
 #include "string_util.h"
 
 class Query {
 public:
+   std::string instance() const {
+      return _instance;
+   }
+
+   tile_t tile() const {
+      return _tile;
+   }
+   const uint8_t& resolution() const {
+      return _resolution;
+   }
+
+   interval_t interval() const {
+      return _interval;
+   }
+
+   std::unordered_set<std::string> field() const {
+      return _field;
+   }
+
+   std::unordered_map<std::string, std::vector<categorical_t>> where() const {
+      return _where;
+   }
+
    enum QueryType { TILE, GROUP, TSERIES, SCATTER, MYSQL, REGION };
 
    Query(const std::string& url);
@@ -15,8 +39,11 @@ private:
    QueryType _type;
    std::string _instance;
 
-   std::unordered_set<std::string> _field;
-   std::unordered_map<std::string, std::vector<categorical_t>> _where;
+   uint8_t _resolution;
+   tile_t _tile;
 
-   inline std::string nextToken(std::vector<std::string>::const_iterator& it) { return  *(++it); }
+   interval_t _interval;
+
+   std::unordered_set<std::string> _field;
+   std::unordered_map<std::string, std::vector<categorical_t>> _where;   
 };

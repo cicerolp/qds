@@ -4,11 +4,18 @@
 
 class BinnedPivot {
 public:
+   BinnedPivot() = default;
+
    BinnedPivot(const Pivot& pivot, const uint64_t& value)
       : pivot(pivot), value(value) {}
-   
-   const Pivot pivot;
-   const uint64_t value;
+
+   BinnedPivot(const BinnedPivot& other) = default;
+   BinnedPivot(BinnedPivot&& other) = default;
+   BinnedPivot& operator=(const BinnedPivot& other) = default;
+   BinnedPivot& operator=(BinnedPivot&& other) = default;
+
+   Pivot pivot;
+   uint64_t value;
 };
 
 using response_container = std::vector<BinnedPivot>;

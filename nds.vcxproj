@@ -105,6 +105,8 @@
     <ClCompile Include="include\mongoose\mongoose.c">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">TurnOffAllWarnings</WarningLevel>
+      <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="source\Categorical.cpp" />
@@ -121,6 +123,19 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="WebContent\css\styles.css" />
+    <None Include="WebContent\index.html" />
+    <None Include="WebContent\js\global.js" />
+    <None Include="WebContent\js\histogram.js" />
+    <None Include="WebContent\js\leaflet-hashedcubes.js" />
+    <None Include="WebContent\js\linechart.js" />
+    <None Include="WebContent\js\loadmap.js" />
+    <None Include="WebContent\js\loadui.js" />
+    <None Include="WebContent\js\scatterchart.js" />
+    <None Include="WebContent\js\sql.js" />
+    <None Include="WebContent\js\view_schemas.js" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

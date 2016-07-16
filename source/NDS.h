@@ -4,6 +4,7 @@
 #include "Query.h"
 #include "Pivot.h"
 #include "Schema.h"
+#include "BinnedPivot.h"
 
 #include "Spatial.h"
 #include "Categorical.h"
@@ -16,8 +17,10 @@ public:
 
    std::string query(const Query& query);
 
-private:
+private:   
+   std::vector<std::unique_ptr<Categorical>> _categorical;
+   std::vector<std::unique_ptr<Temporal>> _temporal;
    std::unique_ptr<Spatial> _spatial;
-   std::map<std::string, std::unique_ptr<Categorical>> _categorical;
-   std::map<std::string, std::unique_ptr<Temporal>> _temporal;
+
+   BinnedPivot _root;
 };

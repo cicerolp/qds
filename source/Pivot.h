@@ -5,6 +5,8 @@
 
 class Pivot {
 public:
+   Pivot() = default;
+
 	Pivot(uint32_t first, uint32_t second) : _pivot({ first, second }) { };
 
 	Pivot(const Pivot&) = default;
@@ -20,11 +22,11 @@ public:
 	inline bool operator< (const Pivot& other) const;
 	inline bool operator> (const Pivot& other) const;
 
-	// implicit conversion
-	inline operator const Pivot*() const;
+   inline bool contains(const Pivot& other) const;
+   inline bool endsWith(const Pivot& other) const;
 
-	inline bool endAfter(const Pivot& other) const;
-	inline bool endBefore(const Pivot& other) const;
+   // implicit conversion
+	inline operator const Pivot*() const;
 
 protected:
 	std::array<uint32_t, 2> _pivot;
@@ -61,14 +63,14 @@ bool Pivot::operator>(const Pivot& other) const {
 	return back() > other.front();
 }
 
+bool Pivot::contains(const Pivot& other) const {
+   return front() <= other.front() && back() >= other.back();
+}
+
+bool Pivot::endsWith(const Pivot& other) const {
+   return back() == other.back();
+}
+
 Pivot::operator const Pivot*() const {
 	return this;
-}
-
-bool Pivot::endAfter(const Pivot& other) const {
-	return back() > other.front();
-}
-
-bool Pivot::endBefore(const Pivot& other) const {
-	return back() <= other.front();
 }

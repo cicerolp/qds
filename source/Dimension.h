@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Data.h"
+#include "Query.h"
 #include "Pivot.h"
+#include "BinnedPivot.h"
 
 class Dimension {
 public:
@@ -9,6 +11,7 @@ public:
       : _key(key), _bin(bin), _offset(offset){ }
 	virtual ~Dimension() = default;
 
+   virtual bool query(const Query& query, const response_container& range, response_container& response) const = 0;
    virtual uint32_t build(const building_container& range, building_container& response, Data& data) = 0;
 
 protected:

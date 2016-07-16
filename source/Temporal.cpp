@@ -41,3 +41,37 @@ uint32_t Temporal::build(const building_container& range, building_container& re
 
    return pivots_count;
 }
+
+bool Temporal::query(const Query& query, const response_container& range, response_container& response) const {
+
+   // BUG fix me
+   /*if (query.interval().find(_key) == query.where().end()) {
+      return false;
+   }*/
+
+   /*auto lower = std::lower_bound(_container.begin(), _container.end(), interval.lower(),
+      [](const TemporalPivot& o1, const temporal_t& o2) { return o2 > o1.value(); }
+   );
+
+   auto upper = std::lower_bound(lower, _container.end(), interval.upper(),
+      [](const TemporalPivot& o1, const temporal_t& o2) { return o2 > o1.value(); }
+   );*/
+      
+   auto lower = std::lower_bound(_container.begin(), _container.end(), query.interval().bound[0]);
+   auto upper = std::lower_bound(lower, _container.end(), query.interval().bound[1]);
+
+   for (const auto& r : range) {
+      for(auto date_it = lower; date_it != upper; ++date_it) {
+         
+         const auto pivot_it = std::lower_bound((*date_it).container.begin(), (*date_it).container.end(), r.pivot);
+
+         if (pivot_it != (*date_it).container.end() && r.pivot.contains(*pivot_it)) {
+            response.emplace_back((*pivot_it), (*date_it).date);
+
+            if (r.pivot.endsWith(*pivot_it)) break;
+         }
+      }
+   }
+
+   return true;
+}

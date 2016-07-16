@@ -30,6 +30,12 @@
     <Filter Include="1.Include\mongoose">
       <UniqueIdentifier>{399fceb5-f278-47e2-92ec-10195a38ada3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="3.WebContent\js">
+      <UniqueIdentifier>{e982f247-6fd0-4ce2-b5ba-5b9b9a82af23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="3.WebContent\css">
+      <UniqueIdentifier>{e5e3cc6f-db54-4a6b-aacd-3b9b4d4ccc01}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -136,5 +142,40 @@
     <ClInclude Include="include\mongoose\mongoose.h">
       <Filter>1.Include\mongoose</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="WebContent\index.html">
+      <Filter>3.WebContent</Filter>
+    </None>
+    <None Include="WebContent\js\global.js">
+      <Filter>3.WebContent\js</Filter>
+    </None>
+    <None Include="WebContent\js\histogram.js">
+      <Filter>3.WebContent\js</Filter>
+    </None>
+    <None Include="WebContent\js\leaflet-hashedcubes.js">
+      <Filter>3.WebContent\js</Filter>
+    </None>
+    <None Include="WebContent\js\linechart.js">
+      <Filter>3.WebContent\js</Filter>
+    </None>
+    <None Include="WebContent\js\loadmap.js">
+      <Filter>3.WebContent\js</Filter>
+    </None>
+    <None Include="WebContent\js\loadui.js">
+      <Filter>3.WebContent\js</Filter>
+    </None>
+    <None Include="WebContent\js\scatterchart.js">
+      <Filter>3.WebContent\js</Filter>
+    </None>
+    <None Include="WebContent\js\sql.js">
+      <Filter>3.WebContent\js</Filter>
+    </None>
+    <None Include="WebContent\js\view_schemas.js">
+      <Filter>3.WebContent\js</Filter>
+    </None>
+    <None Include="WebContent\css\styles.css">
+      <Filter>3.WebContent\css</Filter>
+    </None>
   </ItemGroup>
 </Project>

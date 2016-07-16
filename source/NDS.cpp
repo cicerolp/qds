@@ -22,14 +22,17 @@ NDS::NDS(const Schema& schema) {
    //current = cube->root();
    current.emplace_back(0, data.size());
 
+   // BUG fix root pivot
+   _root = BinnedPivot(Pivot(0, data.size()), 0);
+
    // categorical
    for (const auto& tuple : schema.categorical) {
 
       std::cout << "\tBuilding Categorical Dimension: " + std::get<0>(tuple) + " ... ";
 
-      _categorical.emplace(std::get<0>(tuple), std::make_unique<Categorical>(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple)));
+      _categorical.emplace_back(std::make_unique<Categorical>(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple)));
 
-      uint32_t curr_count = _categorical[std::get<0>(tuple)]->build(current, expand, data);
+      uint32_t curr_count = _categorical.back()->build(current, expand, data);
       pivots_count += curr_count;
 
       current.swap(expand);
@@ -43,9 +46,9 @@ NDS::NDS(const Schema& schema) {
 
       std::cout << "\tBuilding Temporal Dimension: " + std::get<0>(tuple) + " ... ";
 
-      _temporal.emplace(std::get<0>(tuple), std::make_unique<Temporal>(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple)));
+      _temporal.emplace_back(std::make_unique<Temporal>(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple)));
 
-      uint32_t curr_count = _temporal[std::get<0>(tuple)]->build(current, expand, data);
+      uint32_t curr_count = _temporal.back()->build(current, expand, data);
       pivots_count += curr_count;
 
       current.swap(expand);
@@ -81,5 +84,39 @@ NDS::NDS(const Schema& schema) {
 }
 
 std::string NDS::query(const Query& query) {
-   return " ";
+
+   /*
+   std::map<std::string, std::unique_ptr<Categorical>> _categorical;
+   std::map<std::string, std::unique_ptr<Temporal>> _temporal;
+   std::unique_ptr<Spatial> _spatial;
+   */
+
+   response_container range, response;
+   range.emplace_back(_root);
+
+   for (const auto& d : _categorical) {
+      if (d->query(query, range, response)) {
+         range.swap(response);
+         response.clear();
+      }
+   }
+
+   for (const auto& d : _temporal) {
+      if (d->query(query, range, response)) {
+         range.swap(response);
+         response.clear();
+      }
+   }
+
+   if (_spatial->query(query, range, response)) {
+      range.swap(response);
+      response.clear();
+   }
+
+   for (const auto& ptr : range) {
+      std::cout << ptr.pivot;
+   }
+   std::cout << std::endl;
+
+   return ("");
 }
