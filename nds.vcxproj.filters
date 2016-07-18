@@ -39,6 +39,9 @@
     <Filter Include="1.Include\rapidjson">
       <UniqueIdentifier>{3f8b9905-ba83-40df-a319-c47c8d43e3ee}</UniqueIdentifier>
     </Filter>
+    <Filter Include="2.Source Files\pivots">
+      <UniqueIdentifier>{f4f9046b-3b36-4277-9417-a5e5abb612ac}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -80,6 +83,9 @@
     <ClCompile Include="include\mongoose\mongoose.c">
       <Filter>1.Include\mongoose</Filter>
     </ClCompile>
+    <ClCompile Include="source\Pivot.cpp">
+      <Filter>2.Source Files\pivots</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -99,9 +105,6 @@
     </ClInclude>
     <ClInclude Include="source\types.h">
       <Filter>2.Source Files\util</Filter>
-    </ClInclude>
-    <ClInclude Include="source\Pivot.h">
-      <Filter>2.Source Files\core</Filter>
     </ClInclude>
     <ClInclude Include="source\NDS.h">
       <Filter>2.Source Files</Filter>
@@ -136,9 +139,6 @@
     <ClInclude Include="source\SpatialElement.h">
       <Filter>2.Source Files\core</Filter>
     </ClInclude>
-    <ClInclude Include="source\BinnedPivot.h">
-      <Filter>2.Source Files\core</Filter>
-    </ClInclude>
     <ClInclude Include="source\Server.h">
       <Filter>2.Source Files</Filter>
     </ClInclude>
@@ -147,6 +147,12 @@
     </ClInclude>
     <ClInclude Include="include\rapidjson\rapidjson.h">
       <Filter>1.Include\rapidjson</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Pivot.h">
+      <Filter>2.Source Files\pivots</Filter>
+    </ClInclude>
+    <ClInclude Include="source\BinnedPivot.h">
+      <Filter>2.Source Files\pivots</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -44,13 +44,16 @@ int main(int argc, char *argv[]) {
       schemas.emplace_back(str);
    }
 
+   // http server
    std::thread server(Server::run, false, 8100);
 
+   // nds instances
    std::thread instances_run(NDSInstances::run, schemas);
    
    instances_run.join();
    std::cout << "Current Resident Size: " << getCurrentRSS() / (1024 * 1024) << " MB" << std::endl;
 
+   std::cout << "Server Running..." << std::endl;
    getchar();
 
    Server::getInstance().stop();

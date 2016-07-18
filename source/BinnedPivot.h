@@ -6,6 +6,9 @@ class BinnedPivot {
 public:
    BinnedPivot() = default;
 
+   BinnedPivot(const Pivot& pivot)
+      : pivot(pivot) {}
+
    BinnedPivot(const Pivot& pivot, const uint64_t& value)
       : pivot(pivot), value(value) {}
 

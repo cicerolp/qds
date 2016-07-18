@@ -104,7 +104,7 @@ std::string NDS::query(const Query& query) {
       swap_and_sort(range, response);
    }
 
-   rapidjson::StringBuffer buffer;
+   /*rapidjson::StringBuffer buffer;
    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 
    int count = 0;
@@ -119,5 +119,7 @@ std::string NDS::query(const Query& query) {
    writer.Uint(count);
    writer.EndArray();
 
-   return buffer.GetString();
+   return buffer.GetString();*/
+
+   return std::to_string(range.size());
 }

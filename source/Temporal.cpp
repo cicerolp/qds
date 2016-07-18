@@ -59,12 +59,19 @@ bool Temporal::query(const Query& query, const response_container& range, respon
          const auto it_lower = std::lower_bound(subset.begin(), subset.end(), r.pivot, Pivot::lower_bound_comp);
          const auto it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
 
-         for (auto it = it_lower; it != it_upper; ++it) {
-            response.emplace_back((*it), r.value);
+         // case 0
+         response.insert(response.end(), it_lower, it_upper);
 
-            /*BUG remove comment*/
-            //if (r.pivot.endsWith(*it)) break;
-         }
+         // case 1
+         /*const uint64_t& rvalue = r.value;
+         std::transform(it_lower, it_upper, std::back_inserter(response), [rvalue](const Pivot& p) { return BinnedPivot(p, rvalue); });*/
+
+         // case 2
+         /*const uint64_t& rvalue = (*date_it).date;
+         std::transform(it_lower, it_upper, std::back_inserter(response), [rvalue](const Pivot& p) { return BinnedPivot(p, rvalue); });*/
+
+         // BUG remove comment
+         //if (r.pivot.endsWith(*it)) break;
       }
    }
 

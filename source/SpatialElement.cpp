@@ -43,20 +43,20 @@ uint32_t SpatialElement::build(const Pivot& range, Data& data, uint8_t zoom) {
          accum += pair.second;
          uint32_t second = accum;
 
-         /*if (_container[pair.first] == nullptr && range.size() > 1) {
+         if (_container[pair.first] == nullptr && range.size() > 1) {
             _container[pair.first] = std::make_unique<SpatialElement>(pair.first);
             pivots_count += _container[pair.first]->expand((*this), Pivot(first, second), data, zoom);
 
          } else if (_container[pair.first] != nullptr) {
             pivots_count += _container[pair.first]->build(Pivot(first, second), data, zoom);
-         }*/
+         }
 
-         if (_container[pair.first] == nullptr) {
+         /*if (_container[pair.first] == nullptr) {
             _container[pair.first] = std::make_unique<SpatialElement>(pair.first);
          }
-         pivots_count += _container[pair.first]->build(Pivot(first, second), data, zoom);
+         pivots_count += _container[pair.first]->build(Pivot(first, second), data, zoom);*/
       }
-   }
+   }  
 
    return pivots_count;
 }
@@ -111,7 +111,8 @@ void SpatialElement::query(const Query& query, std::vector<const SpatialElement*
 
 void SpatialElement::aggregate_tile(const Query& query, std::vector<const SpatialElement*>& subset) const {
 
-   if (_tile.leaf || _tile.z == query.resolution() /*(_tile.z == query.tile().second.z + query.resolution())*/) {
+   /*BUG fix last node*/
+   if (_tile.leaf || (_tile.z == query.tile().second.z + query.resolution())) {
       subset.emplace_back(this);
    } else {
       if (_container[0] != nullptr) _container[0]->aggregate_tile(query, subset);

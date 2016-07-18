@@ -3,6 +3,8 @@
 #include "stdafx.h"
 #include "types.h"
 
+class BinnedPivot;
+
 class Pivot {
 public:
    Pivot() = default;
@@ -26,8 +28,8 @@ public:
 
    // implicit conversion
 	inline operator const Pivot*() const;
-
    inline operator std::string() const;
+   operator BinnedPivot() const;
 
    static inline bool lower_bound_comp(const Pivot& lhs, const Pivot& rhs);
    static inline bool upper_bound_comp(const Pivot& lhs, const Pivot& rhs);
