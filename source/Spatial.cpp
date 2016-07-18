@@ -9,7 +9,7 @@ uint32_t Spatial::build(const building_container& range, building_container& res
    uint32_t pivots_count = 0;
 
    for (const auto& ptr : range) {
-      pivots_count += _container.build(ptr, data, 0);
+      pivots_count += _container.build(ptr, data);
    }
 
    return pivots_count;

@@ -8,33 +8,69 @@ SpatialElement::SpatialElement(const spatial_t& tile)
    _tile.leaf = 1;
 }
 
-uint32_t SpatialElement::build(const Pivot& range, Data& data, uint8_t zoom) {
+uint32_t SpatialElement::expand(Data& data) {
+
+   if (_tile.leaf == 0) return 0;
+
+   uint32_t pivots_count = 0;
+   uint8_t next_level = _tile.z + 1;
+
+   std::map<spatial_t, std::vector<Pivot>> used;
+   for (const auto& ptr : _pivots) {
+      if (ptr.size() == 1) {
+         coordinates_t value = data.record<coordinates_t>(ptr.front(), 0 /*BUG fix offset*/);
+
+         auto y = mercator_util::lat2tiley(value.lat, next_level);
+         auto x = mercator_util::lon2tilex(value.lon, next_level);
+
+         spatial_t tile(x, y, next_level);
+         if (_container[tile] == nullptr) {
+            used[tile].emplace_back(ptr);
+         }
+      }
+   }
+
+   for (const auto& pair : used) {
+      _container[pair.first] = std::make_unique<SpatialElement>(pair.first);
+      _container[pair.first]->_pivots.insert(_container[pair.first]->_pivots.end(), pair.second.begin(), pair.second.end());
+
+      pivots_count += static_cast<uint32_t>(pair.second.size());
+   }
+
+   _tile.leaf = 0;
+   return pivots_count;
+}
+
+uint32_t SpatialElement::build(const Pivot& pivot, Data& data) {
 
    uint32_t pivots_count = 1;
-   _pivots.emplace_back(range);
+   uint8_t next_level = _tile.z + 1;
 
-   // increment zoom
-   zoom += 1;
+   if (next_level < max_levels) {
 
-   if (zoom < max_levels) {
+      // first expand, then add current pivot
+      if (_pivots.size() > 0) expand(data);
+
+      _pivots.emplace_back(pivot);
+
       std::map<spatial_t, uint32_t> used;
 
-      for (auto i = range.front(); i < range.back(); ++i) {
+      for (auto i = pivot.front(); i < pivot.back(); ++i) {
          coordinates_t value = data.record<coordinates_t>(i, 0 /*BUG fix offset*/);
 
-         auto y = mercator_util::lat2tiley(value.lat, zoom);
-         auto x = mercator_util::lon2tilex(value.lon, zoom);
+         auto y = mercator_util::lat2tiley(value.lat, next_level);
+         auto x = mercator_util::lon2tilex(value.lon, next_level);
 
-         spatial_t tile(x, y, zoom);
+         spatial_t tile(x, y, next_level);
 
          data.setHash(i, tile);
          used[tile]++;
       }
 
       // sorting
-      data.sort(range.front(), range.back());
+      data.sort(pivot.front(), pivot.back());
 
-      uint32_t accum = range.front();
+      uint32_t accum = pivot.front();
       for (const auto& pair : used) {
 
          if (pair.second == 0) continue;
@@ -43,46 +79,24 @@ uint32_t SpatialElement::build(const Pivot& range, Data& data, uint8_t zoom) {
          accum += pair.second;
          uint32_t second = accum;
 
-         if (_container[pair.first] == nullptr && range.size() > 1) {
-            _container[pair.first] = std::make_unique<SpatialElement>(pair.first);
-            pivots_count += _container[pair.first]->expand((*this), Pivot(first, second), data, zoom);
-
-         } else if (_container[pair.first] != nullptr) {
-            pivots_count += _container[pair.first]->build(Pivot(first, second), data, zoom);
-         }
-
          /*if (_container[pair.first] == nullptr) {
             _container[pair.first] = std::make_unique<SpatialElement>(pair.first);
          }
-         pivots_count += _container[pair.first]->build(Pivot(first, second), data, zoom);*/
-      }
-   }  
+         pivots_count += _container[pair.first]->build(Pivot(first, second), data);*/
 
-   return pivots_count;
-}
+         if (_container[pair.first] == nullptr && ((second - first) > 1 || _pivots.size() > 1 || _pivots.front().size() > 1)) {
+            _container[pair.first] = std::make_unique<SpatialElement>(pair.first);
+         }
 
-uint32_t SpatialElement::expand(SpatialElement& parent, const Pivot& pivot, Data& data, uint8_t zoom) {
-
-   uint32_t pivots_count = 0;
-
-   for (const auto& ptr : parent._pivots) {
-      if (ptr.size() == 1) {
-
-         coordinates_t value = data.record<coordinates_t>(ptr.front(), 0 /*BUG fix offset*/);
-
-         auto y = mercator_util::lat2tiley(value.lat, zoom);
-         auto x = mercator_util::lon2tilex(value.lon, zoom);
-
-         if (spatial_t(x, y, zoom) == _tile) {
-            _pivots.emplace_back(ptr);
-            pivots_count += 1;
+         if (_container[pair.first] != nullptr) {
+            pivots_count += _container[pair.first]->build(Pivot(first, second), data);
          }
       }
+   } else {
+      _pivots.emplace_back(pivot);
    }
 
-   parent._tile.leaf = 0;
-
-   return pivots_count + build(pivot, data, zoom);
+   return pivots_count;
 }
 
 void SpatialElement::query(const Query& query, std::vector<const SpatialElement*>& subset) const {

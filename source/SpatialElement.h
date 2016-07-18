@@ -9,7 +9,7 @@ public:
    SpatialElement(const spatial_t& tile);
    ~SpatialElement() = default;
 
-   uint32_t build(const Pivot& range, Data& data, uint8_t zoom);
+   uint32_t build(const Pivot& pivot, Data& data);
    void query(const Query& query, std::vector<const SpatialElement*>& subset) const;
 
    inline const spatial_t& tile() const {
@@ -20,7 +20,8 @@ public:
    }
 
 private:
-   uint32_t expand(SpatialElement& parent, const Pivot& pivot, Data& data, uint8_t zoom);
+   uint32_t expand(Data& data);
+
    void aggregate_tile(const Query& query, std::vector<const SpatialElement*>& subset) const;
 
    static const uint32_t max_levels{ 25 };
