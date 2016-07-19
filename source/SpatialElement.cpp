@@ -4,9 +4,7 @@
 #include "mercator_util.h"
 
 SpatialElement::SpatialElement(const spatial_t& tile)
-   : value(tile) {
-   value.leaf = 1;
-}
+   : value(tile) { }
 
 uint32_t SpatialElement::expand(Data& data, const uint8_t offset) {
 

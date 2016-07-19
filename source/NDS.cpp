@@ -18,11 +18,8 @@ NDS::NDS(const Schema& schema) {
 
    building_container current, expand;
 
-   //TODO
-   //current = cube->root();
    current.emplace_back(0, data.size());
 
-   // BUG fix root pivot
    _root = BinnedPivot(Pivot(0, data.size()), 0);
 
    // categorical
@@ -85,8 +82,8 @@ NDS::NDS(const Schema& schema) {
 
 std::string NDS::query(const Query& query) {
 
-   std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
-   start = std::chrono::high_resolution_clock::now();
+   /*std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+   start = std::chrono::high_resolution_clock::now();*/
 
    response_container range, response;
    range.emplace_back(_root);
@@ -128,10 +125,10 @@ std::string NDS::query(const Query& query) {
    }   
    writer.EndArray();
 
-   end = std::chrono::high_resolution_clock::now();
+   /*end = std::chrono::high_resolution_clock::now();
    long long duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-   std::cout << "\tDuration: " + std::to_string(duration) + "ms\n" << std::endl;
+   std::cout << "\tDuration: " + std::to_string(duration) + "ms\n" << std::endl;*/
 
    return buffer.GetString();
 }

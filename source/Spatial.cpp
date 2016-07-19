@@ -22,6 +22,16 @@ bool Spatial::query(const Query& query, const response_container& range, respons
    std::vector<const SpatialElement*> subset;
    _container.query(query, subset);
 
+   int count = 0;
+   for (const auto& el : subset) {
+      for (auto ptr : el->pivots) {
+         count += ptr.size();
+      }
+   }
+
+   std::cout <<  "summed value:  " << count << std::endl
+   ;
+
    for (const auto& r : range) {
       for (const auto& el : subset) {
 

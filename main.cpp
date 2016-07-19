@@ -54,7 +54,7 @@ int main(int argc, char *argv[]) {
    std::cout << "Current Resident Size: " << getCurrentRSS() / (1024 * 1024) << " MB" << std::endl;
 
    /*Query query("/rest/query/brightkite/tile/tile/0/0/0/0/8");
-   for (int i = 0; i < 1000; ++i) {
+   for (int i = 0; i < 100; ++i) {
       NDSInstances::getInstance().query(query);
    }*/
 

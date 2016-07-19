@@ -7,7 +7,7 @@ typedef uint8_t categorical_t;
 typedef uint32_t temporal_t;
 
 struct spatial_t {
-   spatial_t(uint32_t _x, uint32_t _y, uint8_t _z, uint8_t _l = 0)
+   spatial_t(uint32_t _x, uint32_t _y, uint8_t _z, uint8_t _l = 1)
       : x(_x), y(_y), z(_z), leaf(_l) {
       index = mercator_util::get_index(x, y);
    }
