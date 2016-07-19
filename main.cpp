@@ -20,8 +20,8 @@ int main(int argc, char *argv[]) {
       if (argc < 2) {         
          //inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
 
-         //inputFiles.emplace_back("./xml/brightkite.nds.xml");
-         inputFiles.emplace_back("./xml/gowalla.nds.xml");
+         inputFiles.emplace_back("./xml/brightkite.nds.xml");
+         //inputFiles.emplace_back("./xml/gowalla.nds.xml");
          
          //inputFiles.emplace_back("./xml/delay.nds.xml");
          //inputFiles.emplace_back("./xml/performance.nds.xml");
@@ -52,6 +52,11 @@ int main(int argc, char *argv[]) {
    
    instances_run.join();
    std::cout << "Current Resident Size: " << getCurrentRSS() / (1024 * 1024) << " MB" << std::endl;
+
+   /*Query query("/rest/query/brightkite/tile/tile/0/0/0/0/8");
+   for (int i = 0; i < 1000; ++i) {
+      NDSInstances::getInstance().query(query);
+   }*/
 
    std::cout << "Server Running..." << std::endl;
    getchar();

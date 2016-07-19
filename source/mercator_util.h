@@ -2,7 +2,7 @@
 #include "stdafx.h"
 
 namespace mercator_util {
-   inline uint32_t get_index(uint32_t x, uint32_t y) {
+   inline uint8_t get_index(uint32_t x, uint32_t y) {
       if (x % 2 == 0) {
          if (y % 2 == 0) return 0;
          else return 1;

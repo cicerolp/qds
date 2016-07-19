@@ -4,21 +4,21 @@
 #include "mercator_util.h"
 
 SpatialElement::SpatialElement(const spatial_t& tile)
-   : _tile(tile) {
-   _tile.leaf = 1;
+   : value(tile) {
+   value.leaf = 1;
 }
 
-uint32_t SpatialElement::expand(Data& data) {
+uint32_t SpatialElement::expand(Data& data, const uint8_t offset) {
 
-   if (_tile.leaf == 0) return 0;
+   if (value.leaf == 0) return 0;
 
    uint32_t pivots_count = 0;
-   uint8_t next_level = _tile.z + 1;
+   uint8_t next_level = value.z + 1;
 
    std::map<spatial_t, std::vector<Pivot>> used;
-   for (const auto& ptr : _pivots) {
+   for (const auto& ptr : pivots) {
       if (ptr.size() == 1) {
-         coordinates_t value = data.record<coordinates_t>(ptr.front(), 0 /*BUG fix offset*/);
+         coordinates_t value = data.record<coordinates_t>(ptr.front(), offset);
 
          auto y = mercator_util::lat2tiley(value.lat, next_level);
          auto x = mercator_util::lon2tilex(value.lon, next_level);
@@ -32,31 +32,31 @@ uint32_t SpatialElement::expand(Data& data) {
 
    for (const auto& pair : used) {
       _container[pair.first] = std::make_unique<SpatialElement>(pair.first);
-      _container[pair.first]->_pivots.insert(_container[pair.first]->_pivots.end(), pair.second.begin(), pair.second.end());
+      _container[pair.first]->pivots.insert(_container[pair.first]->pivots.end(), pair.second.begin(), pair.second.end());
 
       pivots_count += static_cast<uint32_t>(pair.second.size());
    }
 
-   _tile.leaf = 0;
+   value.leaf = 0;
    return pivots_count;
 }
 
-uint32_t SpatialElement::build(const Pivot& pivot, Data& data) {
+uint32_t SpatialElement::build(const Pivot& pivot, Data& data, const uint8_t offset) {
 
    uint32_t pivots_count = 1;
-   uint8_t next_level = _tile.z + 1;
+   uint8_t next_level = value.z + 1;
 
    if (next_level < max_levels) {
 
       // first expand, then add current pivot
-      if (_pivots.size() > 0) expand(data);
+      if (pivots.size() > 0) expand(data, offset);
 
-      _pivots.emplace_back(pivot);
+      pivots.emplace_back(pivot);
 
       std::map<spatial_t, uint32_t> used;
 
       for (auto i = pivot.front(); i < pivot.back(); ++i) {
-         coordinates_t value = data.record<coordinates_t>(i, 0 /*BUG fix offset*/);
+         coordinates_t value = data.record<coordinates_t>(i, offset);
 
          auto y = mercator_util::lat2tiley(value.lat, next_level);
          auto x = mercator_util::lon2tilex(value.lon, next_level);
@@ -84,16 +84,16 @@ uint32_t SpatialElement::build(const Pivot& pivot, Data& data) {
          }
          pivots_count += _container[pair.first]->build(Pivot(first, second), data);*/
 
-         if (_container[pair.first] == nullptr && ((second - first) > 1 || _pivots.size() > 1 || _pivots.front().size() > 1)) {
+         if (_container[pair.first] == nullptr && ((second - first) > 1 || pivots.size() > 1 || pivots.front().size() > 1)) {
             _container[pair.first] = std::make_unique<SpatialElement>(pair.first);
          }
 
          if (_container[pair.first] != nullptr) {
-            pivots_count += _container[pair.first]->build(Pivot(first, second), data);
+            pivots_count += _container[pair.first]->build(Pivot(first, second), data, offset);
          }
       }
    } else {
-      _pivots.emplace_back(pivot);
+      pivots.emplace_back(pivot);
    }
 
    return pivots_count;
@@ -102,16 +102,16 @@ uint32_t SpatialElement::build(const Pivot& pivot, Data& data) {
 void SpatialElement::query(const Query& query, std::vector<const SpatialElement*>& subset) const {
 
    /*BUG fix last node*/
-   if (query.tile().second == _tile /* || (last() && util::intersects(_pivot.value(), query.getTile(d)))*/) {
+   if (query.tile().second == value /* || (last() && util::intersects(_pivot.value(), query.getTile(d)))*/) {
       return aggregate_tile(query, subset);
 
-   } else if (_tile.z < query.tile().second.z) {
-      const uint32_t n = static_cast<uint32_t>(std::pow(2, query.tile().second.z - _tile.z));
+   } else if (value.z < query.tile().second.z) {
+      const uint32_t n = static_cast<uint32_t>(std::pow(2, query.tile().second.z - value.z));
 
-      const uint32_t x0 = static_cast<uint32_t>(_tile.x) * n;
+      const uint32_t x0 = static_cast<uint32_t>(value.x) * n;
       const uint32_t x1 = x0 + n;
 
-      const uint32_t y0 = static_cast<uint32_t>(_tile.y) * n;
+      const uint32_t y0 = static_cast<uint32_t>(value.y) * n;
       const uint32_t y1 = y0 + n;
 
       if (x0 <= query.tile().second.x && x1 >= query.tile().second.x && y0 <= query.tile().second.y && y1 >= query.tile().second.y) {
@@ -125,8 +125,7 @@ void SpatialElement::query(const Query& query, std::vector<const SpatialElement*
 
 void SpatialElement::aggregate_tile(const Query& query, std::vector<const SpatialElement*>& subset) const {
 
-   /*BUG fix last node*/
-   if (_tile.leaf || (_tile.z == query.tile().second.z + query.resolution())) {
+   if (value.leaf || (value.z == query.tile().second.z + query.resolution())) {
       subset.emplace_back(this);
    } else {
       if (_container[0] != nullptr) _container[0]->aggregate_tile(query, subset);

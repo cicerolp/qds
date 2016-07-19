@@ -29,9 +29,9 @@ public:
    }
 
 private:
-   static inline void swap_and_sort(response_container& range, response_container& response) {
+   static inline void swap_and_clear(response_container& range, response_container& response) {
       range.swap(response);      
-      std::sort(range.begin(), range.end());
+      //std::sort(range.begin(), range.end());
       response.clear();
    }
 

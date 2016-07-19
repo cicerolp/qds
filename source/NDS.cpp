@@ -85,41 +85,53 @@ NDS::NDS(const Schema& schema) {
 
 std::string NDS::query(const Query& query) {
 
+   std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
+   start = std::chrono::high_resolution_clock::now();
+
    response_container range, response;
    range.emplace_back(_root);
 
    for (const auto& d : _categorical) {
       if (d->query(query, range, response)) {
-         swap_and_sort(range, response);
+         swap_and_clear(range, response);
       }
    }
 
    for (const auto& d : _temporal) {
       if (d->query(query, range, response)) {
-         swap_and_sort(range, response);
+         swap_and_clear(range, response);
       }
    }
 
    if (_spatial->query(query, range, response)) {
-      swap_and_sort(range, response);
+      swap_and_clear(range, response);
    }
 
-   /*rapidjson::StringBuffer buffer;
+   std::unordered_map<uint64_t, uint32_t> map;
+
+   for (const auto& ptr : range) {
+      map[ptr.value] += ptr.pivot.size();
+   }
+
+   // serialization
+   rapidjson::StringBuffer buffer;
    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 
-   int count = 0;
-
    writer.StartArray();
-   for (const auto& ptr : range) {
-      writer.String(static_cast<std::string>(ptr.pivot).c_str());
-
-      count += ptr.pivot.size();
-   }
-
-   writer.Uint(count);
+   for (const auto& pair : map) {
+      writer.StartArray();
+      writer.Uint((*(spatial_t*)&pair.first).x);
+      writer.Uint((*(spatial_t*)&pair.first).y);
+      writer.Uint((*(spatial_t*)&pair.first).z);
+      writer.Uint(pair.second);
+      writer.EndArray();
+   }   
    writer.EndArray();
 
-   return buffer.GetString();*/
+   end = std::chrono::high_resolution_clock::now();
+   long long duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
-   return std::to_string(range.size());
+   std::cout << "\tDuration: " + std::to_string(duration) + "ms\n" << std::endl;
+
+   return buffer.GetString();
 }
