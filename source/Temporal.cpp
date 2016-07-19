@@ -15,7 +15,7 @@ uint32_t Temporal::build(const building_container& range, building_container& re
       for (auto i = ptr.front(); i < ptr.back(); ++i) {
          temporal_t value = data.record<temporal_t>(i, _offset);
          value = (temporal_t)(std::floor(value / (float)_bin) * (float)_bin);
-         
+
          data.setHash(i, value);
          used[value]++;
       }
@@ -42,34 +42,60 @@ uint32_t Temporal::build(const building_container& range, building_container& re
    return pivots_count;
 }
 
-bool Temporal::query(const Query& query, const response_container& range, response_container& response) const {
+bool Temporal::query(const Query& query, const response_container& range, response_container& response, bool& pass_over_target) const {
 
    const auto interval_it = query.interval().find(_key);
 
    if (interval_it == query.interval().end()) return false;
 
+   // TODO wrap method
+   if (query.type() != Query::TSERIES
+      && _container.front().date <= (*interval_it).second.bound[0]
+      && _container.back().date >= (*interval_it).second.bound[1])
+      return false;
+
    auto it_lower_data = std::lower_bound(_container.begin(), _container.end(), (*interval_it).second.bound[0]);
    auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), (*interval_it).second.bound[1]);
 
+   std::unordered_map<const TemporalElement*, building_iterator> iters;
+   for (auto date_it = it_lower_data; date_it != it_upper_date; ++date_it) {
+      iters.emplace(&(*date_it), (*date_it).container.begin());
+   }
+
    for (const auto& r : range) {
-      for(auto date_it = it_lower_data; date_it != it_upper_date; ++date_it) {
+      for (auto date_it = it_lower_data; date_it != it_upper_date; ++date_it) {
 
          const auto& subset = (*date_it).container;
 
-         auto it_lower = std::lower_bound(subset.begin(), subset.end(), r.pivot, Pivot::lower_bound_comp);
+         // TODO assert optimization
+         auto it_lower = std::lower_bound(iters[&(*date_it)], subset.end(), r.pivot, Pivot::lower_bound_comp);
+         //auto it_lower = std::lower_bound(subset.begin(), subset.end(), r.pivot, Pivot::lower_bound_comp);
          auto it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
+
+         iters[&(*date_it)] = it_lower;
 
          // case 0
          response.insert(response.end(), it_lower, it_upper);
 
          // case 1
-         /*std::transform(it_lower, it_upper, std::back_inserter(response), [&](const Pivot& p) { return BinnedPivot(p, r.value); });*/
+         if (pass_over_target) {
+            /*std::transform(it_lower, it_upper, std::back_inserter(response), [&](const Pivot& p) { return BinnedPivot(p, r.value); });*/
+            std::for_each(response.end() - (it_upper - it_lower), response.end(), [&](BinnedPivot& p) {
+                             p.value = r.value;
+                          });
 
-         // case 2
-         /*std::transform(it_lower, it_upper, std::back_inserter(response), [&](const Pivot& p) { return BinnedPivot(p, (*date_it).date); });*/
-
-         if (r.pivot.endsWith(*(--it_upper))) break;
+            // case 2
+         } else if (query.type() == Query::TSERIES) {
+            /*std::transform(it_lower, it_upper, std::back_inserter(response), [&](const Pivot& p) { return BinnedPivot(p, _container[value].value); });*/
+            std::for_each(response.end() - (it_upper - it_lower), response.end(), [&](BinnedPivot& p) {
+                             p.value = (*date_it).date;
+                          });
+         }
       }
+   }
+
+   if (query.type() == Query::TSERIES) {
+      pass_over_target = true;
    }
 
    return true;

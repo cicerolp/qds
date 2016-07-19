@@ -16,7 +16,7 @@ uint32_t SpatialElement::expand(Data& data, const uint8_t offset) {
       // node will be expanded
       value.leaf = 0;
 
-      for(const auto& ptr : pivots) {
+      for (const auto& ptr : pivots) {
          std::map<spatial_t, uint32_t> used;
 
          for (auto i = ptr.front(); i < ptr.back(); ++i) {
@@ -64,7 +64,6 @@ void SpatialElement::query(const Query& query, std::vector<const SpatialElement*
 
    if (query.tile().second == value || (value.leaf && value.intersects(query.tile().second))) {
       return aggregate_tile(query, subset);
-
    } else if (value.z < query.tile().second.z && value.contains(query.tile().second)) {
       if (_container[0] != nullptr) _container[0]->query(query, subset);
       if (_container[1] != nullptr) _container[1]->query(query, subset);

@@ -1,15 +1,18 @@
 #include "stdafx.h"
 #include "Server.h"
 
-void Server::run(bool disable_multithreading, uint32_t port) {
+void Server::run(server_opts opts) {
+   Server::getInstance().nds_opts = opts;
+
    mg_mgr_init(&Server::getInstance().mgr, nullptr);
-   Server::getInstance().nc = mg_bind(&Server::getInstance().mgr, std::to_string(port).c_str(), handler);
+   Server::getInstance().nc =
+      mg_bind(&Server::getInstance().mgr, std::to_string(Server::getInstance().nds_opts.port).c_str(), handler);
 
    mg_set_protocol_http_websocket(Server::getInstance().nc);
 
    Server::getInstance().http_server_opts.document_root = "WebContent";
 
-   if (!disable_multithreading) {
+   if (Server::getInstance().nds_opts.multithreading) {
       mg_enable_multithreading(Server::getInstance().nc);
    }
 
@@ -55,9 +58,12 @@ void Server::printText(mg_connection* conn, const std::string& content, int code
    ss << "HTTP/1.1 " << code << " OK" << sep
       << "Content-Type: text/plain" << sep
       << "Access-Control-Allow-Origin: " << "*" << sep
-      << "Connection: keep-alive" << sep
-      << "Cache-Control: public, max-age=" << "86400" << sep
-      << "Content-Length: %d" << sep << sep
+      << "Connection: keep-alive" << sep;
+
+      if (Server::getInstance().nds_opts.cache)
+         ss << "Cache-Control: public, max-age=" << "86400" << sep;
+
+      ss << "Content-Length: %d" << sep << sep
       << "%s";
 
    mg_printf(conn, ss.str().c_str(), (int)content.size(), content.c_str());
@@ -66,16 +72,16 @@ void Server::printText(mg_connection* conn, const std::string& content, int code
 void Server::printJson(mg_connection* conn, const std::string& content, int code) {
    static const std::string sep = "\r\n";
 
-   bool cache = true;
-   if (content == "[null]") cache = false;
-
    std::stringstream ss;
    ss << "HTTP/1.1 " << code << " OK" << sep
       << "Content-Type: application/json" << sep
       << "Access-Control-Allow-Origin: " << "*" << sep
       << "Connection: keep-alive" << sep;
-   if (cache) ss << "Cache-Control: public, max-age=" << "86400" << sep;
-   ss << "Content-Length: %d" << sep << sep
+
+      if (Server::getInstance().nds_opts.cache && content != "[]")
+         ss << "Cache-Control: public, max-age=" << "86400" << sep;
+
+      ss << "Content-Length: %d" << sep << sep
       << "%s";
 
    mg_printf(conn, ss.str().c_str(), (int)content.size(), content.c_str());

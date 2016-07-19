@@ -6,7 +6,13 @@
 
 int main(int argc, char *argv[]) {
 
+   
    bool no_server = false;
+
+   Server::server_opts nds_opts;
+   nds_opts.port = 8001;
+   nds_opts.cache = true;
+   nds_opts.multithreading = true;   
 
    if (std::getenv("NDS_DATA") == nullptr) {
       std::cerr << "error: invalid environment path %NDS_DATA%" << std::endl;
@@ -18,9 +24,9 @@ int main(int argc, char *argv[]) {
 
    try {
       if (argc < 2) {         
-         inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
+         //inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
 
-         //inputFiles.emplace_back("./xml/brightkite.nds.xml");
+         inputFiles.emplace_back("./xml/brightkite.nds.xml");
          //inputFiles.emplace_back("./xml/gowalla.nds.xml");
          
          //inputFiles.emplace_back("./xml/delay.nds.xml");
@@ -49,8 +55,8 @@ int main(int argc, char *argv[]) {
    std::unique_ptr<std::thread> server;
 
    // http server
-   if (no_server) {      
-      server = std::make_unique<std::thread>(Server::run, false, 8100);
+   if (!no_server) {      
+      server = std::make_unique<std::thread>(Server::run, nds_opts);
    }
    
    // nds instances

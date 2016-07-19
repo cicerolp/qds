@@ -29,6 +29,8 @@ public:
    }
 
 private:
+   static std::string serialize(const Query& query, const response_container& range);
+
    static inline void swap_and_clear(response_container& range, response_container& response) {
       range.swap(response);      
       //std::sort(range.begin(), range.end());

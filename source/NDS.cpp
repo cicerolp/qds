@@ -55,7 +55,7 @@ NDS::NDS(const Schema& schema) {
    }
 
    // spatial
-   // BUG fix multiple spatial dimensions
+   // TODO multiple spatial dimensions
    for (const auto& tuple : schema.spatial) {
 
       std::cout << "\tBuilding Spatial Dimension: " + std::get<0>(tuple) + " ... ";
@@ -85,25 +85,38 @@ std::string NDS::query(const Query& query) {
    /*std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
    start = std::chrono::high_resolution_clock::now();*/
 
+   bool pass_over_target = false;
+
    response_container range, response;
    range.emplace_back(_root);
 
    for (const auto& d : _categorical) {
-      if (d->query(query, range, response)) {
+      if (d->query(query, range, response, pass_over_target)) {
          swap_and_clear(range, response);
       }
    }
 
    for (const auto& d : _temporal) {
-      if (d->query(query, range, response)) {
+      if (d->query(query, range, response, pass_over_target)) {
          swap_and_clear(range, response);
       }
    }
 
-   if (_spatial->query(query, range, response)) {
+   if (_spatial->query(query, range, response, pass_over_target)) {
       swap_and_clear(range, response);
    }
 
+   /*end = std::chrono::high_resolution_clock::now();
+   long long duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
+   std::cout << "\tDuration: " + std::to_string(duration) + "ms\n" << std::endl;*/
+
+   return serialize(query, range);
+}
+
+std::string NDS::serialize(const Query& query, const response_container& range) {
+   
+   // TODO use appropriate containers in serialization
    std::unordered_map<uint64_t, uint32_t> map;
 
    for (const auto& ptr : range) {
@@ -117,18 +130,37 @@ std::string NDS::query(const Query& query) {
    writer.StartArray();
    for (const auto& pair : map) {
       writer.StartArray();
-      writer.Uint((*(spatial_t*)&pair.first).x);
-      writer.Uint((*(spatial_t*)&pair.first).y);
-      writer.Uint((*(spatial_t*)&pair.first).z);
-      writer.Uint(pair.second);
+
+      if (query.type() == Query::TILE) {
+         writer.Uint((*(spatial_t*)&pair.first).x);
+         writer.Uint((*(spatial_t*)&pair.first).y);
+         writer.Uint((*(spatial_t*)&pair.first).z);
+         writer.Uint(pair.second);
+
+      }
+      else if (query.type() == Query::GROUP) {
+         writer.Uint((*(categorical_t*)&pair.first));
+         writer.Uint(pair.second);
+
+      }
+      else if (query.type() == Query::TSERIES) {
+         writer.Uint((*(temporal_t*)&pair.first));
+         writer.Uint(pair.second);
+
+      }
+      else if (query.type() == Query::SCATTER) {
+
+      }
+      else if (query.type() == Query::MYSQL) {
+
+      }
+      else if (query.type() == Query::REGION) {
+
+      }
+
       writer.EndArray();
-   }   
+   }
    writer.EndArray();
-
-   /*end = std::chrono::high_resolution_clock::now();
-   long long duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-
-   std::cout << "\tDuration: " + std::to_string(duration) + "ms\n" << std::endl;*/
 
    return buffer.GetString();
 }

@@ -14,36 +14,50 @@ uint32_t Spatial::build(const building_container& range, building_container& res
    return pivots_count;
 }
 
-bool Spatial::query(const Query& query, const response_container& range, response_container& response) const {
+bool Spatial::query(const Query& query, const response_container& range, response_container& response, bool& pass_over_target) const {
 
    if (query.tile().first != _key) return false;
 
    std::vector<const SpatialElement*> subset;
    _container.query(query, subset);
 
+   std::unordered_map<const SpatialElement*, building_iterator> iters;
+   for (const auto& el : subset) {
+      iters.emplace(el, el->pivots.begin());
+   }
+
    for (const auto& r : range) {
       for (const auto& el : subset) {
 
-         auto it_lower = std::lower_bound(el->pivots.begin(), el->pivots.end(), r.pivot, Pivot::lower_bound_comp);
+         // TODO assert optimization
+         auto it_lower = std::lower_bound(iters[el], el->pivots.end(), r.pivot, Pivot::lower_bound_comp);
+         //auto it_lower = std::lower_bound(el->pivots.begin(), el->pivots.end(), r.pivot, Pivot::lower_bound_comp);
          auto it_upper = std::upper_bound(it_lower, el->pivots.end(), r.pivot, Pivot::upper_bound_comp);
-         
+
+         iters[el] = it_lower;
+
          // case 0
-         /*response.insert(response.end(), it_lower, it_upper);*/
+         response.insert(response.end(), it_lower, it_upper);
 
          // case 1
-         /*std::transform(it_lower, it_upper, std::back_inserter(response), [&](const Pivot& p) { return BinnedPivot(p, r.value); });*/
+         if (pass_over_target) {
+            /*std::transform(it_lower, it_upper, std::back_inserter(response), [&](const Pivot& p) { return BinnedPivot(p, r.value); });*/
+            std::for_each(response.end() - (it_upper - it_lower), response.end(), [&](BinnedPivot& p) {
+                             p.value = r.value;
+                          });
 
-         /*response.insert(response.end(), it_lower, it_upper);
-         std::for_each(response.end() - (it_upper - it_lower), response.end(), [&](BinnedPivot& p) { p.value = r.value; });*/
-
-         // case 2
-         //std::transform(it_lower, it_upper, std::back_inserter(response), [&](const Pivot& p) { return BinnedPivot(p, el->value.data); });
-
-         response.insert(response.end(), it_lower, it_upper);
-         std::for_each(response.end() - (it_upper - it_lower), response.end(), [&](BinnedPivot& p) { p.value = el->value.data; });
-
-         if (r.pivot.endsWith(*(--it_upper))) break;
+            // case 2
+         } else if (query.type() == Query::TILE) {
+            /*std::transform(it_lower, it_upper, std::back_inserter(response), [&](const Pivot& p) { return BinnedPivot(p, _container[value].value); });*/
+            std::for_each(response.end() - (it_upper - it_lower), response.end(), [&](BinnedPivot& p) {
+                             p.value = el->value.data;
+                          });
+         }
       }
+   }
+
+   if (query.type() == Query::TILE) {
+      pass_over_target = true;
    }
 
    return true;

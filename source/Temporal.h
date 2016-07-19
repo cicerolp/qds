@@ -29,7 +29,7 @@ public:
    ~Temporal() = default;
 
    uint32_t build(const building_container& range, building_container& response, Data& data) override;
-   bool query(const Query& query, const response_container& range, response_container& response) const override;
+   bool query(const Query& query, const response_container& range, response_container& response, bool& pass_over_target) const override;
 
    inline interval_t get_interval() const {
       return interval_t(_container.front().date, _container.back().date);

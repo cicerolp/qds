@@ -23,6 +23,11 @@ public:
 
 	inline bool operator< (const Pivot& other) const;
 
+   friend std::ostream& operator<<(std::ostream& stream, const Pivot& pivot) {
+      stream << "[" << pivot._pivot[0] << "," << pivot._pivot[1] << "]";
+      return stream;
+   }
+
    inline bool contains(const Pivot& other) const;
    inline bool endsWith(const Pivot& other) const;
 
@@ -70,6 +75,10 @@ bool Pivot::contains(const Pivot& other) const {
 }
 
 bool Pivot::endsWith(const Pivot& other) const {
+   std::cout <<  "back" << std::endl
+   ;
+   std::cout << *this << std::endl;
+   std::cout << other << std::endl;
    return back() == other.back();
 }
 

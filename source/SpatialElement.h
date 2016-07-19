@@ -11,7 +11,7 @@ public:
    SpatialElement(const spatial_t& tile);
    ~SpatialElement() = default;
 
-   template <class... Args>
+   template<class... Args>
    inline void add_element(Args&&... args);
    inline void add_range(const building_container& range);
 
@@ -23,9 +23,9 @@ public:
    std::vector<Pivot> pivots;
 
 private:
-   void aggregate_tile(const Query& query, std::vector<const SpatialElement*>& subset) const;  
+   void aggregate_tile(const Query& query, std::vector<const SpatialElement*>& subset) const;
 
-   std::array<std::unique_ptr<SpatialElement>, 4> _container;   
+   std::array<std::unique_ptr<SpatialElement>, 4> _container;
 };
 
 template<class ... Args>

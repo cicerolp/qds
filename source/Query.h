@@ -5,6 +5,12 @@
 
 class Query {
 public:
+   enum QueryType { TILE, GROUP, TSERIES, SCATTER, MYSQL, REGION };
+
+   const QueryType& type() const {
+      return _type;
+   }
+
    const std::string& instance() const {
       return _instance;
    }
@@ -27,8 +33,6 @@ public:
    const std::unordered_map<std::string, std::vector<categorical_t>>& where() const {
       return _where;
    }
-
-   enum QueryType { TILE, GROUP, TSERIES, SCATTER, MYSQL, REGION };
 
    Query(const std::string& url);
    Query(const std::vector<std::string>& tokens);
