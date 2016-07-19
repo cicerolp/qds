@@ -13,7 +13,7 @@ Query::Query(const std::vector<std::string>& tokens) : Query(tokens[3], tokens[4
          const uint8_t z = std::stoi(string_util::next_token(it));
 
          _resolution = std::stoi(string_util::next_token(it));
-         _tile = { key, tile_t(x, y, z) };
+         _tile = { key, spatial_t(x, y, z) };
 
       } else if ((*it) == "field") {
          _field.emplace(string_util::next_token(it));

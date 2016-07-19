@@ -7,9 +7,18 @@ typedef uint8_t categorical_t;
 typedef uint32_t temporal_t;
 
 struct spatial_t {
+   spatial_t() : spatial_t(0, 0, 0) { }
+
    spatial_t(uint32_t _x, uint32_t _y, uint8_t _z, uint8_t _l = 1)
       : x(_x), y(_y), z(_z), leaf(_l) {
-      index = mercator_util::get_index(x, y);
+
+      if (x % 2 == 0) {
+         if (y % 2 == 0) index = 0;
+         else index = 1;
+      } else {
+         if (y % 2 == 0) index = 2;
+         else index = 3;
+      }
    }
 
    inline bool operator ==(const spatial_t& other) const {
@@ -19,7 +28,23 @@ struct spatial_t {
    // index
    inline /*explicit*/ operator uint8_t() const {
       return index;
-   }  
+   }
+
+   inline bool intersects(const spatial_t& other) const {
+      return (z < other.z) ? contains(other) : other.contains(*this);
+   }
+
+   inline bool contains(const spatial_t& other) const {
+      const uint32_t n = static_cast<uint32_t>(std::pow(2, other.z - z));
+
+      const uint32_t x_min = static_cast<uint32_t>(x) * n;
+      const uint32_t x_max = x_min + n;
+
+      const uint32_t y_min = static_cast<uint32_t>(y) * n;
+      const uint32_t y_max = y_min + n;
+
+      return x_min <= other.x && x_max >= other.x && y_min <= other.y && y_max >= other.y;
+   }
 
    friend std::ostream& operator<<(std::ostream& stream, const spatial_t& tile) {
       stream << tile.x << "/" << tile.y << "/" << tile.z;
@@ -28,12 +53,13 @@ struct spatial_t {
 
    union {
       struct {
-         uint64_t x     : 25;
-         uint64_t y     : 25;
-         uint64_t z     : 5;
+         uint64_t x : 25;
+         uint64_t y : 25;
+         uint64_t z : 5;
          uint64_t index : 2;
-         uint64_t leaf  : 1;         
+         uint64_t leaf : 1;
       };
+
       uint64_t data;
    };
 };
@@ -43,30 +69,6 @@ struct coordinates_t { float lat, lon; };
 struct BinaryHeader {
    uint32_t bytes;
    uint32_t records;
-};
-
-struct tile_t : public spatial_t {
-   tile_t() : spatial_t(0, 0, 0) { }
-
-   tile_t(uint32_t x, uint32_t y, uint8_t z) :
-      spatial_t(x, y, z) {
-      lat0 = mercator_util::tiley2lat(y, z);
-      lon0 = mercator_util::tilex2lon(x, z);
-
-      lat1 = mercator_util::tiley2lat(y + 1, z);
-      lon1 = mercator_util::tilex2lon(x + 1, z);
-   }
-
-   inline bool operator ==(const spatial_t& spatial) const {
-      return z == spatial.z && x == spatial.x && y == spatial.y;
-   }
-
-   friend std::ostream& operator<< (std::ostream& stream, const tile_t& tile) {
-      stream << tile.x << "/" << tile.y << "/" << tile.z;
-      return stream;
-   }
-
-   float lat0, lon0, lat1, lon1;
 };
 
 struct interval_t {

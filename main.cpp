@@ -18,13 +18,15 @@ int main(int argc, char *argv[]) {
 
    try {
       if (argc < 2) {         
-         //inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
+         inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
 
-         inputFiles.emplace_back("./xml/brightkite.nds.xml");
+         //inputFiles.emplace_back("./xml/brightkite.nds.xml");
          //inputFiles.emplace_back("./xml/gowalla.nds.xml");
          
          //inputFiles.emplace_back("./xml/delay.nds.xml");
          //inputFiles.emplace_back("./xml/performance.nds.xml");
+
+         //inputFiles.emplace_back("./xml/twitter-small.nds.xml");
       } else {
          for (int i = 1; i < argc; i++) {
             if (argv[i][0] != '-') {
@@ -44,9 +46,13 @@ int main(int argc, char *argv[]) {
       schemas.emplace_back(str);
    }
 
-   // http server
-   std::thread server(Server::run, false, 8100);
+   std::unique_ptr<std::thread> server;
 
+   // http server
+   if (no_server) {      
+      server = std::make_unique<std::thread>(Server::run, false, 8100);
+   }
+   
    // nds instances
    std::thread instances_run(NDSInstances::run, schemas);
    
@@ -58,11 +64,13 @@ int main(int argc, char *argv[]) {
       NDSInstances::getInstance().query(query);
    }*/
 
-   std::cout << "Server Running..." << std::endl;
-   getchar();
+   if (server) {
+      std::cout << "Server Running..." << std::endl;
+      getchar();
 
-   Server::getInstance().stop();
-   server.join();
+      Server::getInstance().stop();
+      server->join();
+   }
 
    return 0;
 }

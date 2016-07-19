@@ -9,7 +9,7 @@ public:
       return _instance;
    }
 
-   const std::pair<std::string, tile_t>& tile() const {
+   const std::pair<std::string, spatial_t>& tile() const {
       return _tile;
    }
    const uint8_t& resolution() const {
@@ -42,7 +42,7 @@ private:
    std::string _instance;
 
    uint8_t _resolution;
-   std::pair<std::string, tile_t> _tile;
+   std::pair<std::string, spatial_t> _tile;
 
    std::unordered_set<std::string> _field;
    std::unordered_map<std::string, interval_t> _interval;

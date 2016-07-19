@@ -8,9 +8,8 @@ uint32_t Spatial::build(const building_container& range, building_container& res
 
    uint32_t pivots_count = 0;
 
-   for (const auto& ptr : range) {
-      pivots_count += _container.build(ptr, data, _offset);
-   }
+   _container.add_range(range);
+   pivots_count += _container.expand(data, _offset);
 
    return pivots_count;
 }
@@ -21,16 +20,6 @@ bool Spatial::query(const Query& query, const response_container& range, respons
 
    std::vector<const SpatialElement*> subset;
    _container.query(query, subset);
-
-   int count = 0;
-   for (const auto& el : subset) {
-      for (auto ptr : el->pivots) {
-         count += ptr.size();
-      }
-   }
-
-   std::cout <<  "summed value:  " << count << std::endl
-   ;
 
    for (const auto& r : range) {
       for (const auto& el : subset) {
