@@ -24,7 +24,6 @@ bool Spatial::query(const Query& query, const response_container& range, respons
    for (const auto& r : range) {
       for (const auto& el : subset) {
 
-         // TODO assert optimization
          auto it_lower = std::lower_bound(el->pivots.begin(), el->pivots.end(), r.pivot, Pivot::lower_bound_comp);
          auto it_upper = std::upper_bound(it_lower, el->pivots.end(), r.pivot, Pivot::upper_bound_comp);
 

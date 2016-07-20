@@ -77,5 +77,9 @@ struct interval_t {
    interval_t(temporal_t lower, temporal_t upper)
       : bound{ lower, upper } {};
 
+   inline bool contain(const temporal_t& lower, const temporal_t& upper) const {
+      return bound[0] <= lower && bound[1] >= upper;
+   }
+
    std::array<temporal_t, 2> bound;
 };

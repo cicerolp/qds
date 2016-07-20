@@ -48,11 +48,9 @@ bool Temporal::query(const Query& query, const response_container& range, respon
 
    if (interval_it == query.interval().end()) return false;
 
-   // TODO wrap method
-   if (query.type() != Query::TSERIES
-      && _container.front().date <= (*interval_it).second.bound[0]
-      && _container.back().date >= (*interval_it).second.bound[1])
+   if (query.type() != Query::TSERIES && (*interval_it).second.contain(_container.front().date, _container.back().date)) {
       return false;
+   }
 
    auto it_lower_data = std::lower_bound(_container.begin(), _container.end(), (*interval_it).second.bound[0]);
    auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), (*interval_it).second.bound[1]);
@@ -62,7 +60,6 @@ bool Temporal::query(const Query& query, const response_container& range, respon
 
          const auto& subset = (*date_it).container;
 
-         // TODO assert optimization
          auto it_lower = std::lower_bound(subset.begin(), subset.end(), r.pivot, Pivot::lower_bound_comp);
          auto it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
 
@@ -89,6 +86,9 @@ bool Temporal::query(const Query& query, const response_container& range, respon
    if (query.type() == Query::TSERIES) {
       pass_over_target = true;
    }
+
+   std::cout << response.size()<< std::endl
+   ;
 
    return true;
 }
