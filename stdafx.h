@@ -4,12 +4,15 @@
 
 #pragma once
 
-#define _CRT_SECURE_NO_WARNINGS
+#undef NDEBUG
 #define _USE_MATH_DEFINES
+#define _CRT_SECURE_NO_WARNINGS
+
 
 // C includes
 #include <cmath>
 #include <cstdio>
+#include <cassert>
 
 // C++ includes
 #include <set>

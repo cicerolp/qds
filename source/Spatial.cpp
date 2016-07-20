@@ -21,20 +21,12 @@ bool Spatial::query(const Query& query, const response_container& range, respons
    std::vector<const SpatialElement*> subset;
    _container.query(query, subset);
 
-   std::unordered_map<const SpatialElement*, building_iterator> iters;
-   for (const auto& el : subset) {
-      iters.emplace(el, el->pivots.begin());
-   }
-
    for (const auto& r : range) {
       for (const auto& el : subset) {
 
          // TODO assert optimization
-         auto it_lower = std::lower_bound(iters[el], el->pivots.end(), r.pivot, Pivot::lower_bound_comp);
-         //auto it_lower = std::lower_bound(el->pivots.begin(), el->pivots.end(), r.pivot, Pivot::lower_bound_comp);
+         auto it_lower = std::lower_bound(el->pivots.begin(), el->pivots.end(), r.pivot, Pivot::lower_bound_comp);
          auto it_upper = std::upper_bound(it_lower, el->pivots.end(), r.pivot, Pivot::upper_bound_comp);
-
-         iters[el] = it_lower;
 
          // case 0
          response.insert(response.end(), it_lower, it_upper);

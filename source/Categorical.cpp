@@ -60,22 +60,13 @@ bool Categorical::query_where(const Query& query, const response_container& rang
 
    if ((*value_it).second.size() == _bin && !target) return false;
 
-   std::unordered_map<const CategoricalElement*, building_iterator> iters;
-   for (const auto& value : (*value_it).second) {
-      iters.emplace(&_container[value], _container[value].container.begin());
-   }
-
    for (const auto& r : range) {
       for (const auto& value : (*value_it).second) {
 
          const auto& subset = _container[value].container;
 
-         // TODO assert optimization
-         auto it_lower = std::lower_bound(iters[&_container[value]], subset.end(), r.pivot, Pivot::lower_bound_comp);
-         //auto it_lower = std::lower_bound(subset.begin(), subset.end(), r.pivot, Pivot::lower_bound_comp);
+         auto it_lower = std::lower_bound(subset.begin(), subset.end(), r.pivot, Pivot::lower_bound_comp);
          auto it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
-
-         iters[&_container[value]] = it_lower;
 
          // case 0
          response.insert(response.end(), it_lower, it_upper);
@@ -105,23 +96,13 @@ bool Categorical::query_where(const Query& query, const response_container& rang
 }
 
 bool Categorical::query_field(const Query& query, const response_container& range, response_container& response, bool& pass_over_target) const {
-
-   std::unordered_map<const CategoricalElement*, building_iterator> iters;
-   for (const auto& el : _container) {
-      iters.emplace(&el, el.container.begin());
-   }
-
    for (const auto& r : range) {
       for (const auto& el : _container) {
 
          const auto& subset = el.container;
 
-         // TODO assert optimization
-         auto it_lower = std::lower_bound(iters[&el], subset.end(), r.pivot, Pivot::lower_bound_comp);
-         //auto it_lower = std::lower_bound(subset.begin(), subset.end(), r.pivot, Pivot::lower_bound_comp);
+         auto it_lower = std::lower_bound(subset.begin(), subset.end(), r.pivot, Pivot::lower_bound_comp);
          auto it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
-
-         iters[&el] = it_lower;
 
          // case 0
          response.insert(response.end(), it_lower, it_upper);

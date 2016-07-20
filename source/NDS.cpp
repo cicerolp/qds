@@ -153,9 +153,8 @@ std::string NDS::serialize(const Query& query, const response_container& range) 
       }
       else if (query.type() == Query::MYSQL) {
 
-      }
-      else if (query.type() == Query::REGION) {
-
+      } else if (query.type() == Query::REGION) {
+         //writer.Uint(pair.second);
       }
 
       writer.EndArray();

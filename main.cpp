@@ -6,7 +6,6 @@
 
 int main(int argc, char *argv[]) {
 
-   
    bool no_server = false;
 
    Server::server_opts nds_opts;
