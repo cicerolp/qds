@@ -60,8 +60,11 @@ void Server::printText(mg_connection* conn, const std::string& content, int code
       << "Access-Control-Allow-Origin: " << "*" << sep
       << "Connection: keep-alive" << sep;
 
-      if (Server::getInstance().nds_opts.cache)
+      if (Server::getInstance().nds_opts.cache) {
          ss << "Cache-Control: public, max-age=" << "86400" << sep;
+      } else {
+         ss << "Cache-Control: no-cache, no-store, must-revalidate" << sep;
+      }
 
       ss << "Content-Length: %d" << sep << sep
       << "%s";
@@ -78,8 +81,11 @@ void Server::printJson(mg_connection* conn, const std::string& content, int code
       << "Access-Control-Allow-Origin: " << "*" << sep
       << "Connection: keep-alive" << sep;
 
-      if (Server::getInstance().nds_opts.cache && content != "[]")
+      if (Server::getInstance().nds_opts.cache && content != "[]") {
          ss << "Cache-Control: public, max-age=" << "86400" << sep;
+      } else {
+         ss << "Cache-Control: no-cache, no-store, must-revalidate" << sep;
+      }
 
       ss << "Content-Length: %d" << sep << sep
       << "%s";

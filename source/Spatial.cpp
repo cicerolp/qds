@@ -14,18 +14,34 @@ uint32_t Spatial::build(const building_container& range, building_container& res
    return pivots_count;
 }
 
-bool Spatial::query(const Query& query, const response_container& range, response_container& response, bool& pass_over_target) const {
+bool Spatial::query(const Query& query, response_container& range, response_container& response, bool& pass_over_target) const {
 
    if (query.tile().first != _key) return false;
 
    std::vector<const SpatialElement*> subset;
    _container.query(query, subset);
 
+   std::unordered_map<const SpatialElement*, building_iterator> iters;
+   for (const auto& el : subset) {
+      iters.emplace(el, el->pivots.begin());
+   }
+
+   // sort range
+   std::sort(range.begin(), range.end());
+
    for (const auto& r : range) {
       for (const auto& el : subset) {
 
-         auto it_lower = std::lower_bound(el->pivots.begin(), el->pivots.end(), r.pivot, Pivot::lower_bound_comp);
+         if (iters[el] == el->pivots.end()) {
+            continue;
+         }
+
+         auto it_lower = std::lower_bound(iters[el], el->pivots.end(), r.pivot, Pivot::lower_bound_comp);         
          auto it_upper = std::upper_bound(it_lower, el->pivots.end(), r.pivot, Pivot::upper_bound_comp);
+         
+         if (it_lower != el->pivots.end()) {
+            iters[el] = it_upper;
+         }
 
          // case 0
          response.insert(response.end(), it_lower, it_upper);

@@ -42,7 +42,7 @@ uint32_t Temporal::build(const building_container& range, building_container& re
    return pivots_count;
 }
 
-bool Temporal::query(const Query& query, const response_container& range, response_container& response, bool& pass_over_target) const {
+bool Temporal::query(const Query& query, response_container& range, response_container& response, bool& pass_over_target) const {
 
    const auto interval_it = query.interval().find(_key);
 
@@ -55,13 +55,29 @@ bool Temporal::query(const Query& query, const response_container& range, respon
    auto it_lower_data = std::lower_bound(_container.begin(), _container.end(), (*interval_it).second.bound[0]);
    auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), (*interval_it).second.bound[1]);
 
+   std::unordered_map<const TemporalElement*, building_iterator> iters;
+   for (auto date_it = it_lower_data; date_it != it_upper_date; ++date_it) {
+      iters.emplace(&(*date_it), (*date_it).container.begin());
+   }
+
+   // sort range
+   std::sort(range.begin(), range.end());
+
    for (const auto& r : range) {
       for (auto date_it = it_lower_data; date_it != it_upper_date; ++date_it) {
 
          const auto& subset = (*date_it).container;
 
-         auto it_lower = std::lower_bound(subset.begin(), subset.end(), r.pivot, Pivot::lower_bound_comp);
+         if (iters[&(*date_it)] == subset.end()) {
+            continue;
+         }
+
+         auto it_lower = std::lower_bound(iters[&(*date_it)], subset.end(), r.pivot, Pivot::lower_bound_comp);
          auto it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
+
+         if (it_lower != subset.end()) {
+            iters[&(*date_it)] = it_upper;
+         }
 
          // case 0
          response.insert(response.end(), it_lower, it_upper);
@@ -86,9 +102,6 @@ bool Temporal::query(const Query& query, const response_container& range, respon
    if (query.type() == Query::TSERIES) {
       pass_over_target = true;
    }
-
-   std::cout << response.size()<< std::endl
-   ;
 
    return true;
 }
