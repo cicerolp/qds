@@ -68,20 +68,22 @@ bool Categorical::query_where(const Query& query, response_container& range, res
    // sort range
    std::sort(range.begin(), range.end());
 
-   for (const auto& r : range) {
-      for (const auto& value : (*value_it).second) {
+   // TODO assert
+   for (const auto& value : (*value_it).second) {
+      for (const auto& r : range) {      
 
+         auto iters_it = iters.at(&_container[value]);
          const auto& subset = _container[value].container;
 
-         if (iters[&_container[value]] == subset.end()) {
-            continue;
+         if (iters_it == subset.end()) {
+            break;
          }
 
-         auto it_lower = std::lower_bound(iters[&_container[value]], subset.end(), r.pivot, Pivot::lower_bound_comp);
+         auto it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
          auto it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
 
          if (it_lower != subset.end()) {
-            iters[&_container[value]] = it_upper;
+            iters_it = it_upper;
          }
 
          // case 0
@@ -121,20 +123,22 @@ bool Categorical::query_field(const Query& query, response_container& range, res
    // sort range
    std::sort(range.begin(), range.end());
 
-   for (const auto& r : range) {
-      for (const auto& el : _container) {
+   // TODO assert
+   for (const auto& el : _container) {
+      for (const auto& r : range) {      
 
+         auto iters_it = iters.at(&el);
          const auto& subset = el.container;
 
-         if (iters[&el] == subset.end()) {
-            continue;
+         if (iters_it == subset.end()) {
+            break;
          }
 
-         auto it_lower = std::lower_bound(iters[&el], subset.end(), r.pivot, Pivot::lower_bound_comp);
+         auto it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
          auto it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
 
          if (it_lower != subset.end()) {
-            iters[&el] = it_upper;
+            iters_it = it_upper;
          }
 
          // case 0

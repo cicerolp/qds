@@ -13,7 +13,14 @@ public:
       uint32_t port{ 8000 };
 
       bool cache{ true };
-      bool multithreading{ true };      
+      bool multithreading{ true };
+
+      friend std::ostream& operator<<(std::ostream& os, const server_opts& obj) {
+         return os
+            << "port: " << obj.port
+            << ", cache: " << obj.cache
+            << ", multithreading: " << obj.multithreading << std::endl;
+      }
    };
 
 	static void run(server_opts opts);

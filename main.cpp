@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
 
    Server::server_opts nds_opts;
    nds_opts.port = 8001;
-   nds_opts.cache = true;
+   nds_opts.cache = false;
    nds_opts.multithreading = true;   
 
    if (std::getenv("NDS_DATA") == nullptr) {
@@ -43,6 +43,11 @@ int main(int argc, char *argv[]) {
       std::cerr << "error: invalid arguments" << std::endl;
       exit(-1);
    }
+
+   std::cout << "Server Options:" << std::endl;
+   if (no_server) std::cout << "\tOff" << std::endl;
+   else std::cout << "\tOn" << std::endl;   
+   std::cout << "\t" << nds_opts << std::endl;
 
    std::cout << "XML Files:" << std::endl;
 

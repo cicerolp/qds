@@ -71,7 +71,7 @@ function color_tile(entry) {
             y1: y1
         };
 
-        entry.context.fillStyle = fs.color(d[3] * fs.count_transform(datum));
+        entry.context.fillStyle = fs.color(d[3]);
         
         fs.draw(entry.context, datum);
     });
@@ -86,9 +86,7 @@ function pickDrawFuncs() {
             var g = Math.floor(256 * Math.min(1, Math.max(0, lc - 1)));
             var b = Math.floor(256 * Math.min(1, Math.max(0, lc - 2)));
 
-            var a = Math.min(1, lc);
-
-            return "rgba(" + r + "," + g + "," + b + "," + a + ")";
+            return "rgba(" + r + "," + g + "," + b + "," + 1 + ")";
         },
         bbb: d3.scale.linear()
             .domain([1, 10000])
