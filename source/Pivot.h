@@ -21,6 +21,8 @@ public:
    inline uint32_t front() const;
    inline uint32_t back() const;
 
+   inline bool intersect_range(const Pivot& lhs, const Pivot& rhs) const;
+
    inline bool operator<(const Pivot& other) const;
    inline bool operator>(const Pivot& other) const;
 
@@ -64,6 +66,10 @@ uint32_t Pivot::front() const {
 
 uint32_t Pivot::back() const {
    return _pivot[1];
+}
+
+bool Pivot::intersect_range(const Pivot& lhs, const Pivot& rhs) const {
+   return !(rhs.back() <= front() || lhs.front() >= back());
 }
 
 bool Pivot::operator<(const Pivot& other) const {

@@ -68,7 +68,6 @@ bool Categorical::query_where(const Query& query, response_container& range, res
    // sort range only when necessary
    std::sort(range.begin(), range.end());
 
-   // TODO assert
    for (const auto& value : (*value_it).second) {
 
       auto& iters_it = iters.at(&_container[value]);
@@ -77,15 +76,16 @@ bool Categorical::query_where(const Query& query, response_container& range, res
       for (const auto& r : range) {
 
          if (iters_it == subset.end()) break;
+         else if (!r.pivot.intersect_range((*iters_it), subset.back())) continue;
 
-         auto it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
-         auto it_upper = it_lower;
+         building_iterator it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
+         building_iterator it_upper;
 
-         if (it_lower != subset.end() && r.pivot >= (*it_lower)) {
+         if (r.pivot >= (*it_lower)) {
             it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
-            // update to last position
             iters_it = it_upper;
          } else {
+            iters_it = it_lower;
             continue;
          }
 
@@ -126,7 +126,6 @@ bool Categorical::query_field(const Query& query, response_container& range, res
    // sort range only when necessary
    std::sort(range.begin(), range.end());
 
-   // TODO assert
    for (const auto& el : _container) {
 
       auto& iters_it = iters.at(&el);
@@ -135,15 +134,16 @@ bool Categorical::query_field(const Query& query, response_container& range, res
       for (const auto& r : range) {
 
          if (iters_it == subset.end()) break;
+         else if (!r.pivot.intersect_range((*iters_it), subset.back())) continue;
 
-         auto it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
-         auto it_upper = it_lower;
+         building_iterator it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
+         building_iterator it_upper;
 
-         if (it_lower != subset.end() && r.pivot >= (*it_lower)) {
+         if (r.pivot >= (*it_lower)) {
             it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
-            // update to last position
             iters_it = it_upper;
          } else {
+            iters_it = it_lower;
             continue;
          }
 

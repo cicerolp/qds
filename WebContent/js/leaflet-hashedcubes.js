@@ -116,9 +116,10 @@ function pickDrawFuncs() {
             context.fill();
         },
         rect: function draw_rect(context, datum) {
+            const size_px = 0.5;
             var width = datum.x1 - datum.x0;
             var height = datum.y1 - datum.y0;
-            context.fillRect(datum.x0, datum.y0, width, height);
+            context.fillRect(datum.x0 - size_px, datum.y0 - size_px, width + size_px, height + size_px);
         }
     };
 

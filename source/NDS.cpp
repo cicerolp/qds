@@ -71,7 +71,6 @@ NDS::NDS(const Schema& schema) {
       std::cout << "OK. \n\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
    }
 
-
    std::cout << "\n\tTotal Number of Pivots: " << pivots_count << std::endl;
 
    end = std::chrono::high_resolution_clock::now();
@@ -115,50 +114,73 @@ std::string NDS::query(const Query& query) {
 }
 
 std::string NDS::serialize(const Query& query, const response_container& range) {
-   
-   // TODO use appropriate containers in serialization
-   std::unordered_map<uint64_t, uint32_t> map;
-
-   for (const auto& ptr : range) {
-      map[ptr.value] += ptr.pivot.size();
-   }
 
    // serialization
    rapidjson::StringBuffer buffer;
    rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 
    writer.StartArray();
-   for (const auto& pair : map) {
-      writer.StartArray();
 
-      if (query.type() == Query::TILE) {
-         writer.Uint((*(spatial_t*)&pair.first).x);
-         writer.Uint((*(spatial_t*)&pair.first).y);
-         writer.Uint((*(spatial_t*)&pair.first).z);
-         writer.Uint(pair.second);
+   switch (query.type()) {
+      case Query::TILE: {
+         std::unordered_map<uint64_t, uint32_t> map;
+         for (const auto& ptr : range) map[ptr.value] += ptr.pivot.size();
 
+         for (const auto& pair : map) {
+            writer.StartArray();
+            writer.Uint((*(spatial_t*)&pair.first).x);
+            writer.Uint((*(spatial_t*)&pair.first).y);
+            writer.Uint((*(spatial_t*)&pair.first).z);
+            writer.Uint(pair.second);
+            writer.EndArray();
+         }
       }
-      else if (query.type() == Query::GROUP) {
-         writer.Uint((*(categorical_t*)&pair.first));
-         writer.Uint(pair.second);
+         break;
+      case Query::GROUP: {
+         std::map<uint64_t, uint32_t> map;
+         for (const auto& ptr : range) map[ptr.value] += ptr.pivot.size();
 
+         for (const auto& pair : map) {
+            writer.StartArray();
+            writer.Uint((*(categorical_t*)&pair.first));
+            writer.Uint(pair.second);
+            writer.EndArray();
+         }
       }
-      else if (query.type() == Query::TSERIES) {
-         writer.Uint((*(temporal_t*)&pair.first));
-         writer.Uint(pair.second);
+         break;
+      case Query::TSERIES: {
+         std::map<uint64_t, uint32_t> map;
+         for (const auto& ptr : range) map[ptr.value] += ptr.pivot.size();
 
+         for (const auto& pair : map) {
+            writer.StartArray();
+            writer.Uint((*(temporal_t*)&pair.first));
+            writer.Uint(pair.second);
+            writer.EndArray();
+         }
       }
-      else if (query.type() == Query::SCATTER) {
-
+         break;
+      case Query::SCATTER: {
+         // TODO scatter serialization
       }
-      else if (query.type() == Query::MYSQL) {
-
-      } else if (query.type() == Query::REGION) {
-         //writer.Uint(pair.second);
+         break;
+      case Query::MYSQL: {
+         // TODO SQL serialization
       }
+         break;
+      case Query::REGION: {
+         uint32_t count = 0;
+         for (const auto& ptr : range) count += ptr.pivot.size();
 
-      writer.EndArray();
+         writer.StartArray();
+
+         writer.Uint(count);
+         writer.EndArray();
+      }
+         break;
+      default: break;
    }
+
    writer.EndArray();
 
    return buffer.GetString();
