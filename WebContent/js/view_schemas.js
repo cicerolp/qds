@@ -434,7 +434,6 @@ var view_schemas = {
         PLOTTING : "black",
         PLOTTING_MODE: "rect",
         PLOTTING_COLOR_SCALE: "ryw",
-        PLOTTING_TRANSFORM: "density_scaling",
         title: "Brightkite Checkins",
         tile: [{
             title: "Location",

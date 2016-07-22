@@ -132,12 +132,6 @@ function loadUi() {
     $("ul.tabs-ul").append($("<li><a href=" + '"#tabs-settings"' + ">" + "Settings" + "</a></li>"));
     $("#tabs").append($('<div id="tabs-settings"></div>'));    
 
-    // definition of `brighter`, `fainter`, and `setMode` in leaflet-hashedcubes.js
-    $("#tabs-settings").append($('<div id="tabs-brightness-settings"></div>'));
-    $("#tabs-brightness-settings").append($('<button>Brighter</button>').click(brighter).button());
-    $("#tabs-brightness-settings").append($('<button>Fainter</button>').click(fainter).button());
-    $("#tabs-brightness-settings").buttonset();
-
     $("#tabs-settings").append($('<div id="tabs-draw-settings"></div>'));
     $("#tabs-draw-settings").append($('<button>Rect</button>').click(function() { setMode('rect'); }).button());
     $("#tabs-draw-settings").append($('<button>Circle</button>').click(function() { setMode('circle'); }).button());
@@ -147,11 +141,6 @@ function loadUi() {
     $("#tabs-color-settings").append($('<button>Red-Yellow-White</button>').click(function() { setScale('ryw'); }).button());
     $("#tabs-color-settings").append($('<button>Light-Blue-Dark</button>').click(function() { setScale('bbb'); }).button());
     $("#tabs-color-settings").buttonset();
-
-    $("#tabs-settings").append($('<div id="tabs-transform-settings"></div>'));
-    $("#tabs-transform-settings").append($('<button>Not Density Aware</button>').click(function() { setTransform('no_scaling'); }).button());
-    $("#tabs-transform-settings").append($('<button>Density aware</button>').click(function() { setTransform('density_scaling'); }).button());
-    $("#tabs-transform-settings").buttonset();
 
     $("#tabs").tabs({
         collapsible : true,
