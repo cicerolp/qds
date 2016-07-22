@@ -69,15 +69,20 @@ bool Temporal::query(const Query& query, response_container& range, response_con
       auto& iters_it = iters.at(&(*date_it));
       const auto& subset = (*date_it).container;
 
-      if (iters_it == subset.end()) continue;
-
       for (const auto& r : range) {
 
-         auto it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
-         auto it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
+         if (iters_it == subset.end()) break;
 
-         if (it_lower != subset.end()) iters_it = it_upper;
-         else continue;
+         auto it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
+         auto it_upper = it_lower;
+
+         if (it_lower != subset.end() && r.pivot >= (*it_lower)) {
+            it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
+            // update to last position
+            iters_it = it_upper;
+         } else {
+            continue;
+         }
 
          // case 0
          response.insert(response.end(), it_lower, it_upper);

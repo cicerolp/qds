@@ -34,15 +34,20 @@ bool Spatial::query(const Query& query, response_container& range, response_cont
 
       auto& iters_it = iters.at(el);
 
-      if (iters_it == el->pivots.end()) continue;
-
       for (const auto& r : range) {
 
-         auto it_lower = std::lower_bound(iters_it, el->pivots.end(), r.pivot, Pivot::lower_bound_comp);
-         auto it_upper = std::upper_bound(it_lower, el->pivots.end(), r.pivot, Pivot::upper_bound_comp);
+         if (iters_it == el->pivots.end()) break;
 
-         if (it_lower != el->pivots.end()) iters_it = it_upper;
-         else continue;
+         auto it_lower = std::lower_bound(iters_it, el->pivots.end(), r.pivot, Pivot::lower_bound_comp);
+         auto it_upper = it_lower;
+
+         if (it_lower != el->pivots.end() && r.pivot >= (*it_lower)) {
+            it_upper = std::upper_bound(it_lower, el->pivots.end(), r.pivot, Pivot::upper_bound_comp);
+            // update to last position
+            iters_it = it_upper;
+         } else {
+            continue;
+         }
 
          // case 0
          response.insert(response.end(), it_lower, it_upper);

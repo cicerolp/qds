@@ -74,15 +74,20 @@ bool Categorical::query_where(const Query& query, response_container& range, res
       auto& iters_it = iters.at(&_container[value]);
       const auto& subset = _container[value].container;
 
-      if (iters_it == subset.end()) continue;
-
       for (const auto& r : range) {
 
-         auto it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
-         auto it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
+         if (iters_it == subset.end()) break;
 
-         if (it_lower != subset.end()) iters_it = it_upper;
-         else continue;
+         auto it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
+         auto it_upper = it_lower;
+
+         if (it_lower != subset.end() && r.pivot >= (*it_lower)) {
+            it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
+            // update to last position
+            iters_it = it_upper;
+         } else {
+            continue;
+         }
 
          // case 0
          response.insert(response.end(), it_lower, it_upper);
@@ -127,15 +132,20 @@ bool Categorical::query_field(const Query& query, response_container& range, res
       auto& iters_it = iters.at(&el);
       const auto& subset = el.container;
 
-      if (iters_it == subset.end()) continue;
-
       for (const auto& r : range) {
 
-         auto it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
-         auto it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
+         if (iters_it == subset.end()) break;
 
-         if (it_lower != subset.end()) iters_it = it_upper;
-         else continue;
+         auto it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
+         auto it_upper = it_lower;
+
+         if (it_lower != subset.end() && r.pivot >= (*it_lower)) {
+            it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
+            // update to last position
+            iters_it = it_upper;
+         } else {
+            continue;
+         }
 
          // case 0
          response.insert(response.end(), it_lower, it_upper);
