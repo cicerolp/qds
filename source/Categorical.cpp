@@ -65,26 +65,24 @@ bool Categorical::query_where(const Query& query, response_container& range, res
       iters.emplace(&_container[value], _container[value].container.begin());
    }
 
-   // sort range
+   // sort range only when necessary
    std::sort(range.begin(), range.end());
 
    // TODO assert
    for (const auto& value : (*value_it).second) {
-      for (const auto& r : range) {      
 
-         auto iters_it = iters.at(&_container[value]);
-         const auto& subset = _container[value].container;
+      auto& iters_it = iters.at(&_container[value]);
+      const auto& subset = _container[value].container;
 
-         if (iters_it == subset.end()) {
-            break;
-         }
+      if (iters_it == subset.end()) continue;
+
+      for (const auto& r : range) {
 
          auto it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
          auto it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
 
-         if (it_lower != subset.end()) {
-            iters_it = it_upper;
-         }
+         if (it_lower != subset.end()) iters_it = it_upper;
+         else continue;
 
          // case 0
          response.insert(response.end(), it_lower, it_upper);
@@ -120,26 +118,24 @@ bool Categorical::query_field(const Query& query, response_container& range, res
       iters.emplace(&el, el.container.begin());
    }
 
-   // sort range
+   // sort range only when necessary
    std::sort(range.begin(), range.end());
 
    // TODO assert
    for (const auto& el : _container) {
-      for (const auto& r : range) {      
 
-         auto iters_it = iters.at(&el);
-         const auto& subset = el.container;
+      auto& iters_it = iters.at(&el);
+      const auto& subset = el.container;
 
-         if (iters_it == subset.end()) {
-            break;
-         }
+      if (iters_it == subset.end()) continue;
+
+      for (const auto& r : range) {
 
          auto it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
          auto it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
 
-         if (it_lower != subset.end()) {
-            iters_it = it_upper;
-         }
+         if (it_lower != subset.end()) iters_it = it_upper;
+         else continue;
 
          // case 0
          response.insert(response.end(), it_lower, it_upper);

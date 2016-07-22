@@ -26,25 +26,23 @@ bool Spatial::query(const Query& query, response_container& range, response_cont
       iters.emplace(el, el->pivots.begin());
    }
 
-   // sort range
+   // sort range only when necessary
    std::sort(range.begin(), range.end());
 
    // TODO assert
    for (const auto& el : subset) {
-      for (const auto& r : range) {    
 
-         auto iters_it = iters.at(el);
+      auto& iters_it = iters.at(el);
 
-         if (iters_it == el->pivots.end()) {
-            break;
-         }
+      if (iters_it == el->pivots.end()) continue;
+
+      for (const auto& r : range) {
 
          auto it_lower = std::lower_bound(iters_it, el->pivots.end(), r.pivot, Pivot::lower_bound_comp);
          auto it_upper = std::upper_bound(it_lower, el->pivots.end(), r.pivot, Pivot::upper_bound_comp);
-         
-         if (it_lower != el->pivots.end()) {
-            iters_it = it_upper;
-         }
+
+         if (it_lower != el->pivots.end()) iters_it = it_upper;
+         else continue;
 
          // case 0
          response.insert(response.end(), it_lower, it_upper);

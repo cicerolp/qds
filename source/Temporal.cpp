@@ -60,26 +60,24 @@ bool Temporal::query(const Query& query, response_container& range, response_con
       iters.emplace(&(*date_it), (*date_it).container.begin());
    }
 
-   // sort range
+   // sort range only when necessary
    std::sort(range.begin(), range.end());
 
    // TODO assert
    for (auto date_it = it_lower_data; date_it != it_upper_date; ++date_it) {
-      for (const auto& r : range) {      
 
-         auto iters_it = iters.at(&(*date_it));
-         const auto& subset = (*date_it).container;
+      auto& iters_it = iters.at(&(*date_it));
+      const auto& subset = (*date_it).container;
 
-         if (iters_it == subset.end()) {
-            break;
-         }
+      if (iters_it == subset.end()) continue;
+
+      for (const auto& r : range) {
 
          auto it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
          auto it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
 
-         if (it_lower != subset.end()) {
-            iters_it = it_upper;
-         }
+         if (it_lower != subset.end()) iters_it = it_upper;
+         else continue;
 
          // case 0
          response.insert(response.end(), it_lower, it_upper);
