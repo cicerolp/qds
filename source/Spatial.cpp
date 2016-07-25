@@ -39,33 +39,25 @@ bool Spatial::query(const Query& query, response_container& range, response_cont
          else if (!r.pivot.intersect_range((*iters_it), el->pivots.back())) continue;
 
          building_iterator it_lower = std::lower_bound(iters_it, el->pivots.end(), r.pivot, Pivot::lower_bound_comp);
-         building_iterator it_upper;
 
-         if (r.pivot >= (*it_lower)) {
-            it_upper = std::upper_bound(it_lower, el->pivots.end(), r.pivot, Pivot::upper_bound_comp);
-            iters_it = it_upper;
-         } else {
-            iters_it = it_lower;
-            continue;
+         if (it_lower == el->pivots.end()) continue;
+
+         while (it_lower != el->pivots.end() && r.pivot >= (*it_lower)) {
+            if (pass_over_target) {
+               // case 1
+               response.emplace_back((*it_lower), r.value);
+            } else if (query.type() == Query::TILE) {
+               // case 2
+               response.emplace_back((*it_lower), el->value.data);
+            } else {
+               // TODO optimize case 0
+               // case 0
+               response.emplace_back((*it_lower));
+            }
+            it_lower++;
          }
 
-         // case 0
-         response.insert(response.end(), it_lower, it_upper);
-
-         // case 1
-         if (pass_over_target) {
-            /*std::transform(it_lower, it_upper, std::back_inserter(response), [&](const Pivot& p) { return BinnedPivot(p, r.value); });*/
-            std::for_each(response.end() - (it_upper - it_lower), response.end(), [&](BinnedPivot& p) {
-                             p.value = r.value;
-                          });
-
-            // case 2
-         } else if (query.type() == Query::TILE) {
-            /*std::transform(it_lower, it_upper, std::back_inserter(response), [&](const Pivot& p) { return BinnedPivot(p, _container[value].value); });*/
-            std::for_each(response.end() - (it_upper - it_lower), response.end(), [&](BinnedPivot& p) {
-                             p.value = el->value.data;
-                          });
-         }
+         iters_it = it_lower;
       }
    }
 

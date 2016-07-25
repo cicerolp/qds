@@ -79,33 +79,25 @@ bool Categorical::query_where(const Query& query, response_container& range, res
          else if (!r.pivot.intersect_range((*iters_it), subset.back())) continue;
 
          building_iterator it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
-         building_iterator it_upper;
 
-         if (r.pivot >= (*it_lower)) {
-            it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
-            iters_it = it_upper;
-         } else {
-            iters_it = it_lower;
-            continue;
+         if (it_lower == subset.end()) continue;
+
+         while (it_lower != subset.end() && r.pivot >= (*it_lower)) {
+            if (target) {
+               // case 2
+               response.emplace_back((*it_lower), value);
+            } else if (pass_over_target) {
+               // case 1
+               response.emplace_back((*it_lower), r.value);
+            } else {
+               // TODO optimize case 0
+               // case 0
+               response.emplace_back((*it_lower));
+            }
+            it_lower++;
          }
 
-         // case 0
-         response.insert(response.end(), it_lower, it_upper);
-
-         // case 2
-         if (target) {
-            /*std::transform(it_lower, it_upper, std::back_inserter(response), [&](const Pivot& p) { return BinnedPivot(p, _container[value].value); });*/
-            std::for_each(response.end() - (it_upper - it_lower), response.end(), [&](BinnedPivot& p) {
-                             p.value = value;
-                          });
-
-            // case1
-         } else if (pass_over_target) {
-            /*std::transform(it_lower, it_upper, std::back_inserter(response), [&](const Pivot& p) { return BinnedPivot(p, r.value); });*/
-            std::for_each(response.end() - (it_upper - it_lower), response.end(), [&](BinnedPivot& p) {
-                             p.value = r.value;
-                          });
-         }
+         iters_it = it_lower;
       }
    }
 
@@ -137,24 +129,17 @@ bool Categorical::query_field(const Query& query, response_container& range, res
          else if (!r.pivot.intersect_range((*iters_it), subset.back())) continue;
 
          building_iterator it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
-         building_iterator it_upper;
 
-         if (r.pivot >= (*it_lower)) {
-            it_upper = std::upper_bound(it_lower, subset.end(), r.pivot, Pivot::upper_bound_comp);
-            iters_it = it_upper;
-         } else {
-            iters_it = it_lower;
-            continue;
+         if (it_lower == subset.end()) continue;
+
+         while (it_lower != subset.end() && r.pivot >= (*it_lower)) {
+            // case 2
+            response.emplace_back((*it_lower), el.value);
+
+            it_lower++;
          }
 
-         // case 0
-         response.insert(response.end(), it_lower, it_upper);
-
-         // case 2
-         /*std::transform(it_lower, it_upper, std::back_inserter(response), [&](const Pivot& p) { return BinnedPivot(p, _container[value].value); });*/
-         std::for_each(response.end() - (it_upper - it_lower), response.end(), [&](BinnedPivot& p) {
-                          p.value = el.value;
-                       });
+         iters_it = it_lower;
       }
    }
 
