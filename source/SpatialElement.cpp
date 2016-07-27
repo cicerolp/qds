@@ -60,21 +60,34 @@ uint32_t SpatialElement::expand(Data& data, const uint8_t offset) {
    return pivots_count;
 }
 
-void SpatialElement::query(const Query& query, std::vector<const SpatialElement*>& subset) const {
+void SpatialElement::query_tile(const Query& query, std::vector<const SpatialElement*>& subset) const {
 
-   if (query.tile().second == value || (value.leaf && value.intersects(query.tile().second))) {
+   if (query.tile() == value || (value.leaf && value.intersects(query.tile()))) {
       return aggregate_tile(query, subset);
-   } else if (value.z < query.tile().second.z && value.contains(query.tile().second)) {
-      if (_container[0] != nullptr) _container[0]->query(query, subset);
-      if (_container[1] != nullptr) _container[1]->query(query, subset);
-      if (_container[2] != nullptr) _container[2]->query(query, subset);
-      if (_container[3] != nullptr) _container[3]->query(query, subset);
+   } else if (value.z < query.tile().z && value.contains(query.tile())) {
+      if (_container[0] != nullptr) _container[0]->query_tile(query, subset);
+      if (_container[1] != nullptr) _container[1]->query_tile(query, subset);
+      if (_container[2] != nullptr) _container[2]->query_tile(query, subset);
+      if (_container[3] != nullptr) _container[3]->query_tile(query, subset);
+   }
+}
+
+void SpatialElement::query_region(const Query& query, std::vector<const SpatialElement*>& subset) const {
+   if (query.region().intersect(value)) {
+      if (value.z == query.region().z() || value.leaf) {
+         subset.emplace_back(this);
+      } else {
+         if (_container[0] != nullptr) _container[0]->query_region(query, subset);
+         if (_container[1] != nullptr) _container[1]->query_region(query, subset);
+         if (_container[2] != nullptr) _container[2]->query_region(query, subset);
+         if (_container[3] != nullptr) _container[3]->query_region(query, subset);
+      }
    }
 }
 
 void SpatialElement::aggregate_tile(const Query& query, std::vector<const SpatialElement*>& subset) const {
 
-   if (value.leaf || (value.z == query.tile().second.z + query.resolution())) {
+   if (value.leaf || (value.z == query.tile().z + query.resolution())) {
       subset.emplace_back(this);
    } else {
       if (_container[0] != nullptr) _container[0]->aggregate_tile(query, subset);

@@ -1,0 +1,1 @@
+START /WAIT ./x64/Release/nds.exe ./xml/brightkite.nds.xml -log ./csv/brightkite.csv

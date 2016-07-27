@@ -16,14 +16,14 @@ uint32_t Spatial::build(const building_container& range, building_container& res
 
 bool Spatial::query(const Query& query, response_container& range, response_container& response, bool& pass_over_target) const {
 
-   if (query.tile().first != _key) return false;
-
    std::vector<const SpatialElement*> subset;
-   _container.query(query, subset);
 
-   std::unordered_map<const SpatialElement*, building_iterator> iters;
-   for (const auto& el : subset) {
-      iters.emplace(el, el->pivots.begin());
+   if (query.eval_tile(_key)) {
+      _container.query_tile(query, subset);
+   } else if (query.eval_region(_key)) {
+      _container.query_region(query, subset);
+   } else {
+      return false;
    }
 
    // sort range only when necessary
@@ -31,7 +31,7 @@ bool Spatial::query(const Query& query, response_container& range, response_cont
 
    for (const auto& el : subset) {
 
-      auto& iters_it = iters.at(el);
+      auto iters_it = el->pivots.begin();
 
       for (const auto& r : range) {
 

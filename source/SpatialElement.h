@@ -17,7 +17,8 @@ public:
 
    uint32_t expand(Data& data, const uint8_t offset);
 
-   void query(const Query& query, std::vector<const SpatialElement*>& subset) const;
+   void query_tile(const Query& query, std::vector<const SpatialElement*>& subset) const;
+   void query_region(const Query& query, std::vector<const SpatialElement*>& subset) const;
 
    spatial_t value;
    std::vector<Pivot> pivots;

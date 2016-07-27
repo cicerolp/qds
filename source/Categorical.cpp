@@ -45,32 +45,29 @@ uint32_t Categorical::build(const building_container& range, building_container&
 
 bool Categorical::query(const Query& query, response_container& range, response_container& response, bool& pass_over_target) const {
 
-   if (query.where().find(_key) != query.where().end()) {
+   if (query.eval_where(_key)) {
       return query_where(query, range, response, pass_over_target);
-   } else if (query.field().find(_key) != query.field().end()) {
+
+   } else if (query.eval_field(_key)) {
       return query_field(query, range, response, pass_over_target);
+
    } else {
       return false;
    }
 }
 
 bool Categorical::query_where(const Query& query, response_container& range, response_container& response, bool& pass_over_target) const {
-   const auto value_it = query.where().find(_key);
-   const bool target = query.field().find(_key) != query.field().end();
+   const auto value_it = query.where(_key);
+   const bool target = query.eval_field(_key);
 
-   if ((*value_it).second.size() == _bin && !target) return false;
-
-   std::unordered_map<const CategoricalElement*, building_iterator> iters;
-   for (const auto& value : (*value_it).second) {
-      iters.emplace(&_container[value], _container[value].container.begin());
-   }
+   if (value_it.size() == _bin && !target) return false;
 
    // sort range only when necessary
    std::sort(range.begin(), range.end());
 
-   for (const auto& value : (*value_it).second) {
+   for (const auto& value : value_it) {
 
-      auto& iters_it = iters.at(&_container[value]);
+      auto iters_it = _container[value].container.begin();
       const auto& subset = _container[value].container;
 
       for (const auto& r : range) {
@@ -110,17 +107,12 @@ bool Categorical::query_where(const Query& query, response_container& range, res
 
 bool Categorical::query_field(const Query& query, response_container& range, response_container& response, bool& pass_over_target) const {
 
-   std::unordered_map<const CategoricalElement*, building_iterator> iters;
-   for (const auto& el : _container) {
-      iters.emplace(&el, el.container.begin());
-   }
-
    // sort range only when necessary
    std::sort(range.begin(), range.end());
 
    for (const auto& el : _container) {
 
-      auto& iters_it = iters.at(&el);
+      auto iters_it = el.container.begin();
       const auto& subset = el.container;
 
       for (const auto& r : range) {

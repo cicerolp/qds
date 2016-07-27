@@ -44,28 +44,23 @@ uint32_t Temporal::build(const building_container& range, building_container& re
 
 bool Temporal::query(const Query& query, response_container& range, response_container& response, bool& pass_over_target) const {
 
-   const auto interval_it = query.interval().find(_key);
+   if (!query.eval_interval(_key)) return false;
 
-   if (interval_it == query.interval().end()) return false;
+   const auto interval = query.interval(_key);
 
-   if (query.type() != Query::TSERIES && (*interval_it).second.contain(_container.front().date, _container.back().date)) {
+   if (query.type() != Query::TSERIES && interval.contain(_container.front().date, _container.back().date)) {
       return false;
    }
 
-   auto it_lower_data = std::lower_bound(_container.begin(), _container.end(), (*interval_it).second.bound[0]);
-   auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), (*interval_it).second.bound[1]);
-
-   std::unordered_map<const TemporalElement*, building_iterator> iters;
-   for (auto date_it = it_lower_data; date_it != it_upper_date; ++date_it) {
-      iters.emplace(&(*date_it), (*date_it).container.begin());
-   }
+   auto it_lower_data = std::lower_bound(_container.begin(), _container.end(), interval.bound[0]);
+   auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), interval.bound[1]);
 
    // sort range only when necessary
    std::sort(range.begin(), range.end());
 
    for (auto date_it = it_lower_data; date_it != it_upper_date; ++date_it) {
 
-      auto& iters_it = iters.at(&(*date_it));
+      auto iters_it = (*date_it).container.begin();
       const auto& subset = (*date_it).container;
 
       for (const auto& r : range) {
