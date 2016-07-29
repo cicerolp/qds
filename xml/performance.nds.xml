@@ -1,30 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
 	<name>performance</name>
-	<bytes>22</bytes>
-	<leaf>32</leaf>
+	<bytes>22</bytes>	
 	<file>performance.nds</file>
 	<schema>
 		<spatial>
-			<key>0</key>
+			<index>0</index>
+			<bin>32</bin>
 			<offset>0</offset>
 		</spatial>
 		<spatial>
-			<key>1</key>
+			<index>1</index>
+			<bin>32</bin>
 			<offset>8</offset>
 		</spatial>
 		<categorical>
-			<key>dep_delay</key>
+			<index>0</index>
 			<bin>9</bin>
 			<offset>16</offset>
 		</categorical>
 		<categorical>
-			<key>carrier</key>
+			<index>1</index>
 			<bin>29</bin>
 			<offset>17</offset>
 		</categorical>
 		<temporal>
-			<key>tseries</key>
+			<index>0</index>
 			<bin>14400</bin>
 			<offset>18</offset>
 		</temporal>

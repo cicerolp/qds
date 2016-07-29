@@ -10,53 +10,55 @@ public:
    Query(const std::string& url);
    Query(const std::vector<std::string>& tokens);
 
-   const QueryType& type() const {
+   inline const QueryType& type() const {
       return _type;
    }
 
-   const std::string& instance() const {
+   inline const std::string& instance() const {
       return _instance;
    }
 
-   bool eval_tile(const std::string& key) const {
-      return !_tile.first.empty() && _tile.first == key;
+   inline bool eval_tile(uint32_t key) const {
+      return _tile[key].first;
    }
 
-   const spatial_t& tile() const {
-      return _tile.second;
+   inline const spatial_t& tile(uint32_t key) const {
+      return _tile[key].second;
    }
 
-   bool eval_region(const std::string& key) const {
-      return !_region.first.empty() && _region.first == key;
+   inline bool eval_region(uint32_t key) const {
+      return _region[key].first;
    }
 
-   const region_t& region() const {
-      return _region.second;
+   inline const region_t& region(uint32_t key) const {
+      return _region[key].second;
    }
 
-   const uint8_t& resolution() const {
+   inline const uint8_t& resolution() const {
       return _resolution;
    }
 
-   bool eval_interval(const std::string& key) const {
-      return _interval.find(key) != _interval.end();
+   inline bool eval_interval(uint32_t key) const {
+      return _interval[key].first;
    }
 
-   const interval_t& interval(const std::string& key) const {
-      return _interval.at(key);
+   inline const interval_t& interval(uint32_t key) const {
+      return _interval[key].second;
    }
    
-   bool eval_field(const std::string& key) const {
-      return _field.find(key) != _field.end();
+   inline bool eval_field(uint32_t key) const {
+      return _field[key];
    }
 
-   bool eval_where(const std::string& key) const {
-      return _where.find(key) != _where.end();
+   inline bool eval_where(uint32_t key) const {
+      return _where[key].first;
    }
 
-   const std::vector<categorical_t>& where(const std::string& key) const {
-      return _where.at(key);
+   inline const std::vector<categorical_t>& where(uint32_t key) const {
+      return _where[key].second;
    }
+
+   friend std::ostream& operator<<(std::ostream& os, const Query& query);
 
 private:
    Query(const std::string& instance, const std::string& type);
@@ -65,10 +67,12 @@ private:
    std::string _instance;
 
    uint8_t _resolution;
-   std::pair<std::string, spatial_t> _tile;
-   std::pair<std::string, region_t> _region;
+   
+   std::vector<std::pair<bool, spatial_t>> _tile;
+   std::vector<std::pair<bool, region_t>> _region;
 
-   std::unordered_set<std::string> _field;
-   std::unordered_map<std::string, interval_t> _interval;
-   std::unordered_map<std::string, std::vector<categorical_t>> _where;   
+   std::vector<bool> _field;
+   std::vector<std::pair<bool, std::vector<categorical_t>>> _where;
+
+   std::vector<std::pair<bool, interval_t>> _interval;
 };

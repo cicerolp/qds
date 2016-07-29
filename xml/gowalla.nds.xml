@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
 	<name>gowalla</name>
-	<bytes>14</bytes>
-	<leaf>32</leaf>
+	<bytes>14</bytes>	
 	<file>gowalla.nds</file>
 	<schema>
 		<spatial>
-			<key>0</key>
+			<index>0</index>
+			<bin>32</bin>
 			<offset>0</offset>
 		</spatial>
 		<categorical>
-			<key>day_of_week</key>
+			<index>0</index>
 			<bin>7</bin>
 			<offset>8</offset>
 		</categorical>
 		<categorical>
-			<key>hour_of_day</key>
+			<index>1</index>
 			<bin>24</bin>
 			<offset>9</offset>
 		</categorical>
 		<temporal>
-			<key>tseries</key>
+			<index>0</index>
 			<bin>604800</bin>
 			<offset>10</offset>
 		</temporal>

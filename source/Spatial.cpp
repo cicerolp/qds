@@ -1,8 +1,9 @@
 #include "stdafx.h"
+#include "NDS.h"
 #include "Spatial.h"
 
-Spatial::Spatial(const std::string& key, const uint32_t bin, const uint8_t offset)
-   : Dimension(key, bin, offset), _container(spatial_t(0, 0, 0)) { }
+Spatial::Spatial(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
+   : Dimension(tuple), _container(spatial_t(0, 0, 0)) { }
 
 uint32_t Spatial::build(const building_container& range, building_container& response, Data& data) {
 
@@ -14,20 +15,20 @@ uint32_t Spatial::build(const building_container& range, building_container& res
    return pivots_count;
 }
 
-bool Spatial::query(const Query& query, response_container& range, response_container& response, bool& pass_over_target) const {
+bool Spatial::query(const Query& query, range_container& range, response_container& response, bool& pass_over_target) const {
 
    std::vector<const SpatialElement*> subset;
 
    if (query.eval_tile(_key)) {
       _container.query_tile(query, subset);
    } else if (query.eval_region(_key)) {
-      _container.query_region(query, subset);
+      _container.query_region(query, subset, 0);
    } else {
       return false;
    }
 
    // sort range only when necessary
-   std::sort(range.begin(), range.end());
+   NDS::swap_and_sort(range, response);
 
    for (const auto& el : subset) {
 

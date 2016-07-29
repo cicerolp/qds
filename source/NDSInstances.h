@@ -7,9 +7,9 @@
 class NDSInstances : public Singleton<NDSInstances> {
 	friend class Singleton<NDSInstances>;
 public:
-	static void run(const std::vector<Schema>& args);
+	static void run(const std::vector<Schema>& args, bool telemetry);
 
-	std::string query(const Query& query) const;
+	std::string query(const Query& query);
    std::string schema(const std::string& instance) const;
 
 private:
@@ -28,4 +28,7 @@ private:
 
 	bool _ready{ false };
 	std::unordered_map<std::string, std::shared_ptr<NDS>> _container;
+
+   bool _telemetry{ false };
+   std::unordered_map<std::string, std::unique_ptr<std::ofstream>> _telemetry_files;
 };

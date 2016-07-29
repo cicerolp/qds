@@ -24,10 +24,9 @@ NDS::NDS(const Schema& schema) {
 
    // categorical
    for (const auto& tuple : schema.categorical) {
+      std::cout << "\tBuilding Categorical Dimension: " << std::get<0>(tuple) << " ... ";
 
-      std::cout << "\tBuilding Categorical Dimension: " + std::get<0>(tuple) + " ... ";
-
-      _categorical.emplace_back(std::make_unique<Categorical>(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple)));
+      _categorical.emplace_back(std::make_unique<Categorical>(tuple));
 
       uint32_t curr_count = _categorical.back()->build(current, expand, data);
       pivots_count += curr_count;
@@ -40,10 +39,9 @@ NDS::NDS(const Schema& schema) {
 
    // temporal
    for (const auto& tuple : schema.temporal) {
+      std::cout << "\tBuilding Temporal Dimension: " << std::get<0>(tuple) << " ... ";
 
-      std::cout << "\tBuilding Temporal Dimension: " + std::get<0>(tuple) + " ... ";
-
-      _temporal.emplace_back(std::make_unique<Temporal>(std::get<0>(tuple), std::get<1>(tuple), std::get<2>(tuple)));
+      _temporal.emplace_back(std::make_unique<Temporal>(tuple));
 
       uint32_t curr_count = _temporal.back()->build(current, expand, data);
       pivots_count += curr_count;
@@ -57,10 +55,9 @@ NDS::NDS(const Schema& schema) {
    // spatial
    // TODO multiple spatial dimensions
    for (const auto& tuple : schema.spatial) {
+      std::cout << "\tBuilding Spatial Dimension: " << std::get<0>(tuple) << " ... ";
 
-      std::cout << "\tBuilding Spatial Dimension: " + std::get<0>(tuple) + " ... ";
-
-      _spatial = std::make_unique<Spatial>(std::get<0>(tuple), schema.leaf, std::get<1>(tuple));
+      _spatial = std::make_unique<Spatial>(tuple);
 
       uint32_t curr_count = _spatial->build(current, expand, data);
       pivots_count += curr_count;
@@ -79,41 +76,55 @@ NDS::NDS(const Schema& schema) {
    std::cout << "\tDuration: " + std::to_string(duration) + "s\n" << std::endl;
 }
 
-std::string NDS::query(const Query& query) {
+std::string NDS::query(const Query& query, std::ofstream* telemetry) {
 
-   /*std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
-   start = std::chrono::high_resolution_clock::now();*/
+   std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> start(4), end(4);
 
    bool pass_over_target = false;
 
-   response_container range, response;
-   range.emplace_back(_root);
+   range_container range;
+   response_container response;
+   response.emplace_back(_root);
 
+   // categorical
+   start[0] = std::chrono::high_resolution_clock::now();
    for (const auto& d : _categorical) {
-      if (d->query(query, range, response, pass_over_target)) {
-         swap_and_clear(range, response);
-      }
+      d->query(query, range, response, pass_over_target);
    }
+   end[0] = std::chrono::high_resolution_clock::now();
 
+   // temporal
+   start[1] = std::chrono::high_resolution_clock::now();
    for (const auto& d : _temporal) {
-      if (d->query(query, range, response, pass_over_target)) {
-         swap_and_clear(range, response);
-      }
+      d->query(query, range, response, pass_over_target);
+   }
+   end[1] = std::chrono::high_resolution_clock::now();
+
+   // spatial
+   start[2] = std::chrono::high_resolution_clock::now();
+   _spatial->query(query, range, response, pass_over_target);
+   end[2] = std::chrono::high_resolution_clock::now();
+
+   // serialization (json)
+   start[3] = std::chrono::high_resolution_clock::now();
+   std::string buffer(serialize(query, response));
+   end[3] = std::chrono::high_resolution_clock::now();
+
+   if (telemetry != nullptr) {
+      auto clock_categorical = std::chrono::duration_cast<std::chrono::milliseconds>(end[0] - start[0]).count();
+      auto clock_temporal = std::chrono::duration_cast<std::chrono::milliseconds>(end[1] - start[1]).count();
+      auto clock_spatial = std::chrono::duration_cast<std::chrono::milliseconds>(end[2] - start[2]).count();
+      auto clock_json = std::chrono::duration_cast<std::chrono::milliseconds>(end[3] - start[3]).count();
+
+      auto clock = clock_categorical + clock_temporal + clock_spatial + clock_json;
+
+      (*telemetry) << clock << "," << clock_spatial << "," << clock_categorical << "," << clock_temporal << "," << clock_json << "," << query << std::endl;
    }
 
-   if (_spatial->query(query, range, response, pass_over_target)) {
-      swap_and_clear(range, response);
-   }
-
-   /*end = std::chrono::high_resolution_clock::now();
-   long long duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-
-   std::cout << "\tDuration: " + std::to_string(duration) + "ms\n" << std::endl;*/
-
-   return serialize(query, range);
+   return buffer;
 }
 
-std::string NDS::serialize(const Query& query, const response_container& range) {
+std::string NDS::serialize(const Query& query, const response_container& response) {
 
    // serialization
    rapidjson::StringBuffer buffer;
@@ -124,7 +135,7 @@ std::string NDS::serialize(const Query& query, const response_container& range) 
    switch (query.type()) {
       case Query::TILE: {
          std::unordered_map<uint64_t, uint32_t> map;
-         for (const auto& ptr : range) map[ptr.value] += ptr.pivot.size();
+         for (const auto& ptr : response) map[ptr.value] += ptr.pivot.size();
 
          for (const auto& pair : map) {
             writer.StartArray();
@@ -138,7 +149,7 @@ std::string NDS::serialize(const Query& query, const response_container& range) 
          break;
       case Query::GROUP: {
          std::map<uint64_t, uint32_t> map;
-         for (const auto& ptr : range) map[ptr.value] += ptr.pivot.size();
+         for (const auto& ptr : response) map[ptr.value] += ptr.pivot.size();
 
          for (const auto& pair : map) {
             writer.StartArray();
@@ -150,7 +161,7 @@ std::string NDS::serialize(const Query& query, const response_container& range) 
          break;
       case Query::TSERIES: {
          std::map<uint64_t, uint32_t> map;
-         for (const auto& ptr : range) map[ptr.value] += ptr.pivot.size();
+         for (const auto& ptr : response) map[ptr.value] += ptr.pivot.size();
 
          for (const auto& pair : map) {
             writer.StartArray();
@@ -170,7 +181,7 @@ std::string NDS::serialize(const Query& query, const response_container& range) 
          break;
       case Query::REGION: {
          uint32_t count = 0;
-         for (const auto& ptr : range) count += ptr.pivot.size();
+         for (const auto& ptr : response) count += ptr.pivot.size();
 
          writer.StartArray();
 

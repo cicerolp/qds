@@ -12,19 +12,21 @@ int main(int argc, char* argv[]) {
 
    bool server = true;
    Server::server_opts nds_opts;
-   nds_opts.port = 8002;
+   nds_opts.port = 8102;
    nds_opts.cache = false;
-   nds_opts.multithreading = true;
+   nds_opts.multithreading = false;
 
    bool telemetry = false;
-   std::string telemetry_file = "telemetry";
 
    bool benchmark = false;
+   uint32_t benchmark_passes = 200;
    std::vector<std::string> benchmark_files;
 
    /**/
+   //telemetry = true;
    benchmark = true;
-   benchmark_files.emplace_back("./csv/brightkite.csv");
+   benchmark_files.emplace_back("./csv/brightkite-bench.csv");
+   //benchmark_files.emplace_back("./csv/brightkite-region.csv");
    /**/
 
    std::vector<Schema> schemas;
@@ -49,7 +51,6 @@ int main(int argc, char* argv[]) {
                std::string arg = argv[i];
                if (arg == std::string("-telemetry")) {
                   telemetry = true;
-                  telemetry_file = argv[++i];
                } else if (arg == "-no-server") {
                   server = false;
                } else if (arg == "-log") {
@@ -101,7 +102,7 @@ int main(int argc, char* argv[]) {
    }
 
    // nds instances
-   std::thread instances_run(NDSInstances::run, schemas);
+   std::thread instances_run(NDSInstances::run, schemas, telemetry);
 
    instances_run.join();
    std::cout << "Current Resident Size: " << getCurrentRSS() / (1024 * 1024) << " MB" << std::endl;
@@ -125,20 +126,19 @@ int main(int argc, char* argv[]) {
       }
       std::cout << "Done." << std::endl;
 
-      uint32_t passes = 1;
-      for (uint32_t pass = 0; pass < passes; ++pass) {
-         std::cout << "["
+      for (uint32_t pass = 0; pass < benchmark_passes; ++pass) {
+         /*std::cout << "["
             + std::to_string(pass + 1)
             + " of "
-            + std::to_string(passes)
+            + std::to_string(benchmark_passes)
             + "] Running "
             + std::to_string(queries.size())
-            + " queries... ";
+            + " queries... ";*/
 
          for (auto& query : queries) {
             NDSInstances::getInstance().query(query);
          }
-         std::cout << "Done." << std::endl;
+         /*std::cout << "Done." << std::endl;*/
       }
    }
 

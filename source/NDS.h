@@ -15,7 +15,7 @@ public:
 	NDS(const Schema& schema);
 	~NDS() = default;
 
-   std::string query(const Query& query);
+   std::string query(const Query& query, std::ofstream* telemetry);
 
    inline interval_t get_interval() const {
       interval_t interval;
@@ -28,13 +28,20 @@ public:
       return _root.pivot.back() - _root.pivot.front();
    }
 
-private:
-   static std::string serialize(const Query& query, const response_container& range);
-
-   static inline void swap_and_clear(response_container& range, response_container& response) {
-      range.swap(response);      
+   static inline void swap_and_sort(range_container& range, response_container& response) {
+      // vector, vector
+      range.swap(response);
+      std::sort(range.begin(), range.end());
       response.clear();
+
+      // vector, deque
+      /*range.assign(response.begin(), response.end());
+      std::sort(range.begin(), range.end());
+      response.clear();*/
    }
+
+private:
+   static std::string serialize(const Query& query, const response_container& response);
 
    std::vector<std::unique_ptr<Categorical>> _categorical;
    std::vector<std::unique_ptr<Temporal>> _temporal;

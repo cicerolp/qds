@@ -147,7 +147,7 @@ function updateDataRestrictions() {
     
     _view.views.forEach(function (entry) {
     	if (entry.on_menu) {
-    		var restriction = entry.field.name + "=";
+    	   var restriction = get_id(entry.field.name) + "=";
     		
     		$("#tabs-" + entry.field.name + "-checkboxes" + " :checked").each(function() {
     			restriction += parseInt($(this).val()) + ":";
@@ -179,8 +179,7 @@ function updateDataRestrictions() {
             var tseries_from = "/" + Math.floor(Math.max(lower_bound.getTime(), curr_lower_bound) / 1000);
             var tseries_to = "/" + Math.ceil(Math.min(upper_bound.getTime(), curr_upper_bound) / 1000);
 
-            curr_tseries += "/tseries/" + entry.field.name + tseries_from + tseries_to;
-            console.log(curr_tseries);
+            curr_tseries += "/tseries/" + get_id(entry.field.name) + tseries_from + tseries_to;
         }
     });
     
@@ -239,7 +238,7 @@ function a_getQuery() {
 
         		case "histogram": 
         		{
-        			var query = "/group/field/" + entry.field.name + region + where + tseries;
+        		   var query = "/group/field/" + get_id(entry.field.name) + region + where + tseries;
         	        $.ajax({
         	            type : 'GET',
         	            url : _queryURL + query,
@@ -271,7 +270,7 @@ function a_getQuery() {
         		
         		case "binned-scatterplot": 
         		{
-    				var query = "/scatter/field/" + entry.field_x.name + "/field/" + entry.field_y.name + region;
+        		   var query = "/scatter/field/" + get_id(entry.field_x.name) + "/field/" + get_id(entry.field_y.name) + region;
     				
     		        $.ajax({
     		            type : 'GET',

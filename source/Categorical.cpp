@@ -1,9 +1,10 @@
 #include "stdafx.h"
+#include "NDS.h"
 #include "Categorical.h"
 
-Categorical::Categorical(const std::string& key, const uint32_t bin, const uint8_t offset)
-   : Dimension(key, bin, offset) {
-   for (uint32_t i = 0; i < bin; ++i) {
+Categorical::Categorical(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
+   : Dimension(tuple) {
+   for (uint32_t i = 0; i < _bin; ++i) {
       _container.emplace_back(i);
    }
 }
@@ -40,10 +41,13 @@ uint32_t Categorical::build(const building_container& range, building_container&
       data.sort(ptr.front(), ptr.back());
    }
 
+   for (auto& el : _container) el.container.shrink_to_fit();
+   _container.shrink_to_fit();   
+
    return pivots_count;
 }
 
-bool Categorical::query(const Query& query, response_container& range, response_container& response, bool& pass_over_target) const {
+bool Categorical::query(const Query& query, range_container& range, response_container& response, bool& pass_over_target) const {
 
    if (query.eval_where(_key)) {
       return query_where(query, range, response, pass_over_target);
@@ -56,14 +60,14 @@ bool Categorical::query(const Query& query, response_container& range, response_
    }
 }
 
-bool Categorical::query_where(const Query& query, response_container& range, response_container& response, bool& pass_over_target) const {
+bool Categorical::query_where(const Query& query, range_container& range, response_container& response, bool& pass_over_target) const {
    const auto value_it = query.where(_key);
    const bool target = query.eval_field(_key);
 
    if (value_it.size() == _bin && !target) return false;
 
    // sort range only when necessary
-   std::sort(range.begin(), range.end());
+   NDS::swap_and_sort(range, response);
 
    for (const auto& value : value_it) {
 
@@ -105,10 +109,10 @@ bool Categorical::query_where(const Query& query, response_container& range, res
    return true;
 }
 
-bool Categorical::query_field(const Query& query, response_container& range, response_container& response, bool& pass_over_target) const {
+bool Categorical::query_field(const Query& query, range_container& range, response_container& response, bool& pass_over_target) const {
 
    // sort range only when necessary
-   std::sort(range.begin(), range.end());
+   NDS::swap_and_sort(range, response);
 
    for (const auto& el : _container) {
 

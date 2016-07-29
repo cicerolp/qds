@@ -17,6 +17,7 @@
 // C++ includes
 #include <set>
 #include <map>
+#include <deque>
 #include <regex>
 #include <array>
 #include <tuple>

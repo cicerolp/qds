@@ -50,6 +50,8 @@ uint32_t SpatialElement::expand(Data& data, const uint8_t offset) {
          }
       }
 
+      pivots.shrink_to_fit();
+
       for (auto& el : _container) {
          if (el != nullptr) {
             pivots_count += el->expand(data, offset);
@@ -62,9 +64,11 @@ uint32_t SpatialElement::expand(Data& data, const uint8_t offset) {
 
 void SpatialElement::query_tile(const Query& query, std::vector<const SpatialElement*>& subset) const {
 
-   if (query.tile() == value || (value.leaf && value.intersects(query.tile()))) {
+   // BUG fix spatial at
+   if (query.tile(0) == value || (value.leaf && value.intersects(query.tile(0)))) {
       return aggregate_tile(query, subset);
-   } else if (value.z < query.tile().z && value.contains(query.tile())) {
+
+   } else if (value.z < query.tile(0).z && value.contains(query.tile(0))) {
       if (_container[0] != nullptr) _container[0]->query_tile(query, subset);
       if (_container[1] != nullptr) _container[1]->query_tile(query, subset);
       if (_container[2] != nullptr) _container[2]->query_tile(query, subset);
@@ -72,22 +76,25 @@ void SpatialElement::query_tile(const Query& query, std::vector<const SpatialEle
    }
 }
 
-void SpatialElement::query_region(const Query& query, std::vector<const SpatialElement*>& subset) const {
-   if (query.region().intersect(value)) {
-      if (value.z == query.region().z() || value.leaf) {
+void SpatialElement::query_region(const Query& query, std::vector<const SpatialElement*>& subset, uint8_t z) const {
+
+   // BUG fix spatial at
+   if (query.region(0).intersect(value, z)) {
+      if (value.z == query.region(0).z || value.leaf) {
          subset.emplace_back(this);
       } else {
-         if (_container[0] != nullptr) _container[0]->query_region(query, subset);
-         if (_container[1] != nullptr) _container[1]->query_region(query, subset);
-         if (_container[2] != nullptr) _container[2]->query_region(query, subset);
-         if (_container[3] != nullptr) _container[3]->query_region(query, subset);
+         if (_container[0] != nullptr) _container[0]->query_region(query, subset, z + 1);
+         if (_container[1] != nullptr) _container[1]->query_region(query, subset, z + 1);
+         if (_container[2] != nullptr) _container[2]->query_region(query, subset, z + 1);
+         if (_container[3] != nullptr) _container[3]->query_region(query, subset, z + 1);
       }
    }
 }
 
 void SpatialElement::aggregate_tile(const Query& query, std::vector<const SpatialElement*>& subset) const {
 
-   if (value.leaf || (value.z == query.tile().z + query.resolution())) {
+   // BUG fix spatial at
+   if (value.leaf || (value.z == query.tile(0).z + query.resolution())) {
       subset.emplace_back(this);
    } else {
       if (_container[0] != nullptr) _container[0]->aggregate_tile(query, subset);

@@ -1,8 +1,9 @@
 #include "stdafx.h"
+#include "NDS.h"
 #include "Temporal.h"
 
-Temporal::Temporal(const std::string& key, const uint32_t bin, const uint8_t offset)
-   : Dimension(key, bin, offset) { }
+Temporal::Temporal(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
+   : Dimension(tuple) { }
 
 uint32_t Temporal::build(const building_container& range, building_container& response, Data& data) {
    uint32_t pivots_count = 0;
@@ -37,12 +38,14 @@ uint32_t Temporal::build(const building_container& range, building_container& re
    }
 
    _container.assign(tmp_container.begin(), tmp_container.end());
+
+   for (auto& el : _container) el.container.shrink_to_fit();
    _container.shrink_to_fit();
 
    return pivots_count;
 }
 
-bool Temporal::query(const Query& query, response_container& range, response_container& response, bool& pass_over_target) const {
+bool Temporal::query(const Query& query, range_container& range, response_container& response, bool& pass_over_target) const {
 
    if (!query.eval_interval(_key)) return false;
 
@@ -56,7 +59,7 @@ bool Temporal::query(const Query& query, response_container& range, response_con
    auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), interval.bound[1]);
 
    // sort range only when necessary
-   std::sort(range.begin(), range.end());
+   NDS::swap_and_sort(range, response);
 
    for (auto date_it = it_lower_data; date_it != it_upper_date; ++date_it) {
 
