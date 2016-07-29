@@ -30,20 +30,22 @@ struct spatial_t {
       return index;
    }
 
-   inline bool intersects(const spatial_t& other) const {
-      return (z < other.z) ? contains(other) : other.contains(*this);
-   }
-
    inline bool contains(const spatial_t& other) const {
-      uint32_t n = 2 << (other.z - z - 1);
+      if (other.z > z) {
+         uint32_t n = 2 << (other.z - z - 1);
 
-      uint32_t x_min = static_cast<uint32_t>(x) * n;
-      uint32_t x_max = x_min + n;
+         uint32_t x_min = static_cast<uint32_t>(x) * n;
+         uint32_t x_max = x_min + n;
 
-      uint32_t y_min = static_cast<uint32_t>(y) * n;
-      uint32_t y_max = y_min + n;
+         uint32_t y_min = static_cast<uint32_t>(y) * n;
+         uint32_t y_max = y_min + n;
 
-      return x_min <= other.x && x_max >= other.x && y_min <= other.y && y_max >= other.y;
+         return x_min <= other.x && x_max >= other.x && y_min <= other.y && y_max >= other.y;
+      } else if (other.z == z) {
+         return x == other.x && y == other.y;
+      } else {
+         return false;
+      }
    }
 
    friend std::ostream& operator<<(std::ostream& stream, const spatial_t& tile) {
@@ -73,20 +75,22 @@ struct region_t {
    inline uint32_t x0() const {
       return tile0.x;
    }
+
    inline uint32_t x1() const {
       return tile1.x;
    }
+
    inline uint32_t y0() const {
       return tile0.y;
    }
+
    inline uint32_t y1() const {
       return tile1.y;
    }
 
    inline bool intersect(const spatial_t& tile, uint8_t tile_z) const {
-      // avoid using shift operations
-      if (z > tile.z) {
-         uint32_t n = 2 << (z - tile.z - 1);
+      if (z > tile_z) {
+         uint32_t n = 2 << (z - tile_z - 1);
 
          uint32_t x_min = static_cast<uint32_t>(tile.x) * n;
          uint32_t x_max = x_min + n;
@@ -95,17 +99,15 @@ struct region_t {
          uint32_t y_max = y_min + n;
 
          return (x0() <= x_max && y0() <= y_max && x1() >= x_min && y1() >= y_min);
-
-      } else if (z == tile.z) {
+      } else if (z == tile_z) {
          return x0() <= tile.x && y0() <= tile.y && x1() >= tile.x && y1() >= tile.y;
-
       } else {
          return false;
       }
    }
 
    friend std::ostream& operator<<(std::ostream& os, const region_t& obj) {
-      return os << obj.z << "/" << obj.x0() << "/" << obj.y0() 
+      return os << obj.z << "/" << obj.x0() << "/" << obj.y0()
          << "/" << obj.x1() << "/" << obj.y1();
    }
 

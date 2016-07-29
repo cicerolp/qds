@@ -21,13 +21,14 @@ public:
    inline uint32_t front() const;
    inline uint32_t back() const;
 
-   inline bool intersect_range(const Pivot& lhs, const Pivot& rhs) const;
-
    inline bool operator<(const Pivot& other) const;
    inline bool operator>(const Pivot& other) const;
 
    inline bool operator<=(const Pivot& other) const;
    inline bool operator>=(const Pivot& other) const;
+
+   inline bool ends_before(const Pivot& other) const;
+   inline bool begins_after(const Pivot& other) const;
 
    friend std::ostream& operator<<(std::ostream& stream, const Pivot& pivot) {
       stream << "[" << pivot._pivot[0] << "," << pivot._pivot[1] << "]";
@@ -68,10 +69,6 @@ uint32_t Pivot::back() const {
    return _pivot[1];
 }
 
-bool Pivot::intersect_range(const Pivot& lhs, const Pivot& rhs) const {
-   return !(rhs.back() <= front() || lhs.front() >= back());
-}
-
 bool Pivot::operator<(const Pivot& other) const {
    return front() < other.front();
 }
@@ -86,6 +83,14 @@ bool Pivot::operator<=(const Pivot& other) const {
 
 bool Pivot::operator>=(const Pivot& other) const {
    return back() >= other.back();
+}
+
+bool Pivot::ends_before(const Pivot& other) const {
+   return back() <= other.front();
+}
+
+bool Pivot::begins_after(const Pivot& other) const {
+   return front() >= other.back();
 }
 
 Pivot::operator const Pivot*() const {

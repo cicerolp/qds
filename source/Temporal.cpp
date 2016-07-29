@@ -69,11 +69,14 @@ bool Temporal::query(const Query& query, range_container& range, response_contai
       for (const auto& r : range) {
 
          if (iters_it == subset.end()) break;
-         else if (!r.pivot.intersect_range((*iters_it), subset.back())) continue;
+         else if (r.pivot.begins_after(*iters_it)) break;
+         else if (r.pivot.ends_before(*iters_it)) continue;
 
-         building_iterator it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
-
-         if (it_lower == subset.end()) continue;
+         building_iterator it_lower = iters_it;
+         if (!(r.pivot >= (*it_lower))) {
+            it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
+            if (it_lower == subset.end()) continue;
+         }
 
          while (it_lower != subset.end() && r.pivot >= (*it_lower)) {
             if (pass_over_target) {
@@ -83,7 +86,6 @@ bool Temporal::query(const Query& query, range_container& range, response_contai
                // case 2
                response.emplace_back((*it_lower), (*date_it).date);
             } else {
-               // TODO optimize case 0
                // case 0
                response.emplace_back((*it_lower));
             }

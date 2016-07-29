@@ -17,7 +17,6 @@ NDS::NDS(const Schema& schema) {
    std::cout << std::endl;
 
    building_container current, expand;
-
    current.emplace_back(0, data.size());
 
    _root = BinnedPivot(Pivot(0, data.size()), 0);

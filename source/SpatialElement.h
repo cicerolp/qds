@@ -17,14 +17,14 @@ public:
 
    uint32_t expand(Data& data, const uint8_t offset);
 
-   void query_tile(const Query& query, std::vector<const SpatialElement*>& subset) const;
+   void query_tile(const Query& query, std::vector<const SpatialElement*>& subset, uint8_t z) const;
    void query_region(const Query& query, std::vector<const SpatialElement*>& subset, uint8_t z) const;
 
    spatial_t value;
    std::vector<Pivot> pivots;
 
 private:
-   void aggregate_tile(const Query& query, std::vector<const SpatialElement*>& subset) const;
+   void aggregate_tile(const Query& query, std::vector<const SpatialElement*>& subset, uint8_t z) const;
 
    std::array<std::unique_ptr<SpatialElement>, 4> _container;
 };

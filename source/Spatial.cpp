@@ -20,7 +20,7 @@ bool Spatial::query(const Query& query, range_container& range, response_contain
    std::vector<const SpatialElement*> subset;
 
    if (query.eval_tile(_key)) {
-      _container.query_tile(query, subset);
+      _container.query_tile(query, subset, 0);
    } else if (query.eval_region(_key)) {
       _container.query_region(query, subset, 0);
    } else {
@@ -37,12 +37,15 @@ bool Spatial::query(const Query& query, range_container& range, response_contain
       for (const auto& r : range) {
 
          if (iters_it == el->pivots.end()) break;
-         else if (!r.pivot.intersect_range((*iters_it), el->pivots.back())) continue;
+         else if (r.pivot.begins_after(*iters_it)) break;
+         else if (r.pivot.ends_before(*iters_it)) continue;
 
-         building_iterator it_lower = std::lower_bound(iters_it, el->pivots.end(), r.pivot, Pivot::lower_bound_comp);
-
-         if (it_lower == el->pivots.end()) continue;
-
+         building_iterator it_lower = iters_it;
+         if (!(r.pivot >= (*it_lower))) {
+            it_lower = std::lower_bound(iters_it, el->pivots.end(), r.pivot, Pivot::lower_bound_comp);
+            if (it_lower == el->pivots.end()) continue;
+         }
+         
          while (it_lower != el->pivots.end() && r.pivot >= (*it_lower)) {
             if (pass_over_target) {
                // case 1
@@ -51,7 +54,6 @@ bool Spatial::query(const Query& query, range_container& range, response_contain
                // case 2
                response.emplace_back((*it_lower), el->value.data);
             } else {
-               // TODO optimize case 0
                // case 0
                response.emplace_back((*it_lower));
             }
