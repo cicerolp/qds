@@ -107,7 +107,7 @@ struct region_t {
    }
 
    friend std::ostream& operator<<(std::ostream& os, const region_t& obj) {
-      return os << obj.z << "/" << obj.x0() << "/" << obj.y0()
+      return os << (uint32_t)obj.z << "/" << obj.x0() << "/" << obj.y0()
          << "/" << obj.x1() << "/" << obj.y1();
    }
 

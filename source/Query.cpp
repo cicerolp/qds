@@ -89,7 +89,7 @@ Query::Query(const std::string& instance, const std::string& type) : _instance(i
 }
 
 std::ostream& operator<<(std::ostream& os, const Query& query) {
-   /*os << "/" + query.instance();
+   os << "/" + query.instance();
 
    switch (query.type()) {
       case Query::TILE: os << "/tile";
@@ -107,42 +107,54 @@ std::ostream& operator<<(std::ostream& os, const Query& query) {
    }
 
    // /tile/key/x/y/z/r
-   for (auto& pair : query._tile) {
-      os << "/tile/" + pair.first + "/" << pair.second << "/" << (uint32_t)query.resolution();
+   for (int i = 0; i < query._tile.size(); ++i) {
+      if (query.eval_tile(i)) {
+         os << "/tile/" << i << "/" << query.tile(i) << "/" << (uint32_t)query.resolution();
+      }
    }
 
    // /region/key/z/x0/y0/x1/y1
-   for (auto& pair : query._region) {
-      os << "/region/" << pair.first << "/" << pair.second;
+   for (int i = 0; i < query._region.size(); ++i) {
+      if (query.eval_region(i)) {
+         os << "/region/" << i << "/" << query.region(i);
+      }
    }
-   
+
    // /field/<category>
-   for (auto& field : query._field) {
-      os << "/field/" << field;
+   for (int i = 0; i < query._field.size(); ++i) {
+      if (query.eval_field(i)) {
+         os << "/field/" << i;
+      }
    }
 
    // /where/<category>=<[value]:[value]...:[value]>&<category>=<[value]:[value]...:[value]>
-   if (query._where.size() != 0) {
-      std::string where_stream = "/where/";
+   std::string where_stream;
+   for (int i = 0; i < query._where.size(); ++i) {
+      if (query.eval_where(i)) {
 
-      for (auto& pair : query._where) {
-         where_stream += pair.first + "=";
+         where_stream += std::to_string(i) + "=";
 
-         for (auto& value : pair.second) {
+         for (auto& value : query.where(i)) {
             where_stream += std::to_string(value) + ":";
          }
+
          where_stream = where_stream.substr(0, where_stream.size() - 1);
          where_stream += "&";
       }
+   }
 
+   if (!where_stream.empty()) {
+      where_stream = "/where/" + where_stream;
       where_stream = where_stream.substr(0, where_stream.size() - 1);
       os << where_stream;
    }
 
    // /tseries/key/
-   for (auto& pair : query._interval) {
-      os << "/tseries/" << pair.first << "/" << pair.second;
-   }*/
+   for (int i = 0; i < query._interval.size(); ++i) {
+      if (query.eval_interval(i)) {
+         os << "/tseries/" << i << "/" << query.interval(i);
+      }
+   }
 
    return os;
 }
