@@ -8,7 +8,6 @@
 #define _USE_MATH_DEFINES
 #define _CRT_SECURE_NO_WARNINGS
 
-
 // C includes
 #include <cmath>
 #include <cstdio>
@@ -45,5 +44,8 @@
 #include <rapidjson/rapidjson.h>
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
+
+// dynarray
+#include <robbepop/dynarray.hpp>
 
 #include "types.h"

@@ -47,8 +47,11 @@ protected:
    std::array<uint32_t, 2> _pivot;
 };
 
-using pivot_container = std::vector<Pivot*>;
+using pivot_container = stde::dynarray<Pivot>;
 using pivot_iterator = pivot_container::const_iterator;
+
+/*using pivot_container = std::vector<Pivot>;
+using pivot_iterator = pivot_container::const_iterator;*/
 
 using building_container = std::vector<Pivot>;
 using building_iterator = building_container::const_iterator;

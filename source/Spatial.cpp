@@ -9,7 +9,7 @@ uint32_t Spatial::build(const building_container& range, building_container& res
 
    uint32_t pivots_count = 0;
 
-   _container.add_range(range);
+   _container.set_range(range);
    pivots_count += _container.expand(data, _offset);
 
    return pivots_count;
@@ -40,7 +40,7 @@ bool Spatial::query(const Query& query, range_container& range, response_contain
          else if (r.pivot.begins_after(*iters_it)) break;
          else if (r.pivot.ends_before(*iters_it)) continue;
 
-         building_iterator it_lower = iters_it;
+         pivot_iterator it_lower = iters_it;
          if (!(r.pivot >= (*it_lower))) {
             it_lower = std::lower_bound(iters_it, el->pivots.end(), r.pivot, Pivot::lower_bound_comp);
             if (it_lower == el->pivots.end()) continue;

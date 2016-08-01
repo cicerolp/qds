@@ -79,7 +79,6 @@ std::string NDS::query(const Query& query, std::ofstream* telemetry) {
 
    std::vector<std::chrono::time_point<std::chrono::high_resolution_clock>> start(4), end(4);
 
-   std::string buffer;
    bool pass_over_target = false;
 
    range_container range;
@@ -102,23 +101,23 @@ std::string NDS::query(const Query& query, std::ofstream* telemetry) {
 
    // spatial
    start[2] = std::chrono::high_resolution_clock::now();
-   buffer = _spatial->query(query, range, response, pass_over_target);
+   _spatial->query(query, range, response, pass_over_target);
    end[2] = std::chrono::high_resolution_clock::now();
 
-   /*// serialization (json)
+   // serialization (json)
    start[3] = std::chrono::high_resolution_clock::now();
    std::string buffer(serialize(query, response));
-   end[3] = std::chrono::high_resolution_clock::now();*/
+   end[3] = std::chrono::high_resolution_clock::now();
 
    if (telemetry != nullptr) {
       auto clock_categorical = std::chrono::duration_cast<std::chrono::milliseconds>(end[0] - start[0]).count();
       auto clock_temporal = std::chrono::duration_cast<std::chrono::milliseconds>(end[1] - start[1]).count();
       auto clock_spatial = std::chrono::duration_cast<std::chrono::milliseconds>(end[2] - start[2]).count();
-      //auto clock_json = std::chrono::duration_cast<std::chrono::milliseconds>(end[3] - start[3]).count();
+      auto clock_json = std::chrono::duration_cast<std::chrono::milliseconds>(end[3] - start[3]).count();
 
-      auto clock = clock_categorical + clock_temporal + clock_spatial /*+ clock_json*/;
+      auto clock = clock_categorical + clock_temporal + clock_spatial + clock_json;
 
-      (*telemetry) << clock << "," << clock_spatial << "," << clock_categorical << "," << clock_temporal /*<< "," << clock_json*/ << "," << query << std::endl;
+      (*telemetry) << clock << "," << clock_spatial << "," << clock_categorical << "," << clock_temporal << "," << clock_json << "," << query << std::endl;
    }
 
    return buffer;

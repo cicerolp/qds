@@ -11,7 +11,7 @@ uint32_t Temporal::build(const building_container& range, building_container& re
    std::map<temporal_t, std::vector<Pivot>> tmp_container;
 
    for (const auto& ptr : range) {
-      std::map<temporal_t, temporal_t> used;
+      std::map<temporal_t, uint32_t> used;
 
       for (auto i = ptr.front(); i < ptr.back(); ++i) {
          temporal_t value = data.record<temporal_t>(i, _offset);
@@ -36,11 +36,16 @@ uint32_t Temporal::build(const building_container& range, building_container& re
 
       data.sort(ptr.front(), ptr.back());
    }
+      
+   _container = stde::dynarray<TemporalElement>(tmp_container.size());
 
-   _container.assign(tmp_container.begin(), tmp_container.end());
-
-   for (auto& el : _container) el.container.shrink_to_fit();
-   _container.shrink_to_fit();
+   uint32_t index = 0;
+   for (auto& pair : tmp_container) {
+      _container[index].date = pair.first;
+      _container[index].container = pivot_container(pair.second.size());
+      std::memcpy(&_container[index].container[0], &pair.second[0], pair.second.size() * sizeof(Pivot));
+      ++index;
+   }
 
    return pivots_count;
 }
@@ -72,7 +77,7 @@ bool Temporal::query(const Query& query, range_container& range, response_contai
          else if (r.pivot.begins_after(*iters_it)) break;
          else if (r.pivot.ends_before(*iters_it)) continue;
 
-         building_iterator it_lower = iters_it;
+         pivot_iterator it_lower = iters_it;
          if (!(r.pivot >= (*it_lower))) {
             it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
             if (it_lower == subset.end()) continue;

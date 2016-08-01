@@ -3,15 +3,13 @@
 #include "Categorical.h"
 
 Categorical::Categorical(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
-   : Dimension(tuple) {
-   for (uint32_t i = 0; i < _bin; ++i) {
-      _container.emplace_back(i);
-   }
-}
+   : Dimension(tuple), _container(_bin) { }
 
 uint32_t Categorical::build(const building_container& range, building_container& response, Data& data) {
 
    uint32_t pivots_count = 0;
+
+   std::vector<building_container> tmp_container(_bin);
 
    for (const auto& ptr : range) {
       std::vector<uint32_t> used(_bin, 0);
@@ -32,7 +30,7 @@ uint32_t Categorical::build(const building_container& range, building_container&
          accum += used[i];
          uint32_t second = accum;
 
-         _container[i].container.emplace_back(first, second);
+         tmp_container[i].emplace_back(first, second);
 
          response.emplace_back(first, second);
          pivots_count++;
@@ -41,8 +39,10 @@ uint32_t Categorical::build(const building_container& range, building_container&
       data.sort(ptr.front(), ptr.back());
    }
 
-   for (auto& el : _container) el.container.shrink_to_fit();
-   _container.shrink_to_fit();
+   for (uint32_t value = 0; value < _bin; ++value) {
+      _container[value] = pivot_container(tmp_container[value].size());
+      std::memcpy(&_container[value][0], &tmp_container[value][0], tmp_container[value].size() * sizeof(Pivot));
+   }
 
    return pivots_count;
 }
@@ -71,8 +71,8 @@ bool Categorical::query_where(const Query& query, range_container& range, respon
 
    for (const auto& value : value_it) {
 
-      auto iters_it = _container[value].container.begin();
-      const auto& subset = _container[value].container;
+      auto iters_it = _container[value].begin();
+      const auto& subset = _container[value];
 
       for (const auto& r : range) {
 
@@ -80,7 +80,7 @@ bool Categorical::query_where(const Query& query, range_container& range, respon
          else if (r.pivot.begins_after(*iters_it)) break;
          else if (r.pivot.ends_before(*iters_it)) continue;
 
-         building_iterator it_lower = iters_it;
+         pivot_iterator it_lower = iters_it;
          if (!(r.pivot >= (*it_lower))) {
             it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
             if (it_lower == subset.end()) continue;
@@ -116,10 +116,10 @@ bool Categorical::query_field(const Query& query, range_container& range, respon
    // sort range only when necessary
    NDS::swap_and_sort(range, response);
 
-   for (const auto& el : _container) {
+   for (auto value = 0; value < _container.size(); ++value) {
 
-      auto iters_it = el.container.begin();
-      const auto& subset = el.container;
+      auto iters_it = _container[value].begin();
+      const auto& subset = _container[value];
 
       for (const auto& r : range) {
 
@@ -127,7 +127,7 @@ bool Categorical::query_field(const Query& query, range_container& range, respon
          else if (r.pivot.begins_after(*iters_it)) break;
          else if (r.pivot.ends_before(*iters_it)) continue;
 
-         building_iterator it_lower = iters_it;
+         pivot_iterator it_lower = iters_it;
          if (!(r.pivot >= (*it_lower))) {
             it_lower = std::lower_bound(iters_it, subset.end(), r.pivot, Pivot::lower_bound_comp);
             if (it_lower == subset.end()) continue;
@@ -135,7 +135,7 @@ bool Categorical::query_field(const Query& query, range_container& range, respon
 
          while (it_lower != subset.end() && r.pivot >= (*it_lower)) {
             // case 2
-            response.emplace_back((*it_lower), el.value);
+            response.emplace_back((*it_lower), value);
 
             it_lower++;
          }

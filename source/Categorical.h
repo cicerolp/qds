@@ -3,14 +3,6 @@
 #include "Dimension.h"
 
 class Categorical : public Dimension {
-   struct CategoricalElement {
-      CategoricalElement(const categorical_t& value) :
-         value(value) { }
-
-      const categorical_t value;
-      std::vector<Pivot> container;
-   };
-
 public:
    Categorical(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple);
    ~Categorical() = default;
@@ -22,5 +14,5 @@ private:
    bool query_field(const Query& query, range_container& range, response_container& response, bool& pass_over_target) const;
    bool query_where(const Query& query, range_container& range, response_container& response, bool& pass_over_target) const;
 
-   std::vector<CategoricalElement> _container;
+   stde::dynarray<pivot_container> _container;
 };

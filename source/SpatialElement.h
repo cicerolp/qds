@@ -6,14 +6,14 @@
 
 class SpatialElement {
    static const uint32_t max_levels{ 25 };
+   static const uint32_t leaf_size{ 32 };
 
 public:
    SpatialElement(const spatial_t& tile);
+   SpatialElement(const spatial_t& tile, const building_container& container);
    ~SpatialElement() = default;
 
-   template<class... Args>
-   inline void add_element(Args&&... args);
-   inline void add_range(const building_container& range);
+   inline void set_range(const building_container& range);
 
    uint32_t expand(Data& data, const uint8_t offset);
 
@@ -21,19 +21,24 @@ public:
    void query_region(const Query& query, std::vector<const SpatialElement*>& subset, uint8_t z) const;
 
    spatial_t value;
-   std::vector<Pivot> pivots;
+   pivot_container pivots;
 
 private:
    void aggregate_tile(const Query& query, std::vector<const SpatialElement*>& subset, uint8_t z) const;
+   inline bool count_expand() const;
 
    std::array<std::unique_ptr<SpatialElement>, 4> _container;
 };
 
-template<class ... Args>
-void SpatialElement::add_element(Args&&... args) {
-   pivots.emplace_back(args...);
+void SpatialElement::set_range(const building_container& range) {
+   pivots = pivot_container(range.size());
+   std::memcpy(&pivots[0], &range[0], range.size() * sizeof(Pivot));
 }
 
-void SpatialElement::add_range(const building_container& range) {
-   pivots.insert(pivots.end(), range.begin(), range.end());
+bool SpatialElement::count_expand() const {
+   uint32_t count = 0;
+   for (auto& ptr : pivots) {
+      count += ptr.size();
+   }
+   return (count > leaf_size) ? true : false;
 }

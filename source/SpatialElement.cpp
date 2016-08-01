@@ -3,15 +3,21 @@
 
 #include "mercator_util.h"
 
-SpatialElement::SpatialElement(const spatial_t& tile)
-   : value(tile) { }
+SpatialElement::SpatialElement(const spatial_t& tile) : value(tile) { }
+
+SpatialElement::SpatialElement(const spatial_t& tile, const building_container& container)
+   : value(tile), pivots(container.size()) {
+   std::memcpy(&pivots[0], &container[0], container.size() * sizeof(Pivot));
+}
 
 uint32_t SpatialElement::expand(Data& data, const uint8_t offset) {
 
    uint32_t pivots_count = static_cast<uint32_t>(pivots.size());
    uint8_t next_level = value.z + 1;
 
-   if (next_level < max_levels && (pivots.size() > 1 || pivots.front().size() > 1)) {
+   if (next_level < max_levels && count_expand()) {
+
+      std::map<spatial_t, building_container> tmp_container;
 
       // node will be expanded
       value.leaf = 0;
@@ -43,14 +49,13 @@ uint32_t SpatialElement::expand(Data& data, const uint8_t offset) {
             accum += pair.second;
             uint32_t second = accum;
 
-            if (_container[pair.first] == nullptr) {
-               _container[pair.first] = std::make_unique<SpatialElement>(pair.first);
-            }
-            _container[pair.first]->add_element(first, second);
+            tmp_container[pair.first].emplace_back(first, second);
          }
       }
 
-      pivots.shrink_to_fit();
+      for (auto& pair : tmp_container) {
+         _container[pair.first] = std::make_unique<SpatialElement>(pair.first, pair.second);
+      }
 
       for (auto& el : _container) {
          if (el != nullptr) {

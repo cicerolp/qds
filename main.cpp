@@ -3,6 +3,18 @@
 #include "Server.h"
 #include "NDSInstances.h"
 
+// clang test
+/*#include <algorithm>
+void f(std::size_t n)
+{
+   int arr[n]; //runtime-sized array
+   for (std::size_t i = 0; i< n; ++i)
+      arr[i] = i * 2;
+   std::sort(arr, arr + n);
+   for (std::size_t i = 0; i< n; ++i)
+      std::cout << " " << arr[i] << std::endl;
+}*/
+
 int main(int argc, char* argv[]) {
 
    if (std::getenv("NDS_DATA") == nullptr) {
@@ -12,21 +24,21 @@ int main(int argc, char* argv[]) {
 
    bool server = true;
    Server::server_opts nds_opts;
-   nds_opts.port = 8102;
+   nds_opts.port = 8200;
    nds_opts.cache = false;
    nds_opts.multithreading = false;
 
    bool telemetry = false;
 
    bool benchmark = false;
-   uint32_t benchmark_passes = 400;
+   uint32_t benchmark_passes = 2;
    std::vector<std::string> benchmark_files;
 
    /**/
-   //telemetry = true;
+   telemetry = true;
    benchmark = true;
-   //benchmark_files.emplace_back("./csv/brightkite.csv");
-   benchmark_files.emplace_back("./csv/brightkite-bench.csv");
+   benchmark_files.emplace_back("./csv/brightkite.csv");
+   //benchmark_files.emplace_back("./csv/brightkite-bench.csv");
    //benchmark_files.emplace_back("./csv/brightkite-region.csv");
    /**/
 

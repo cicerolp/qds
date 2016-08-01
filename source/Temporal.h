@@ -5,9 +5,6 @@
 
 class Temporal : public Dimension {
    struct TemporalElement {
-      TemporalElement(const std::pair<temporal_t, std::vector<Pivot>>& entry) :
-         date(entry.first), container(entry.second) { }
-
       bool operator!=(const TemporalElement& rhs) const {
          return date != rhs.date;
       }
@@ -21,8 +18,8 @@ class Temporal : public Dimension {
          return date < rhs.date;
       }
 
-      const temporal_t date;
-      std::vector<Pivot> container;
+      temporal_t date;
+      pivot_container container;
    };
 public:
 	Temporal(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple);
@@ -36,5 +33,5 @@ public:
    }
 
 private:
-   std::vector<TemporalElement> _container;
+   stde::dynarray<TemporalElement> _container;
 };
