@@ -6,30 +6,29 @@
 class Temporal : public Dimension {
    struct TemporalElement {
       bool operator!=(const TemporalElement& rhs) const {
-         return date != rhs.date;
+         return el.value != rhs.el.value;
       }
       bool operator==(const TemporalElement& rhs) const {
-         return date == rhs.date;
+         return el.value == rhs.el.value;
       }
       bool operator<(const temporal_t& rhs) const {
-         return date < rhs;
+         return el.value < rhs;
       }
       bool operator<(const TemporalElement& rhs) const {
-         return date < rhs.date;
+         return el.value < rhs.el.value;
       }
 
-      temporal_t date;
-      pivot_container container;
+      binned_t el;
    };
 public:
 	Temporal(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple);
    ~Temporal() = default;
 
    uint32_t build(const building_container& range, building_container& response, Data& data) override;
-   bool query(const Query& query, range_container& range, response_container& response, bool& pass_over_target) const override;
+   bool query(const Query& query, range_container& range, response_container& response, binned_container& subset, bool& pass_over_target) const override;
 
    inline interval_t get_interval() const {
-      return interval_t(_container.front().date, _container.back().date);
+      return interval_t(_container.front().el.value, _container.back().el.value);
    }
 
 private:

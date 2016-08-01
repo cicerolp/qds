@@ -50,11 +50,16 @@ protected:
 using pivot_container = stde::dynarray<Pivot>;
 using pivot_iterator = pivot_container::const_iterator;
 
-/*using pivot_container = std::vector<Pivot>;
-using pivot_iterator = pivot_container::const_iterator;*/
-
 using building_container = std::vector<Pivot>;
 using building_iterator = building_container::const_iterator;
+
+struct binned_t {
+   uint64_t value;
+   pivot_container pivots;
+};
+
+using binned_container = std::vector<const binned_t*>;
+using binned_iterator = binned_container::const_iterator;
 
 bool Pivot::empty() const {
    return (back() - front()) == 0;

@@ -135,7 +135,6 @@ function updateDataRestrictions() {
             + "/" + x1
             + "/" + roundtile(lat2tiley(lat1, z), z);
     }
-    if (curr_region == "") curr_region = "/region/0/0/0/0/0/0";
 
     if (curr_region != region) {
         update = true;

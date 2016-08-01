@@ -76,6 +76,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <Profile>true</Profile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -112,6 +113,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="source\Categorical.cpp" />
     <ClCompile Include="source\Data.cpp" />
+    <ClCompile Include="source\Dimension.cpp" />
     <ClCompile Include="source\NDS.cpp" />
     <ClCompile Include="source\NDSInstances.cpp" />
     <ClCompile Include="source\Pivot.cpp" />

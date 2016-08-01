@@ -3,26 +3,28 @@
 
 #include "mercator_util.h"
 
-SpatialElement::SpatialElement(const spatial_t& tile) : value(tile) { }
-
-SpatialElement::SpatialElement(const spatial_t& tile, const building_container& container)
-   : value(tile), pivots(container.size()) {
-   std::memcpy(&pivots[0], &container[0], container.size() * sizeof(Pivot));
+SpatialElement::SpatialElement(const spatial_t& tile) {
+   el.value = tile;
 }
 
-uint32_t SpatialElement::expand(Data& data, const uint8_t offset) {
+SpatialElement::SpatialElement(const spatial_t& tile, const building_container& container) {
+   el.value = tile.data;
+   set_range(container);
+}
 
-   uint32_t pivots_count = static_cast<uint32_t>(pivots.size());
-   uint8_t next_level = value.z + 1;
+uint32_t SpatialElement::expand(Data& data, building_container& response, const uint8_t offset) {
+
+   uint32_t pivots_count = static_cast<uint32_t>(el.pivots.size());
+   uint8_t next_level = (*(spatial_t*)&el.value).z + 1;
 
    if (next_level < max_levels && count_expand()) {
 
       std::map<spatial_t, building_container> tmp_container;
 
       // node will be expanded
-      value.leaf = 0;
+      (*(spatial_t*)&el.value).leaf = 0;
 
-      for (const auto& ptr : pivots) {
+      for (const auto& ptr : el.pivots) {
          std::map<spatial_t, uint32_t> used;
 
          for (auto i = ptr.front(); i < ptr.back(); ++i) {
@@ -57,20 +59,22 @@ uint32_t SpatialElement::expand(Data& data, const uint8_t offset) {
          _container[pair.first] = std::make_unique<SpatialElement>(pair.first, pair.second);
       }
 
-      for (auto& el : _container) {
-         if (el != nullptr) {
-            pivots_count += el->expand(data, offset);
+      for (auto& binned : _container) {
+         if (binned != nullptr) {
+            pivots_count += binned->expand(data, response, offset);
          }
       }
+   } else {
+      response.insert(response.end(), el.pivots.begin(), el.pivots.end());
    }
 
    return pivots_count;
 }
 
-void SpatialElement::query_tile(const Query& query, std::vector<const SpatialElement*>& subset, uint8_t z) const {
+void SpatialElement::query_tile(const Query& query, binned_container& subset, uint8_t z) const {
    // BUG fix spatial at   
-   if (value.contains(query.tile(0))) {
-      if (z == query.tile(0).z || value.leaf) {
+   if ((*(spatial_t*)&el.value).contains(query.tile(0))) {
+      if (z == query.tile(0).z || (*(spatial_t*)&el.value).leaf) {
          return aggregate_tile(query, subset, z);
       } else {
          if (_container[0] != nullptr) _container[0]->query_tile(query, subset, z + 1);
@@ -81,10 +85,10 @@ void SpatialElement::query_tile(const Query& query, std::vector<const SpatialEle
    }
 }
 
-void SpatialElement::query_region(const Query& query, std::vector<const SpatialElement*>& subset, uint8_t z) const {
+void SpatialElement::query_region(const Query& query, binned_container& subset, uint8_t z) const {
    // BUG fix spatial at
-   if ((z == query.region(0).z || value.leaf) && query.region(0).intersect(value, z)) {
-      subset.emplace_back(this);
+   if ((z == query.region(0).z || (*(spatial_t*)&el.value).leaf) && query.region(0).intersect((*(spatial_t*)&el.value), z)) {
+      subset.emplace_back(&el);
    } else if (z < query.region(0).z) {
       if (_container[0] != nullptr) _container[0]->query_region(query, subset, z + 1);
       if (_container[1] != nullptr) _container[1]->query_region(query, subset, z + 1);
@@ -93,10 +97,10 @@ void SpatialElement::query_region(const Query& query, std::vector<const SpatialE
    }
 }
 
-void SpatialElement::aggregate_tile(const Query& query, std::vector<const SpatialElement*>& subset, uint8_t z) const {
+void SpatialElement::aggregate_tile(const Query& query, binned_container& subset, uint8_t z) const {
    // BUG fix spatial at
-   if (value.leaf || (z == query.tile(0).z + query.resolution())) {
-      subset.emplace_back(this);
+   if ((*(spatial_t*)&el.value).leaf || (z == query.tile(0).z + query.resolution())) {
+      subset.emplace_back(&el);
    } else {
       if (_container[0] != nullptr) _container[0]->aggregate_tile(query, subset, z + 1);
       if (_container[1] != nullptr) _container[1]->aggregate_tile(query, subset, z + 1);

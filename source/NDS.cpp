@@ -81,6 +81,8 @@ std::string NDS::query(const Query& query, std::ofstream* telemetry) {
 
    bool pass_over_target = false;
 
+   binned_container subset;
+   
    range_container range;
    response_container response;
    response.emplace_back(_root);
@@ -88,20 +90,20 @@ std::string NDS::query(const Query& query, std::ofstream* telemetry) {
    // categorical
    start[0] = std::chrono::high_resolution_clock::now();
    for (const auto& d : _categorical) {
-      d->query(query, range, response, pass_over_target);
+      d->query(query, range, response, subset, pass_over_target);
    }
    end[0] = std::chrono::high_resolution_clock::now();
 
    // temporal
    start[1] = std::chrono::high_resolution_clock::now();
    for (const auto& d : _temporal) {
-      d->query(query, range, response, pass_over_target);
+      d->query(query, range, response, subset, pass_over_target);
    }
    end[1] = std::chrono::high_resolution_clock::now();
 
    // spatial
    start[2] = std::chrono::high_resolution_clock::now();
-   _spatial->query(query, range, response, pass_over_target);
+   _spatial->query(query, range, response, subset, pass_over_target);
    end[2] = std::chrono::high_resolution_clock::now();
 
    // serialization (json)

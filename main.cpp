@@ -3,18 +3,6 @@
 #include "Server.h"
 #include "NDSInstances.h"
 
-// clang test
-/*#include <algorithm>
-void f(std::size_t n)
-{
-   int arr[n]; //runtime-sized array
-   for (std::size_t i = 0; i< n; ++i)
-      arr[i] = i * 2;
-   std::sort(arr, arr + n);
-   for (std::size_t i = 0; i< n; ++i)
-      std::cout << " " << arr[i] << std::endl;
-}*/
-
 int main(int argc, char* argv[]) {
 
    if (std::getenv("NDS_DATA") == nullptr) {

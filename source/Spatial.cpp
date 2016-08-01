@@ -10,14 +10,14 @@ uint32_t Spatial::build(const building_container& range, building_container& res
    uint32_t pivots_count = 0;
 
    _container.set_range(range);
-   pivots_count += _container.expand(data, _offset);
+   pivots_count += _container.expand(data, response, _offset);
+
+   std::sort(response.begin(), response.end());
 
    return pivots_count;
 }
 
-bool Spatial::query(const Query& query, range_container& range, response_container& response, bool& pass_over_target) const {
-
-   std::vector<const SpatialElement*> subset;
+bool Spatial::query(const Query& query, range_container& range, response_container& response, binned_container& subset, bool& pass_over_target) const {
 
    if (query.eval_tile(_key)) {
       _container.query_tile(query, subset, 0);
@@ -27,45 +27,13 @@ bool Spatial::query(const Query& query, range_container& range, response_contain
       return false;
    }
 
-   // sort range only when necessary
-   NDS::swap_and_sort(range, response);
-
-   for (const auto& el : subset) {
-
-      auto iters_it = el->pivots.begin();
-
-      for (const auto& r : range) {
-
-         if (iters_it == el->pivots.end()) break;
-         else if (r.pivot.begins_after(*iters_it)) break;
-         else if (r.pivot.ends_before(*iters_it)) continue;
-
-         pivot_iterator it_lower = iters_it;
-         if (!(r.pivot >= (*it_lower))) {
-            it_lower = std::lower_bound(iters_it, el->pivots.end(), r.pivot, Pivot::lower_bound_comp);
-            if (it_lower == el->pivots.end()) continue;
-         }
-         
-         while (it_lower != el->pivots.end() && r.pivot >= (*it_lower)) {
-            if (pass_over_target) {
-               // case 1
-               response.emplace_back((*it_lower), r.value);
-            } else if (query.type() == Query::TILE) {
-               // case 2
-               response.emplace_back((*it_lower), el->value.data);
-            } else {
-               // case 0
-               response.emplace_back((*it_lower));
-            }
-            it_lower++;
-         }
-
-         iters_it = it_lower;
-      }
-   }
-
-   if (query.type() == Query::TILE) {
+   if (pass_over_target) {
+      restrict(range, response, subset, CopyValueFromRange);
+   } else if (query.type() == Query::TILE) {
       pass_over_target = true;
+      restrict(range, response, subset, CopyValueFromSubset);
+   } else {
+      restrict(range, response, subset, DefaultCopy);
    }
 
    return true;

@@ -15,29 +15,28 @@ public:
 
    inline void set_range(const building_container& range);
 
-   uint32_t expand(Data& data, const uint8_t offset);
+   uint32_t expand(Data& data, building_container& response, const uint8_t offset);
 
-   void query_tile(const Query& query, std::vector<const SpatialElement*>& subset, uint8_t z) const;
-   void query_region(const Query& query, std::vector<const SpatialElement*>& subset, uint8_t z) const;
+   void query_tile(const Query& query, binned_container& subset, uint8_t z) const;
+   void query_region(const Query& query, binned_container& subset, uint8_t z) const;
 
-   spatial_t value;
-   pivot_container pivots;
+   binned_t el;
 
 private:
-   void aggregate_tile(const Query& query, std::vector<const SpatialElement*>& subset, uint8_t z) const;
+   void aggregate_tile(const Query& query, binned_container& subset, uint8_t z) const;
    inline bool count_expand() const;
 
    std::array<std::unique_ptr<SpatialElement>, 4> _container;
 };
 
 void SpatialElement::set_range(const building_container& range) {
-   pivots = pivot_container(range.size());
-   std::memcpy(&pivots[0], &range[0], range.size() * sizeof(Pivot));
+   el.pivots = pivot_container(range.size());
+   std::memcpy(&el.pivots[0], &range[0], range.size() * sizeof(Pivot));
 }
 
 bool SpatialElement::count_expand() const {
    uint32_t count = 0;
-   for (auto& ptr : pivots) {
+   for (auto& ptr : el.pivots) {
       count += ptr.size();
    }
    return (count > leaf_size) ? true : false;

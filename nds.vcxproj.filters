@@ -86,6 +86,9 @@
     <ClCompile Include="source\Pivot.cpp">
       <Filter>2.Source Files\pivots</Filter>
     </ClCompile>
+    <ClCompile Include="source\Dimension.cpp">
+      <Filter>2.Source Files\core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">

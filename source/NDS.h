@@ -28,18 +28,6 @@ public:
       return _root.pivot.back() - _root.pivot.front();
    }
 
-   static inline void swap_and_sort(range_container& range, response_container& response) {
-      // vector, vector
-      range.swap(response);
-      std::sort(range.begin(), range.end());
-      response.clear();
-
-      // vector, deque
-      /*range.assign(response.begin(), response.end());
-      std::sort(range.begin(), range.end());
-      response.clear();*/
-   }
-
 private:
    static std::string serialize(const Query& query, const response_container& response);
 
