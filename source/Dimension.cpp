@@ -19,42 +19,34 @@ void Dimension::restrict(range_container& range, response_container& response, b
 
          if (it_lower == el->pivots.end()) break;
 
-      search:
+         if ((*it_range).pivot.ends_before(*it_lower)) {
+            // binary search to find range iterator
+            it_range = std::lower_bound(it_range, range.end(), (*it_lower), BinnedPivot::upper_bound_comp);
+            if (it_range == range.end()) break;
+         }
+
          if ((*it_range).pivot.begins_after(*it_lower)) {
             // binnary search to find subset iterator
             it_upper = std::lower_bound(it_lower, el->pivots.end(), (*it_range).pivot, Pivot::lower_bound_comp);
             if (it_upper == el->pivots.end()) break;
-
-         } else if ((*it_range).pivot.ends_before(*it_lower)) {
-            // binary search to find range iterator
-            it_range = std::lower_bound(it_range, range.end(), (*it_lower), BinnedPivot::upper_bound_comp);
-
-            if (it_range != range.end()) {
-               goto search;
-            } else {
-               break;
-            }
-         } else {
-            it_upper = it_lower;
+            it_lower = it_upper;
          }
+
+         it_upper = it_lower;
 
          switch (option) {
             case CopyValueFromRange:
                while (it_upper != el->pivots.end() && (*it_range).pivot >= (*it_upper)) {
-                  response.emplace_back((*it_upper), (*it_range).value);
-                  ++it_upper;
+                  response.emplace_back((*it_upper++), (*it_range).value);
                }
                break;
-            case CopyValueFromSubset:
+            case CopyValueFromSubset:               
                while (it_upper != el->pivots.end() && (*it_range).pivot >= (*it_upper)) {
-                  response.emplace_back((*it_upper), el->value);
-                  ++it_upper;
+                  response.emplace_back((*it_upper++), el->value);
                }
                break;
             default:
-               while (it_upper != el->pivots.end() && (*it_range).pivot >= (*it_upper)) {
-                  ++it_upper;
-               }
+               it_upper = std::upper_bound(it_lower, el->pivots.end(), (*it_range).pivot, Pivot::upper_bound_comp);
                response.insert(response.end(), it_lower, it_upper);
                break;
          }
