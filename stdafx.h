@@ -35,10 +35,10 @@
 #include <boost/property_tree/xml_parser.hpp>
 
 // ResidentSetSize
-#include <nadeau.h>
+#include <nadeau/ResidentSetSize.h>
 
 // mongoose
-#include <mongoose.h>
+#include <mongoose/mongoose.h>
 
 // rapidjson
 #include <rapidjson/rapidjson.h>
