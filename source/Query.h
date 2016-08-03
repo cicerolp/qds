@@ -18,47 +18,36 @@ public:
       return _instance;
    }
 
-   inline bool eval_tile(uint32_t key) const {
-      return _tile[key].first;
-   }
-
-   inline const spatial_t& tile(uint32_t key) const {
-      return _tile[key].second;
-   }
-
-   inline bool eval_region(uint32_t key) const {
-      return _region[key].first;
-   }
-
-   inline const region_t& region(uint32_t key) const {
-      return _region[key].second;
-   }
-
-   inline const uint8_t& resolution() const {
-      return _resolution;
-   }
-
-   inline bool eval_interval(uint32_t key) const {
-      return _interval[key].first;
-   }
-
-   inline const interval_t& interval(uint32_t key) const {
-      return _interval[key].second;
-   }
-   
-   inline bool eval_field(uint32_t key) const {
-      return _field[key];
-   }
-
-   inline bool eval_where(uint32_t key) const {
-      return _where[key].first;
-   }
-
-   inline const std::vector<categorical_t>& where(uint32_t key) const {
-      return _where[key].second;
-   }
-
    friend std::ostream& operator<<(std::ostream& os, const Query& query);
+
+   struct query_t { };
+   struct spatial_query_t : public query_t {
+      // BUG fix multiple spatial dimenions
+      uint8_t resolution {0};
+      std::vector<region_t> region;
+      std::vector<spatial_t> tile;
+   };
+   struct categorical_query_t : public query_t {
+      bool field{ false };
+      std::vector<categorical_t> where;
+   };
+   struct temporal_query_t : public query_t {
+      interval_t interval;
+   };
+
+   inline bool eval(uint32_t key) const {
+      return restrictions[key] != nullptr;
+   }
+
+   template<typename T>
+   inline T* get(uint32_t key) const {
+      return (T*)restrictions[key].get();
+   }
+
+   template<typename T>
+   inline T* get(uint32_t key) {
+      return (T*)restrictions[key].get();
+   }
 
 private:
    Query(const std::string& instance, const std::string& type);
@@ -66,13 +55,5 @@ private:
    QueryType _type;
    std::string _instance;
 
-   uint8_t _resolution;
-   
-   std::vector<std::pair<bool, spatial_t>> _tile;
-   std::vector<std::pair<bool, region_t>> _region;
-
-   std::vector<bool> _field;
-   std::vector<std::pair<bool, std::vector<categorical_t>>> _where;
-
-   std::vector<std::pair<bool, interval_t>> _interval;
+   std::vector<std::unique_ptr<query_t>> restrictions;
 };

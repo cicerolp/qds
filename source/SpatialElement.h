@@ -17,13 +17,13 @@ public:
 
    uint32_t expand(Data& data, building_container& response, const uint8_t offset);
 
-   void query_tile(const Query& query, binned_container& subset, uint8_t z) const;
-   void query_region(const Query& query, binned_container& subset, uint8_t z) const;
+   void query_tile(const std::vector<spatial_t>& tile, uint8_t resolution, binned_container& subset, uint8_t z) const;
+   void query_region(const std::vector<region_t>& region, binned_container& subset, uint8_t z) const;
 
    binned_t el;
 
 private:
-   void aggregate_tile(const Query& query, binned_container& subset, uint8_t z) const;
+   void aggregate_tile(const std::vector<spatial_t>& tile, uint8_t resolution, binned_container& subset, uint8_t z) const;
    inline bool count_expand() const;
 
    std::array<std::unique_ptr<SpatialElement>, 4> _container;

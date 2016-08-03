@@ -8,32 +8,34 @@ Query::Query(const std::vector<std::string>& tokens) : Query(tokens[3], tokens[4
       if ((*it) == "tile") {
          auto key = std::stoul(string_util::next_token(it));
 
-         uint32_t x = std::stoi(string_util::next_token(it));
-         uint32_t y = std::stoi(string_util::next_token(it));
-         uint8_t z = std::stoi(string_util::next_token(it));
+         if (!restrictions[key]) restrictions[key] = std::make_unique<spatial_query_t>();
 
-         _resolution = std::stoi(string_util::next_token(it));
+         auto x = std::stoi(string_util::next_token(it));
+         auto y = std::stoi(string_util::next_token(it));
+         auto z = std::stoi(string_util::next_token(it));
 
-         _tile[key].first = true;
-         _tile[key].second = spatial_t(x, y, z);
+         get<spatial_query_t>(key)->tile.emplace_back(x, y, z);
+         get<spatial_query_t>(key)->resolution = std::stoi(string_util::next_token(it));
 
       } else if ((*it) == "region") {
          auto key = std::stoul(string_util::next_token(it));
 
-         uint8_t z = std::stoi(string_util::next_token(it));
+         if (!restrictions[key]) restrictions[key] = std::make_unique<spatial_query_t>();
 
-         uint32_t x0 = std::stoi(string_util::next_token(it));
-         uint32_t y0 = std::stoi(string_util::next_token(it));
-         uint32_t x1 = std::stoi(string_util::next_token(it));
-         uint32_t y1 = std::stoi(string_util::next_token(it));
+         auto z = std::stoi(string_util::next_token(it));
+         auto x0 = std::stoi(string_util::next_token(it));
+         auto y0 = std::stoi(string_util::next_token(it));
+         auto x1 = std::stoi(string_util::next_token(it));
+         auto y1 = std::stoi(string_util::next_token(it));
 
-         _region[key].first = true;
-         _region[key].second = region_t(x0, y0, x1, y1, z);
+         get<spatial_query_t>(key)->region.emplace_back(x0, y0, x1, y1, z);
 
       } else if ((*it) == "field") {
          auto key = std::stoul(string_util::next_token(it));
 
-         _field[key] = true;
+         if (!restrictions[key]) restrictions[key] = std::make_unique<categorical_query_t>();
+
+         get<categorical_query_t>(key)->field = true;
 
       } else if ((*it) == "where") {
          std::vector<std::string> uri = string_util::split(string_util::next_token(it), std::regex("&"));
@@ -42,23 +44,25 @@ Query::Query(const std::vector<std::string>& tokens) : Query(tokens[3], tokens[4
             std::vector<std::string> literals = string_util::split(clause, std::regex("=|:"));
             auto key = std::stoul(literals[0]);
 
+            if (!restrictions[key]) restrictions[key] = std::make_unique<categorical_query_t>();
+
             if ((literals.size() - 1) <= 0) continue;
 
             for (size_t i = 1; i < literals.size(); i++) {
-               _where[key].second.emplace_back(std::stoi(literals[i]));
+               get<categorical_query_t>(key)->where.emplace_back(std::stoi(literals[i]));
             }
 
-            _where[key].first = true;
-            std::sort(_where[key].second.begin(), _where[key].second.end());
+            std::sort(get<categorical_query_t>(key)->where.begin(), get<categorical_query_t>(key)->where.end());
          }
       } else if ((*it) == "tseries") {
          auto key = std::stoul(string_util::next_token(it));
 
+         if (!restrictions[key]) restrictions[key] = std::make_unique<temporal_query_t>();
+
          temporal_t lower = std::stoul(string_util::next_token(it));
          temporal_t upper = std::stoul(string_util::next_token(it));
 
-         _interval[key].first = true;
-         _interval[key].second = interval_t(lower, upper);
+         get<temporal_query_t>(key)->interval = interval_t(lower, upper);
       }
    }
 }
@@ -79,13 +83,7 @@ Query::Query(const std::string& instance, const std::string& type) : _instance(i
    }
 
    // BUG fix
-   _tile.resize(1, std::make_pair(false, spatial_t()));
-   _region.resize(1, std::make_pair(false, region_t()));
-
-   _field.resize(2, false);
-   _where.resize(2, std::make_pair(false, std::vector<categorical_t>()));
-
-   _interval.resize(1, std::make_pair(false, interval_t()));
+   restrictions.resize(10);
 }
 
 std::ostream& operator<<(std::ostream& os, const Query& query) {
@@ -106,7 +104,7 @@ std::ostream& operator<<(std::ostream& os, const Query& query) {
          break;
    }
 
-   // /tile/key/x/y/z/r
+   /*// /tile/key/x/y/z/r
    for (int i = 0; i < query._tile.size(); ++i) {
       if (query.eval_tile(i)) {
          os << "/tile/" << i << "/" << query.tile(i) << "/" << (uint32_t)query.resolution();
@@ -154,7 +152,7 @@ std::ostream& operator<<(std::ostream& os, const Query& query) {
       if (query.eval_interval(i)) {
          os << "/tseries/" << i << "/" << query.interval(i);
       }
-   }
+   }*/
 
    return os;
 }

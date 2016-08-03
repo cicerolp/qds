@@ -3,8 +3,9 @@
 #include "stdafx.h"
 #include "mercator_util.h"
 
-typedef uint8_t categorical_t;
+
 typedef uint32_t temporal_t;
+typedef uint8_t categorical_t;
 
 struct spatial_t {
    spatial_t() : spatial_t(0, 0, 0) { }
@@ -46,12 +47,6 @@ struct spatial_t {
       } else {
          return false;
       }
-   }
-
-   inline void serialize(rapidjson::Writer<rapidjson::StringBuffer>& writer) const {
-      writer.Uint(x);
-      writer.Uint(y);
-      writer.Uint(z);
    }
 
    friend std::ostream& operator<<(std::ostream& stream, const spatial_t& tile) {

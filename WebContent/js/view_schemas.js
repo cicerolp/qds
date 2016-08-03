@@ -448,7 +448,7 @@ var view_schemas = {
 				    div: "#section",
 				    size: 25,
 				    field: {
-				        name: "c_0",
+				        name: "c_1",
 				        values: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
 								"Sun"]
 				    }
@@ -460,7 +460,7 @@ var view_schemas = {
 				    div: "#section",
 				    size: 50,
 				    field: {
-				        name: "t_0",
+				        name: "t_3",
 				    }
 				},
 				{
@@ -470,7 +470,7 @@ var view_schemas = {
 				    div: "#section",
 				    size: 25,
 				    field: {
-				        name: "c_1",
+				        name: "c_2",
 				        values: ["00", "01", "02", "03", "04", "05", "06",
 								"07", "08", "09", "10", "11", "12", "13", "14",
 								"15", "16", "17", "18", "19", "20", "21", "22",
@@ -487,7 +487,7 @@ var view_schemas = {
 				        name: "binned"
 				    },
 				    field_x: {
-				        name: "c_1",
+				        name: "c_2",
 				        title: "Hour of Day",
 				        values: ["00", "01", "02", "03", "04", "05", "06",
 								"07", "08", "09", "10", "11", "12", "13", "14",
@@ -495,7 +495,7 @@ var view_schemas = {
 								"23"]
 				    },
 				    field_y: {
-				        name: "c_0",
+				        name: "c_1",
 				        title: "Day of Week",
 				        values: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat",
 								"Sun"]

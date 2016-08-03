@@ -50,11 +50,11 @@ uint32_t Temporal::build(const building_container& range, building_container& re
    return pivots_count;
 }
 
-bool Temporal::query(const Query& query, range_container& range, response_container& response, binned_container& subset, const Dimension* target) const {
+bool Temporal::query(const Query& query, range_container& range, response_container& response, CopyOption& option) const {
 
-   if (!query.eval_interval(_key)) return false;
+   if (!query.eval(_key)) return false;
 
-   const auto interval = query.interval(_key);
+   const auto& interval = query.get<Query::temporal_query_t>(_key)->interval;
 
    if (query.type() != Query::TSERIES && interval.contain(_container.front().el.value, _container.back().el.value)) {
       return false;
@@ -63,22 +63,19 @@ bool Temporal::query(const Query& query, range_container& range, response_contai
    auto it_lower_data = std::lower_bound(_container.begin(), _container.end(), interval.bound[0]);
    auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), interval.bound[1]);
 
+   binned_container subset;
+
    for (auto it = it_lower_data; it < it_upper_date; ++it) {
       subset.emplace_back(&(*it).el);
    }
 
-   if (target != nullptr) {
-      restrict(range, response, subset, CopyValueFromRange);
-   } else if (query.type() == Query::TSERIES) {
-      target = this;
+   if (query.type() == Query::TSERIES) {
       restrict(range, response, subset, CopyValueFromSubset);
-   } else {
-      restrict(range, response, subset, DefaultCopy);
+      option = CopyValueFromRange;
+   }
+   else {
+      restrict(range, response, subset, option);
    }
 
    return true;
-}
-
-std::string Temporal::serialize(const Query& query, range_container& range, binned_container& subset) const {
-   return std::string();
 }

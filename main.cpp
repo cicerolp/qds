@@ -21,11 +21,11 @@ int main(int argc, char* argv[]) {
    bool telemetry = false;
 
    bool benchmark = false;
-   uint32_t benchmark_passes = 1;
+   uint32_t benchmark_passes = 2;
    std::vector<std::string> benchmark_files;
 
    /*
-   //telemetry = true;
+   telemetry = true;
    benchmark = true;
    benchmark_files.emplace_back("./csv/brightkite.csv");
    //benchmark_files.emplace_back("./csv/brightkite-bench.csv");

@@ -2,7 +2,7 @@
 #include "Dimension.h"
 #include "NDSInstances.h"
 
-void Dimension::restrict(range_container& range, response_container& response, binned_container& subset, const CopyOption option) {
+void Dimension::restrict(range_container& range, response_container& response, const binned_container& subset, CopyOption option) {
    // sort range only when necessary
    swap_and_sort(range, response);
 
@@ -20,25 +20,20 @@ void Dimension::restrict(range_container& range, response_container& response, b
 
          switch (option) {
             case CopyValueFromRange:
-               while (it_upper != el->pivots.end() && (*it_range).pivot >= (*it_upper)) {
-                  response.emplace_back((*it_upper++), (*it_range).value);
+               while (it_lower != it_upper) {
+                  response.emplace_back((*it_lower++), (*it_range).value);
                }
                break;
             case CopyValueFromSubset:               
-               while (it_upper != el->pivots.end() && (*it_range).pivot >= (*it_upper)) {
-                  response.emplace_back((*it_upper++), el->value);
+               while (it_lower != it_upper) {
+                  response.emplace_back((*it_lower++), el->value);
                }
                break;
-            default:
-               it_upper = std::upper_bound(it_lower, el->pivots.end(), (*it_range).pivot, Pivot::upper_bound_comp);
+            default: // DefaultCopy
                response.insert(response.end(), it_lower, it_upper);
+               it_lower = it_upper;
                break;
          }
-
-         it_lower = it_upper;
       }
    }
-
-   // clear subset container
-   subset.clear();
 }

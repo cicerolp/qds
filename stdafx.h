@@ -4,7 +4,8 @@
 
 #pragma once
 
-#undef NDEBUG
+//#undef NDEBUG
+#define WIN32_LEAN_AND_MEAN
 #define _USE_MATH_DEFINES
 #define _CRT_SECURE_NO_WARNINGS
 
@@ -14,9 +15,7 @@
 #include <cassert>
 
 // C++ includes
-#include <set>
 #include <map>
-#include <deque>
 #include <regex>
 #include <array>
 #include <tuple>
@@ -27,7 +26,6 @@
 #include <iostream>
 #include <algorithm>
 #include <functional>
-#include <unordered_set>
 #include <unordered_map>
 
 // boost library
@@ -41,7 +39,6 @@
 #include <mongoose/mongoose.h>
 
 // rapidjson
-#include <rapidjson/rapidjson.h>
 #include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
 

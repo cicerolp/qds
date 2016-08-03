@@ -71,40 +71,40 @@ uint32_t SpatialElement::expand(Data& data, building_container& response, const 
    return pivots_count;
 }
 
-void SpatialElement::query_tile(const Query& query, binned_container& subset, uint8_t z) const {
+void SpatialElement::query_tile(const std::vector<spatial_t>& tile, uint8_t resolution, binned_container& subset, uint8_t z) const {
    // BUG fix spatial at   
-   if ((*(spatial_t*)&el.value).contains(query.tile(0))) {
-      if (z == query.tile(0).z || (*(spatial_t*)&el.value).leaf) {
-         return aggregate_tile(query, subset, z);
+   if ((*(spatial_t*)&el.value).contains(tile[0])) {
+      if (z == tile[0].z || (*(spatial_t*)&el.value).leaf) {
+         return aggregate_tile(tile, resolution, subset, z);
       } else {
-         if (_container[0] != nullptr) _container[0]->query_tile(query, subset, z + 1);
-         if (_container[1] != nullptr) _container[1]->query_tile(query, subset, z + 1);
-         if (_container[2] != nullptr) _container[2]->query_tile(query, subset, z + 1);
-         if (_container[3] != nullptr) _container[3]->query_tile(query, subset, z + 1);
+         if (_container[0] != nullptr) _container[0]->query_tile(tile, resolution, subset, z + 1);
+         if (_container[1] != nullptr) _container[1]->query_tile(tile, resolution, subset, z + 1);
+         if (_container[2] != nullptr) _container[2]->query_tile(tile, resolution, subset, z + 1);
+         if (_container[3] != nullptr) _container[3]->query_tile(tile, resolution, subset, z + 1);
       }
    }
 }
 
-void SpatialElement::query_region(const Query& query, binned_container& subset, uint8_t z) const {
+void SpatialElement::query_region(const std::vector<region_t>& region, binned_container& subset, uint8_t z) const {
    // BUG fix spatial at
-   if ((z == query.region(0).z || (*(spatial_t*)&el.value).leaf) && query.region(0).intersect((*(spatial_t*)&el.value), z)) {
+   if ((z == region[0].z || (*(spatial_t*)&el.value).leaf) && region[0].intersect((*(spatial_t*)&el.value), z)) {
       subset.emplace_back(&el);
-   } else if (z < query.region(0).z) {
-      if (_container[0] != nullptr) _container[0]->query_region(query, subset, z + 1);
-      if (_container[1] != nullptr) _container[1]->query_region(query, subset, z + 1);
-      if (_container[2] != nullptr) _container[2]->query_region(query, subset, z + 1);
-      if (_container[3] != nullptr) _container[3]->query_region(query, subset, z + 1);
+   } else if (z < region[0].z) {
+      if (_container[0] != nullptr) _container[0]->query_region(region, subset, z + 1);
+      if (_container[1] != nullptr) _container[1]->query_region(region, subset, z + 1);
+      if (_container[2] != nullptr) _container[2]->query_region(region, subset, z + 1);
+      if (_container[3] != nullptr) _container[3]->query_region(region, subset, z + 1);
    }
 }
 
-void SpatialElement::aggregate_tile(const Query& query, binned_container& subset, uint8_t z) const {
+void SpatialElement::aggregate_tile(const std::vector<spatial_t>& tile, uint8_t resolution, binned_container& subset, uint8_t z) const {
    // BUG fix spatial at
-   if ((*(spatial_t*)&el.value).leaf || (z == query.tile(0).z + query.resolution())) {
+   if ((*(spatial_t*)&el.value).leaf || (z == tile[0].z + resolution)) {
       subset.emplace_back(&el);
    } else {
-      if (_container[0] != nullptr) _container[0]->aggregate_tile(query, subset, z + 1);
-      if (_container[1] != nullptr) _container[1]->aggregate_tile(query, subset, z + 1);
-      if (_container[2] != nullptr) _container[2]->aggregate_tile(query, subset, z + 1);
-      if (_container[3] != nullptr) _container[3]->aggregate_tile(query, subset, z + 1);
+      if (_container[0] != nullptr) _container[0]->aggregate_tile(tile, resolution, subset, z + 1);
+      if (_container[1] != nullptr) _container[1]->aggregate_tile(tile, resolution, subset, z + 1);
+      if (_container[2] != nullptr) _container[2]->aggregate_tile(tile, resolution, subset, z + 1);
+      if (_container[3] != nullptr) _container[3]->aggregate_tile(tile, resolution, subset, z + 1);
    }
 }

@@ -48,43 +48,38 @@ uint32_t Categorical::build(const building_container& range, building_container&
    return pivots_count;
 }
 
-bool Categorical::query(const Query& query, range_container& range, response_container& response, binned_container& subset, const Dimension* target) const {
+bool Categorical::query(const Query& query, range_container& range, response_container& response, CopyOption& option) const {
 
-   if (query.eval_where(_key)) {
-      const auto value_it = query.where(_key);
-      const bool is_target = query.eval_field(_key);
+   if (!query.eval(_key)) return false;
 
-      if (value_it.size() == _bin && !is_target) return false;
+   binned_container subset;
 
-      for (const auto& value : value_it) {
+   const auto& restriction = query.get<Query::categorical_query_t>(_key);
+
+   if (restriction->where.size()) {
+      if (restriction->where.size() == _bin && !restriction->field) return false;
+
+      for (const auto& value : restriction->where) {
          subset.emplace_back(&_container[value]);
       }
 
-      if (is_target) {
-         target = this;
+      if (restriction->field) {
          restrict(range, response, subset, CopyValueFromSubset);
-
-      } else if (target != nullptr) {
-         restrict(range, response, subset, CopyValueFromRange);
-
+         option = CopyValueFromRange;
       } else {
-         restrict(range, response, subset, DefaultCopy);
+         restrict(range, response, subset, option);
       }
 
-   } else if (query.eval_field(_key)) {
+   } else if (restriction->field) {
       for (const auto& el : _container) {
          subset.emplace_back(&el);
       }
 
-      target = this;
-      restrict(range, response, subset, CopyValueFromSubset);      
+      restrict(range, response, subset, CopyValueFromSubset);
+      option = CopyValueFromRange;
 
    } else {
       return false;
    }
    return true;
-}
-
-std::string Categorical::serialize(const Query& query, range_container& range, binned_container& subset) const {
-   return std::string();
 }

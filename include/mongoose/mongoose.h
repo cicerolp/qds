@@ -115,6 +115,7 @@
 #ifdef _WIN32
 #define random() rand()
 #ifdef _MSC_VER
+#include <winsock2.h>
 #pragma comment(lib, "ws2_32.lib") /* Linking with winsock library */
 #endif
 #include <windows.h>
