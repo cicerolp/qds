@@ -80,9 +80,6 @@
     <ClCompile Include="source\Server.cpp">
       <Filter>2.Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="include\mongoose\mongoose.c">
-      <Filter>1.Include\mongoose</Filter>
-    </ClCompile>
     <ClCompile Include="source\Pivot.cpp">
       <Filter>2.Source Files\pivots</Filter>
     </ClCompile>
@@ -144,9 +141,6 @@
     </ClInclude>
     <ClInclude Include="source\Server.h">
       <Filter>2.Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\mongoose\mongoose.h">
-      <Filter>1.Include\mongoose</Filter>
     </ClInclude>
     <ClInclude Include="include\rapidjson\rapidjson.h">
       <Filter>1.Include\rapidjson</Filter>
