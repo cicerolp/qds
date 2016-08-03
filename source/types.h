@@ -48,6 +48,12 @@ struct spatial_t {
       }
    }
 
+   inline void serialize(rapidjson::Writer<rapidjson::StringBuffer>& writer) const {
+      writer.Uint(x);
+      writer.Uint(y);
+      writer.Uint(z);
+   }
+
    friend std::ostream& operator<<(std::ostream& stream, const spatial_t& tile) {
       stream << tile.x << "/" << tile.y << "/" << tile.z;
       return stream;

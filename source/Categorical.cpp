@@ -48,23 +48,23 @@ uint32_t Categorical::build(const building_container& range, building_container&
    return pivots_count;
 }
 
-bool Categorical::query(const Query& query, range_container& range, response_container& response, binned_container& subset, bool& pass_over_target) const {
+bool Categorical::query(const Query& query, range_container& range, response_container& response, binned_container& subset, const Dimension* target) const {
 
    if (query.eval_where(_key)) {
       const auto value_it = query.where(_key);
-      const bool target = query.eval_field(_key);
+      const bool is_target = query.eval_field(_key);
 
-      if (value_it.size() == _bin && !target) return false;
+      if (value_it.size() == _bin && !is_target) return false;
 
       for (const auto& value : value_it) {
          subset.emplace_back(&_container[value]);
       }
 
-      if (target) {
-         pass_over_target = true;
+      if (is_target) {
+         target = this;
          restrict(range, response, subset, CopyValueFromSubset);
 
-      } else if (pass_over_target) {
+      } else if (target != nullptr) {
          restrict(range, response, subset, CopyValueFromRange);
 
       } else {
@@ -76,11 +76,15 @@ bool Categorical::query(const Query& query, range_container& range, response_con
          subset.emplace_back(&el);
       }
 
-      pass_over_target = true;
+      target = this;
       restrict(range, response, subset, CopyValueFromSubset);      
 
    } else {
       return false;
    }
    return true;
+}
+
+std::string Categorical::serialize(const Query& query, range_container& range, binned_container& subset) const {
+   return std::string();
 }

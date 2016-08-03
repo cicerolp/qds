@@ -8,7 +8,10 @@ public:
    ~Categorical() = default;
 
    uint32_t build(const building_container& range, building_container& response, Data& data) override;
-   bool query(const Query& query, range_container& range, response_container& response, binned_container& subset, bool& pass_over_target) const override;
+   bool query(const Query& query, range_container& range, response_container& response, binned_container& subset, const Dimension* target) const override;
+
+protected:
+   std::string serialize(const Query& query, range_container& range, binned_container& subset) const override;
 
 private:
    stde::dynarray<binned_t> _container;

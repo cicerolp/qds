@@ -8,8 +8,7 @@ void Dimension::restrict(range_container& range, response_container& response, b
 
    if (range.size() == 0) return;
 
-   pivot_iterator it_lower;
-   pivot_iterator it_upper;
+   pivot_iterator it_lower, it_upper;
 
    for (const auto& el : subset) {
 
@@ -17,22 +16,7 @@ void Dimension::restrict(range_container& range, response_container& response, b
 
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
 
-         if (it_lower == el->pivots.end()) break;
-
-         if ((*it_range).pivot.ends_before(*it_lower)) {
-            // binary search to find range iterator
-            it_range = std::lower_bound(it_range, range.end(), (*it_lower), BinnedPivot::upper_bound_comp);
-            if (it_range == range.end()) break;
-         }
-
-         if ((*it_range).pivot.begins_after(*it_lower)) {
-            // binnary search to find subset iterator
-            it_upper = std::lower_bound(it_lower, el->pivots.end(), (*it_range).pivot, Pivot::lower_bound_comp);
-            if (it_upper == el->pivots.end()) break;
-            it_lower = it_upper;
-         }
-
-         it_upper = it_lower;
+         if (!search_iterators(it_range, range, it_lower, it_upper, el->pivots)) break;
 
          switch (option) {
             case CopyValueFromRange:

@@ -8,6 +8,8 @@ int main(int argc, char* argv[]) {
    if (std::getenv("NDS_DATA") == nullptr) {
       std::cerr << "error: invalid environment path %NDS_DATA%" << std::endl;
       exit(-1);
+   } else {
+      std::cout << "NDS_DATA: <"<< std::getenv("NDS_DATA") << ">" << std::endl;
    }
 
    bool server = true;
@@ -19,11 +21,11 @@ int main(int argc, char* argv[]) {
    bool telemetry = false;
 
    bool benchmark = false;
-   uint32_t benchmark_passes = 2;
+   uint32_t benchmark_passes = 1;
    std::vector<std::string> benchmark_files;
 
-   /**/
-   telemetry = true;
+   /*
+   //telemetry = true;
    benchmark = true;
    benchmark_files.emplace_back("./csv/brightkite.csv");
    //benchmark_files.emplace_back("./csv/brightkite-bench.csv");
@@ -35,9 +37,9 @@ int main(int argc, char* argv[]) {
 
    try {
       if (argc < 2) {
-         //inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
+         inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
 
-         inputFiles.emplace_back("./xml/brightkite.nds.xml");
+         //inputFiles.emplace_back("./xml/brightkite.nds.xml");
          //inputFiles.emplace_back("./xml/gowalla.nds.xml");
 
          //inputFiles.emplace_back("./xml/delay.nds.xml");

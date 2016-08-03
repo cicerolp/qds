@@ -50,7 +50,7 @@ uint32_t Temporal::build(const building_container& range, building_container& re
    return pivots_count;
 }
 
-bool Temporal::query(const Query& query, range_container& range, response_container& response, binned_container& subset, bool& pass_over_target) const {
+bool Temporal::query(const Query& query, range_container& range, response_container& response, binned_container& subset, const Dimension* target) const {
 
    if (!query.eval_interval(_key)) return false;
 
@@ -67,14 +67,18 @@ bool Temporal::query(const Query& query, range_container& range, response_contai
       subset.emplace_back(&(*it).el);
    }
 
-   if (pass_over_target) {
+   if (target != nullptr) {
       restrict(range, response, subset, CopyValueFromRange);
    } else if (query.type() == Query::TSERIES) {
-      pass_over_target = true;
+      target = this;
       restrict(range, response, subset, CopyValueFromSubset);
    } else {
       restrict(range, response, subset, DefaultCopy);
    }
 
    return true;
+}
+
+std::string Temporal::serialize(const Query& query, range_container& range, binned_container& subset) const {
+   return std::string();
 }
