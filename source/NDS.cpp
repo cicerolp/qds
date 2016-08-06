@@ -63,35 +63,29 @@ NDS::NDS(const Schema& schema) {
 
 std::string NDS::query(const Query& query, std::ofstream* telemetry) {
 
-   std::vector<std::chrono::milliseconds> duration(3);
    std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
 
    Dimension::CopyOption option = Dimension::DefaultCopy;
 
    std::string buffer;
+   binned_container subset;
+   range_container range, response;
 
-   range_container range;
-   response_container response;
    response.emplace_back(_root);
 
+   start = std::chrono::high_resolution_clock::now();
+
    for (auto& pair : _dimension) {
-      start = std::chrono::high_resolution_clock::now();
-      buffer = pair.second->query(query, range, response, option);
-      end = std::chrono::high_resolution_clock::now();
-
-      duration[pair.first] += std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-
-      if (!buffer.empty()) break;
+      pair.second->query(query, range, response, subset, option);
    }
 
+   buffer = Dimension::serialize(query, range, response, subset, option);
+
+   end = std::chrono::high_resolution_clock::now();
+
    if (telemetry != nullptr) {
-      auto clock_spatial = duration[Dimension::Spatial].count();
-      auto clock_temporal = duration[Dimension::Temporal].count();
-      auto clock_categorical = duration[Dimension::Categorical].count();
-
-      auto clock = clock_categorical + clock_temporal + clock_spatial;
-
-      (*telemetry) << clock << "," << clock_spatial << "," << clock_categorical << "," << clock_temporal << "," << query << std::endl;
+      auto clock = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+      (*telemetry) << clock << "," << query << std::endl;
    }
 
    return buffer;

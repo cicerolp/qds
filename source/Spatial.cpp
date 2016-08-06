@@ -17,32 +17,19 @@ uint32_t Spatial::build(const building_container& range, building_container& res
    return pivots_count;
 }
 
-std::string Spatial::query(const Query& query, range_container& range, response_container& response, CopyOption& option) const {
+void Spatial::query(const Query& query, range_container& range, range_container& response, binned_container& subset, CopyOption& option) const {
 
-   if (!query.eval(_key)) return std::string();
+   if (!query.eval(_key)) return;
 
-   binned_container subset;
    auto restriction = query.get<Query::spatial_query_t>(_key);
 
+   restrict(range, response, subset, option);
+   
    if (restriction->tile.size()) {
       _container.query_tile(restriction->tile, restriction->resolution, subset, 0);
-   } else if (query.get<Query::spatial_query_t>(_key)->region.size()) {
+   } else if (restriction->region.size()) {
       _container.query_region(restriction->region, subset, 0);
-   } else {
-      return std::string();
    }
 
-   if (query.type() == Query::TILE) {
-      //restrict(range, response, subset, CopyValueFromSubset);
-      //option = CopyValueFromRange;
-
-      return serialize(query, response, subset, CopyValueFromSubset);
-
-   } else {
-      //restrict(range, response, subset, option);
-
-      return serialize(query, response, subset, option);
-   }
-
-   return std::string();
+   if (query.type() == Query::TILE) option = CopyValueFromSubset;
 }

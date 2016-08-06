@@ -33,6 +33,3 @@ inline bool BinnedPivot::upper_bound_comp(const BinnedPivot& lhs, const Pivot& r
 
 using range_container = std::vector<BinnedPivot>;
 using range_iterator = range_container::const_iterator;
-
-using response_container = std::vector<BinnedPivot>;
-using response_iterator = response_container::const_iterator;

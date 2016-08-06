@@ -48,38 +48,31 @@ uint32_t Categorical::build(const building_container& range, building_container&
    return pivots_count;
 }
 
-std::string Categorical::query(const Query& query, range_container& range, response_container& response, CopyOption& option) const {
+void Categorical::query(const Query& query, range_container& range, range_container& response, binned_container& subset, CopyOption& option) const {
 
-   if (!query.eval(_key)) return std::string();
-
-   binned_container subset;
+   if (!query.eval(_key)) return;
 
    const auto& restriction = query.get<Query::categorical_query_t>(_key);
 
    if (restriction->where.size()) {
-      if (restriction->where.size() == _bin && !restriction->field) return std::string();
+      if (restriction->where.size() == _bin && !restriction->field) return;
+
+      restrict(range, response, subset, option);
 
       for (const auto& value : restriction->where) {
          subset.emplace_back(&_container[value]);
       }
-
-      if (restriction->field) {
-         restrict(range, response, subset, CopyValueFromSubset);
-         option = CopyValueFromRange;
-      } else {
-         restrict(range, response, subset, option);
-      }
-
+            
+      if (restriction->field) option = CopyValueFromSubset;
+      
    } else if (restriction->field) {
+
+      restrict(range, response, subset, option);
+
       for (const auto& el : _container) {
          subset.emplace_back(&el);
       }
 
-      restrict(range, response, subset, CopyValueFromSubset);
-      option = CopyValueFromRange;
-
-   } else {
-      return std::string();
+      option = CopyValueFromSubset;
    }
-   return std::string();
 }

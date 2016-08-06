@@ -12,7 +12,7 @@ class Temporal : public Dimension {
          return el.value == rhs.el.value;
       }
       bool operator<(const temporal_t& rhs) const {
-         return el.value < rhs;
+         return (temporal_t)(el.value) < rhs;
       }
       bool operator<(const TemporalElement& rhs) const {
          return el.value < rhs.el.value;
@@ -25,7 +25,7 @@ public:
    ~Temporal() = default;
 
    uint32_t build(const building_container& range, building_container& response, Data& data) override;
-   std::string query(const Query& query, range_container& range, response_container& response, CopyOption& option) const override;
+   void query(const Query& query, range_container& range, range_container& response, binned_container& subset, CopyOption& option) const override;
 
    inline interval_t get_interval() const {
       return interval_t(_container.front().el.value, _container.back().el.value);

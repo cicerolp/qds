@@ -2,11 +2,12 @@
 #include "Dimension.h"
 #include "NDSInstances.h"
 
-void Dimension::restrict(range_container& range, response_container& response, const binned_container& subset, CopyOption option) {
+void Dimension::restrict(range_container& range, range_container& response, binned_container& subset, CopyOption& option) {
+   
+   if (subset.size() == 0) return;
+
    // sort range only when necessary
    swap_and_sort(range, response);
-
-   if (range.size() == 0) return;
 
    pivot_iterator it_lower;
 
@@ -37,16 +38,20 @@ void Dimension::restrict(range_container& range, response_container& response, c
          }
       }
    }
+
+   subset.clear();
+
+   if (option == CopyValueFromSubset) option = CopyValueFromRange;
 }
 
-std::string Dimension::serialize(const Query& query, range_container& range, binned_container& subset, CopyOption option) {
+std::string Dimension::serialize(const Query& query, range_container& range, range_container& response, binned_container& subset, CopyOption option) {
+
+   range.swap(response);
 
    // sort range only when necessary
    std::sort(range.begin(), range.end());
 
    if (range.size() == 0) return std::string();
-
-   pivot_iterator it_lower;
 
    // serialization
    rapidjson::StringBuffer buffer;
@@ -54,59 +59,46 @@ std::string Dimension::serialize(const Query& query, range_container& range, bin
 
    // start json
    writer.StartArray();
-
-   if (query.type() == Query::TILE) {
-      std::unordered_map<uint64_t, uint32_t> map;
-
-      for (const auto& el : subset) {
-         it_lower = el->pivots.begin();
-         for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-            if (!search_iterators(it_range, range, it_lower, el->pivots)) break;
-
-            if (option == CopyValueFromRange) {
-               while (it_lower != el->pivots.end() && (*it_range).pivot >= (*it_lower)) {
-                  map[(*it_range).value] += (*it_lower++).size();
-               }
-            } else if (option == CopyValueFromSubset) {
-               while (it_lower != el->pivots.end() && (*it_range).pivot >= (*it_lower)) {
-                  map[el->value] += (*it_lower++).size();
-               }
-            }
-
-         }
-      }
-
-      // serialization
-      for (const auto& pair : map) {
-         writer.StartArray();
-         writer.Uint((*(spatial_t*)&pair.first).x);
-         writer.Uint((*(spatial_t*)&pair.first).y);
-         writer.Uint((*(spatial_t*)&pair.first).z);
-         writer.Uint(pair.second);
-         writer.EndArray();
-      }
-   } else if (query.type() == Query::REGION) {
-      uint32_t count = 0;
-
-      for (const auto& el : subset) {
-         it_lower = el->pivots.begin();
-         for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-            if (!search_iterators(it_range, range, it_lower, el->pivots)) break;
-
-            while (it_lower != el->pivots.end() && (*it_range).pivot >= (*it_lower)) {
-               count += (*it_lower++).size();
-            }
-
-         }
-      }
-
-      // serialization
-      writer.StartArray();
-      writer.Uint(count);
-      writer.EndArray();
+   
+   switch (query.type()) {
+      case Query::TILE: 
+         write_map<spatial_t, std::unordered_map>(writer, range, subset, option);
+         break;
+      case Query::GROUP: 
+         write_map<categorical_t, std::map>(writer, range, subset, option);
+         break;
+      case Query::TSERIES: 
+         write_map<temporal_t, std::map>(writer, range, subset, option);
+         break;
+      case Query::SCATTER: break;
+      case Query::MYSQL: break;
+      case Query::REGION: 
+         write_count(writer, range, subset);
+         break;
+      default: break;
    }
 
    // end json
    writer.EndArray();
    return buffer.GetString();
+}
+
+void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset) {
+   pivot_iterator it_lower;
+   uint32_t count = 0;
+
+   for (const auto& el : subset) {
+      it_lower = el->pivots.begin();
+      for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
+         if (!search_iterators(it_range, range, it_lower, el->pivots)) break;
+
+         while (it_lower != el->pivots.end() && (*it_range).pivot >= (*it_lower)) {
+            count += (*it_lower++).size();
+         }
+      }
+   }
+
+   writer.StartArray();
+   writer.Uint(count);
+   writer.EndArray();
 }
