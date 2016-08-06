@@ -1,6 +1,7 @@
 #pragma once
 
 #include "stdafx.h"
+#include "Dimension.h"
 
 struct Schema {
    Schema(const std::string filename) {
@@ -19,11 +20,11 @@ struct Schema {
             uint32_t offset = v.second.get<uint32_t>("offset");
 
             if (v.first == "spatial") {
-               spatial.emplace_back(std::make_tuple(index, bin, offset));
+               dimension.emplace_back(std::make_tuple(Dimension::Spatial, index, bin, offset));
             } else if (v.first == "categorical") {
-               categorical.emplace_back(std::make_tuple(index, bin, offset));
+               dimension.emplace_back(std::make_tuple(Dimension::Categorical, index, bin, offset));
             } else if (v.first == "temporal") {
-               temporal.emplace_back(std::make_tuple(index, bin, offset));
+               dimension.emplace_back(std::make_tuple(Dimension::Temporal, index, bin, offset));
             }
          }
       } catch (...) {
@@ -32,13 +33,9 @@ struct Schema {
       }
    }
 
+   uint8_t bytes;
    std::string name, file;
-   uint8_t bytes, leaf;
 
-   // index, bin, offset
-   std::vector<std::tuple<uint32_t, uint32_t, uint32_t>> spatial;
-   // index, bin, offset
-   std::vector<std::tuple<uint32_t, uint32_t, uint32_t>> categorical;
-   // index, bin, offset
-   std::vector<std::tuple<uint32_t, uint32_t, uint32_t>> temporal;
+   // dimension_e, index, bin, offset
+   std::vector<std::tuple<Dimension::Type, uint32_t, uint32_t, uint32_t>> dimension;
 };

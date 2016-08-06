@@ -17,9 +17,9 @@ uint32_t Spatial::build(const building_container& range, building_container& res
    return pivots_count;
 }
 
-bool Spatial::query(const Query& query, range_container& range, response_container& response, CopyOption& option) const {
+std::string Spatial::query(const Query& query, range_container& range, response_container& response, CopyOption& option) const {
 
-   if (!query.eval(_key)) return false;
+   if (!query.eval(_key)) return std::string();
 
    binned_container subset;
    auto restriction = query.get<Query::spatial_query_t>(_key);
@@ -29,88 +29,20 @@ bool Spatial::query(const Query& query, range_container& range, response_contain
    } else if (query.get<Query::spatial_query_t>(_key)->region.size()) {
       _container.query_region(restriction->region, subset, 0);
    } else {
-      return false;
+      return std::string();
    }
 
    if (query.type() == Query::TILE) {
-      restrict(range, response, subset, CopyValueFromSubset);
-      option = CopyValueFromRange;
+      //restrict(range, response, subset, CopyValueFromSubset);
+      //option = CopyValueFromRange;
+
+      return serialize(query, response, subset, CopyValueFromSubset);
+
    } else {
-      restrict(range, response, subset, option);
+      //restrict(range, response, subset, option);
+
+      return serialize(query, response, subset, option);
    }
 
-   return true;
-}
-
-std::string Spatial::serialize(const Query& query, range_container& range, binned_container& subset) const {
-   // sort range only when necessary
-   std::sort(range.begin(), range.end());
-
-   if (range.size() == 0) return std::string();
-
-   pivot_iterator it_lower, it_upper;
-
-   // serialization
-   rapidjson::StringBuffer buffer;
-   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-
-   // start json
-   writer.StartArray();
-
-   CopyOption option = CopyValueFromSubset;
-
-   if (query.type() == Query::TILE) {
-      std::unordered_map<uint64_t, uint32_t> map;
-
-      for (const auto& el : subset) {
-         it_lower = el->pivots.begin();
-         for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-            if (!search_iterators(it_range, range, it_lower, it_upper, el->pivots)) break;
-
-            if (option == CopyValueFromRange) {
-               while (it_lower != it_upper) {
-                  map[(*it_range).value] += (*it_lower++).size();
-               }
-            } else if (option == CopyValueFromSubset) {
-               while (it_lower != it_upper) {
-                  map[el->value] += (*it_lower++).size();
-               }
-            }
-
-         }
-      }
-
-      // serialization
-      for (const auto& pair : map) {
-         writer.StartArray();
-         writer.Uint((*(spatial_t*)&pair.first).x);
-         writer.Uint((*(spatial_t*)&pair.first).y);
-         writer.Uint((*(spatial_t*)&pair.first).z);
-         writer.Uint(pair.second);
-         writer.EndArray();
-      }
-   } else if (query.type() == Query::REGION) {
-      uint32_t count = 0;
-
-      for (const auto& el : subset) {
-         it_lower = el->pivots.begin();
-         for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-            if (!search_iterators(it_range, range, it_lower, it_upper, el->pivots)) break;
-
-            while (it_lower != it_upper) {
-               count += (*it_lower++).size();
-            }
-
-         }
-      }
-
-      // serialization
-      writer.StartArray();
-      writer.Uint(count);
-      writer.EndArray();
-   }
-
-   // end json
-   writer.EndArray();
-   return buffer.GetString();
+   return std::string();
 }

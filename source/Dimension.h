@@ -13,23 +13,26 @@ public:
       DefaultCopy
    };
 
+   enum Type {
+      Spatial,
+      Temporal,
+      Categorical
+   };
+
    Dimension(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
       : _key(std::get<0>(tuple)), _bin(std::get<1>(tuple)), _offset(std::get<2>(tuple)) { }
 
    virtual ~Dimension() = default;
 
-   virtual bool query(const Query& query, range_container& range, response_container& response, CopyOption& option) const = 0;
+   virtual std::string query(const Query& query, range_container& range, response_container& response, CopyOption& option) const = 0;
    virtual uint32_t build(const building_container& range, building_container& response, Data& data) = 0;
 
 protected:
    static void restrict(range_container& range, response_container& response, const binned_container& subset, CopyOption option);
-
-   virtual std::string serialize(const Query& query, range_container& range, binned_container& subset) const {
-      return std::string();
-   };
+   static std::string serialize(const Query& query, range_container& range, binned_container& subset, CopyOption option);
 
    static inline bool search_iterators(range_iterator& it_range, const range_container& range,
-                                       pivot_iterator& it_lower, pivot_iterator& it_upper, const pivot_container& subset) {
+                                       pivot_iterator& it_lower, const pivot_container& subset) {
       if (it_lower == subset.end()) return false;
 
       if ((*it_range).pivot.ends_before(*it_lower)) {
@@ -40,13 +43,10 @@ protected:
 
       if ((*it_range).pivot.begins_after(*it_lower)) {
          // binnary search to find lower subset iterator
-         it_upper = std::lower_bound(it_lower, subset.end(), (*it_range).pivot, Pivot::lower_bound_comp);
-         if (it_upper == subset.end()) return false;
-         it_lower = it_upper;
+         pivot_iterator it = std::lower_bound(it_lower, subset.end(), (*it_range).pivot, Pivot::lower_bound_comp);
+         if (it == subset.end()) return false;
+         it_lower = it;
       }
-
-      // binnary search to find upper subset iterator
-      it_upper = std::upper_bound(it_lower, subset.end(), (*it_range).pivot, Pivot::upper_bound_comp);
 
       return true;
    }

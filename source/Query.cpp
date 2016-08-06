@@ -83,7 +83,7 @@ Query::Query(const std::string& instance, const std::string& type) : _instance(i
    }
 
    // BUG fix
-   restrictions.resize(10);
+   restrictions.resize(8);
 }
 
 std::ostream& operator<<(std::ostream& os, const Query& query) {
@@ -104,6 +104,7 @@ std::ostream& operator<<(std::ostream& os, const Query& query) {
          break;
    }
 
+   // BUG fix
    /*// /tile/key/x/y/z/r
    for (int i = 0; i < query._tile.size(); ++i) {
       if (query.eval_tile(i)) {

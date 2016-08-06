@@ -37,9 +37,9 @@ int main(int argc, char* argv[]) {
 
    try {
       if (argc < 2) {
-         inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
+         //inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
 
-         //inputFiles.emplace_back("./xml/brightkite.nds.xml");
+         inputFiles.emplace_back("./xml/brightkite.nds.xml");
          //inputFiles.emplace_back("./xml/gowalla.nds.xml");
 
          //inputFiles.emplace_back("./xml/delay.nds.xml");

@@ -50,14 +50,14 @@ uint32_t Temporal::build(const building_container& range, building_container& re
    return pivots_count;
 }
 
-bool Temporal::query(const Query& query, range_container& range, response_container& response, CopyOption& option) const {
+std::string Temporal::query(const Query& query, range_container& range, response_container& response, CopyOption& option) const {
 
-   if (!query.eval(_key)) return false;
+   if (!query.eval(_key)) return std::string();
 
    const auto& interval = query.get<Query::temporal_query_t>(_key)->interval;
 
    if (query.type() != Query::TSERIES && interval.contain(_container.front().el.value, _container.back().el.value)) {
-      return false;
+      return std::string();
    }
 
    auto it_lower_data = std::lower_bound(_container.begin(), _container.end(), interval.bound[0]);
@@ -77,5 +77,5 @@ bool Temporal::query(const Query& query, range_container& range, response_contai
       restrict(range, response, subset, option);
    }
 
-   return true;
+   return std::string();
 }

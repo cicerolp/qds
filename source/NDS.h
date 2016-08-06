@@ -7,8 +7,8 @@
 #include "BinnedPivot.h"
 
 #include "Spatial.h"
-#include "Categorical.h"
 #include "Temporal.h"
+#include "Categorical.h"
 
 class NDS {
 public:
@@ -19,8 +19,11 @@ public:
 
    inline interval_t get_interval() const {
       interval_t interval;
-      if (_temporal.size() != 0) {
-         interval = _temporal.back()->get_interval();
+      for (auto& pair : _dimension) {
+         if (pair.first == Dimension::Temporal) {
+            interval = ((Temporal*)pair.second.get())->get_interval();
+            break;
+         }
       }
       return interval;
    }
@@ -29,11 +32,7 @@ public:
    }
 
 private:
-   static std::string serialize(const Query& query, const response_container& response);
-
-   std::vector<std::unique_ptr<Categorical>> _categorical;
-   std::vector<std::unique_ptr<Temporal>> _temporal;
-   std::unique_ptr<Spatial> _spatial;
 
    BinnedPivot _root;
+   std::vector<std::pair<Dimension::Type, std::unique_ptr<Dimension>>> _dimension;
 };
