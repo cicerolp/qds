@@ -23,6 +23,7 @@ void Spatial::query(const Query& query, range_container& range, range_container&
 
    auto restriction = query.get<Query::spatial_query_t>(_key);
 
+   // restrict only when necessary
    restrict(range, response, subset, option);
    
    if (restriction->tile.size()) {

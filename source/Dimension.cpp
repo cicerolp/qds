@@ -9,12 +9,8 @@ void Dimension::restrict(range_container& range, range_container& response, binn
    // sort range only when necessary
    swap_and_sort(range, response);
 
-   pivot_iterator it_lower;
-
    for (const auto& el : subset) {
-
-      it_lower = el->pivots.begin();
-
+      auto it_lower = el->pivots.begin();
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
 
          if (!search_iterators(it_range, range, it_lower, el->pivots)) break;
@@ -48,10 +44,10 @@ std::string Dimension::serialize(const Query& query, range_container& range, ran
 
    range.swap(response);
 
+   if (range.size() == 0) return std::string("[]");
+
    // sort range only when necessary
    std::sort(range.begin(), range.end());
-
-   if (range.size() == 0) return std::string();
 
    // serialization
    rapidjson::StringBuffer buffer;
@@ -62,13 +58,16 @@ std::string Dimension::serialize(const Query& query, range_container& range, ran
    
    switch (query.type()) {
       case Query::TILE: 
-         write_map<spatial_t, std::unordered_map>(writer, range, subset, option);
+         if (option == CopyValueFromSubset) write_subset<spatial_t>(writer, range, subset);
+         else write_range<spatial_t, std::unordered_map>(writer, range, subset);         
          break;
       case Query::GROUP: 
-         write_map<categorical_t, std::map>(writer, range, subset, option);
+         if (option == CopyValueFromSubset) write_subset<categorical_t>(writer, range, subset);
+         else write_range<categorical_t, std::map>(writer, range, subset);
          break;
       case Query::TSERIES: 
-         write_map<temporal_t, std::map>(writer, range, subset, option);
+         if (option == CopyValueFromSubset) write_subset<temporal_t>(writer, range, subset);
+         else write_range<temporal_t, std::map>(writer, range, subset);
          break;
       case Query::SCATTER: break;
       case Query::MYSQL: break;
@@ -84,14 +83,12 @@ std::string Dimension::serialize(const Query& query, range_container& range, ran
 }
 
 void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset) {
-   pivot_iterator it_lower;
    uint32_t count = 0;
 
    for (const auto& el : subset) {
-      it_lower = el->pivots.begin();
+      auto it_lower = el->pivots.begin();
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
          if (!search_iterators(it_range, range, it_lower, el->pivots)) break;
-
          while (it_lower != el->pivots.end() && (*it_range).pivot >= (*it_lower)) {
             count += (*it_lower++).size();
          }
@@ -101,4 +98,19 @@ void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, 
    writer.StartArray();
    writer.Uint(count);
    writer.EndArray();
+}
+
+void Dimension::write_pivtos(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset) {
+   for (const auto& el : subset) {
+      auto it_lower = el->pivots.begin();
+      for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
+         if (!search_iterators(it_range, range, it_lower, el->pivots)) break;
+         while (it_lower != el->pivots.end() && (*it_range).pivot >= (*it_lower)) {
+            writer.StartArray();
+            writer.Uint((*it_lower).front());
+            writer.Uint((*it_lower++).back());
+            writer.EndArray();
+         }
+      }
+   }   
 }

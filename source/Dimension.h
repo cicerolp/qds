@@ -27,17 +27,21 @@ public:
    virtual void query(const Query& query, range_container& range, range_container& response, binned_container& subset, CopyOption& option) const = 0;
    virtual uint32_t build(const building_container& range, building_container& response, Data& data) = 0;
 
-   
    static std::string serialize(const Query& query, range_container& range, range_container& response, binned_container& subset, CopyOption option);
 
 protected:
-   
+
    static void restrict(range_container& range, range_container& response, binned_container& subset, CopyOption& option);
 
+   template<typename T>
+   static void write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset);
+
    template<typename T, template<typename...> typename Container>
-   static void write_map(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset, CopyOption option);
+   static void write_range(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset);
 
    static void write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset);
+
+   static void write_pivtos(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset);
 
    static inline bool search_iterators(range_iterator& it_range, const range_container& range,
                                        pivot_iterator& it_lower, const pivot_container& subset) {
@@ -70,25 +74,40 @@ protected:
    const uint32_t _offset;
 };
 
-template<typename T, template <typename ...> class Container>
-void Dimension::write_map(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset, CopyOption option) {
+template<typename T>
+void Dimension::write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset) {
+   std::sort(subset.begin(), subset.end(), [](const binned_t* lhs, const binned_t* rhs) {
+      return lhs->value < rhs->value;
+   });
+   std::vector<uint32_t> map(subset.size(), 0);
 
-   pivot_iterator it_lower;
+   for (auto el = 0; el < subset.size(); ++el) {
+      auto it_lower = subset[el]->pivots.begin();
+      for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
+         if (!search_iterators(it_range, range, it_lower, subset[el]->pivots)) break;
+         while (it_lower != subset[el]->pivots.end() && (*it_range).pivot >= (*it_lower)) {
+            map[el] += (*it_lower++).size();
+         }
+      }
+
+      // serialization
+      writer.StartArray();
+      toJSON(writer, (*(T*)&subset[el]->value));
+      writer.Uint(map[el]);
+      writer.EndArray();
+   }
+}
+
+template<typename T, template <typename ...> class Container>
+void Dimension::write_range(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset) {
    Container<uint64_t, uint32_t> map;
 
    for (const auto& el : subset) {
-      it_lower = el->pivots.begin();
+      auto it_lower = el->pivots.begin();
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
          if (!search_iterators(it_range, range, it_lower, el->pivots)) break;
-
-         if (option == CopyValueFromRange) {
-            while (it_lower != el->pivots.end() && (*it_range).pivot >= (*it_lower)) {
-               map[(*it_range).value] += (*it_lower++).size();
-            }
-         } else if (option == CopyValueFromSubset) {
-            while (it_lower != el->pivots.end() && (*it_range).pivot >= (*it_lower)) {
-               map[el->value] += (*it_lower++).size();
-            }
+         while (it_lower != el->pivots.end() && (*it_range).pivot >= (*it_lower)) {
+            map[(*it_range).value] += (*it_lower++).size();
          }
       }
    }

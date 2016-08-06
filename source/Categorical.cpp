@@ -57,6 +57,7 @@ void Categorical::query(const Query& query, range_container& range, range_contai
    if (restriction->where.size()) {
       if (restriction->where.size() == _bin && !restriction->field) return;
 
+      // restrict only when necessary
       restrict(range, response, subset, option);
 
       for (const auto& value : restriction->where) {
@@ -67,6 +68,7 @@ void Categorical::query(const Query& query, range_container& range, range_contai
       
    } else if (restriction->field) {
 
+      // restrict only when necessary
       restrict(range, response, subset, option);
 
       for (const auto& el : _container) {

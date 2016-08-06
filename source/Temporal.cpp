@@ -63,6 +63,7 @@ void Temporal::query(const Query& query, range_container& range, range_container
    auto it_lower_data = std::lower_bound(_container.begin(), _container.end(), interval.bound[0]);
    auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), interval.bound[1]);
    
+   // restrict only when necessary
    restrict(range, response, subset, option);
 
    for (auto it = it_lower_data; it < it_upper_date; ++it) {
