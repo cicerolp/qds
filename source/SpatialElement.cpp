@@ -14,24 +14,26 @@ SpatialElement::SpatialElement(const spatial_t& tile, const building_container& 
 
 uint32_t SpatialElement::expand(Data& data, building_container& response, const uint8_t offset) {
 
+   spatial_t& value = (*reinterpret_cast<spatial_t*>(&el.value));
+
+   uint8_t next_level = value.z + 1;
    uint32_t pivots_count = static_cast<uint32_t>(el.pivots.size());
-   uint8_t next_level = (*(spatial_t*)&el.value).z + 1;
 
    if (next_level < max_levels && count_expand()) {
 
       std::map<spatial_t, building_container> tmp_container;
 
       // node will be expanded
-      (*(spatial_t*)&el.value).leaf = 0;
+      value.leaf = 0;
 
       for (const auto& ptr : el.pivots) {
          std::map<spatial_t, uint32_t> used;
 
          for (auto i = ptr.front(); i < ptr.back(); ++i) {
-            coordinates_t value = data.record<coordinates_t>(i, offset);
+            coordinates_t coords = data.record<coordinates_t>(i, offset);
 
-            auto y = mercator_util::lat2tiley(value.lat, next_level);
-            auto x = mercator_util::lon2tilex(value.lon, next_level);
+            auto y = mercator_util::lat2tiley(coords.lat, next_level);
+            auto x = mercator_util::lon2tilex(coords.lon, next_level);
 
             spatial_t tile(x, y, next_level);
 
@@ -72,9 +74,11 @@ uint32_t SpatialElement::expand(Data& data, building_container& response, const 
 }
 
 void SpatialElement::query_tile(const std::vector<spatial_t>& tile, uint8_t resolution, binned_container& subset) const {
+   const spatial_t& value = (*reinterpret_cast<const spatial_t*>(&el.value));
+
    // BUG fix spatial at   
-   if ((*(spatial_t*)&el.value).contains(tile[0])) {
-      if ((*(spatial_t*)&el.value).z == tile[0].z || (*(spatial_t*)&el.value).leaf) {
+   if (value.contains(tile[0])) {
+      if (value.z == tile[0].z || value.leaf) {
          return aggregate_tile(tile, resolution, subset);
       } else {
          if (_container[0] != nullptr) _container[0]->query_tile(tile, resolution, subset);
@@ -86,15 +90,17 @@ void SpatialElement::query_tile(const std::vector<spatial_t>& tile, uint8_t reso
 }
 
 void SpatialElement::query_region(const std::vector<region_t>& region, binned_container& subset) const {
+   const spatial_t& value = (*reinterpret_cast<const spatial_t*>(&el.value));
+
    // BUG fix spatial at
-   if ((*(spatial_t*)&el.value).z <= region[0].z) {
-      if ((*(spatial_t*)&el.value).z == region[0].z || (*(spatial_t*)&el.value).leaf) {
-         if (region[0].intersect(*(spatial_t*)&el.value)) {
+   if (value.z <= region[0].z) {
+      if (value.z == region[0].z || value.leaf) {
+         if (region[0].intersect(value)) {
             subset.emplace_back(&el);
          } else {
             return;
          }
-      } else if(region[0].equals(*(spatial_t*)&el.value)) {
+      } else if(region[0].equals(value)) {
          subset.emplace_back(&el);
       } else {
          if (_container[0] != nullptr) _container[0]->query_region(region, subset);
@@ -106,8 +112,10 @@ void SpatialElement::query_region(const std::vector<region_t>& region, binned_co
 }
 
 void SpatialElement::aggregate_tile(const std::vector<spatial_t>& tile, uint8_t resolution, binned_container& subset) const {
+   const spatial_t& value = (*reinterpret_cast<const spatial_t*>(&el.value));
+
    // BUG fix spatial at
-   if ((*(spatial_t*)&el.value).leaf || (*(spatial_t*)&el.value).z == tile[0].z + resolution) {
+   if (value.leaf || value.z == tile[0].z + resolution) {
       subset.emplace_back(&el);
    } else {
       if (_container[0] != nullptr) _container[0]->aggregate_tile(tile, resolution, subset);

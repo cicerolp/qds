@@ -12,6 +12,8 @@ void NDSInstances::run(const std::vector<Schema>& args, bool telemetry) {
 
          NDSInstances::getInstance()._telemetry_files.emplace(schema.name, 
             std::make_unique<std::ofstream>(schema.name + stream.str(), std::ofstream::out));
+
+         (*NDSInstances::getInstance()._telemetry_files[schema.name]) << "sep=," << std::endl;
 	   }
 	}
 }
