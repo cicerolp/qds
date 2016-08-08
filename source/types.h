@@ -98,6 +98,20 @@ struct region_t {
       return tile1.y;
    }
 
+   inline bool equals(const spatial_t& tile, uint8_t tile_z) const {
+      if (z > tile_z) {
+         uint32_t n = 2 << (z - tile_z - 1);
+
+         uint32_t x_min = static_cast<uint32_t>(tile.x) * n;
+         uint32_t x_max = x_min + n;
+
+         uint32_t y_min = static_cast<uint32_t>(tile.y) * n;
+         uint32_t y_max = y_min + n;
+
+         return (x0() == x_min && y0() == y_min && x1() == x_max && y1() == y_max);
+      } else return false;
+   }
+
    inline bool intersect(const spatial_t& tile, uint8_t tile_z) const {
       if (z > tile_z) {
          uint32_t n = 2 << (z - tile_z - 1);

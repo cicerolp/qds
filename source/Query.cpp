@@ -81,8 +81,6 @@ Query::Query(const std::string& instance, const std::string& type) : _instance(i
    } else if (type == "mysql") {
       this->_type = MYSQL;
    }
-
-   // BUG fix
    restrictions.resize(8);
 }
 
@@ -104,56 +102,50 @@ std::ostream& operator<<(std::ostream& os, const Query& query) {
          break;
    }
 
-   // BUG fix
-   /*// /tile/key/x/y/z/r
-   for (int i = 0; i < query._tile.size(); ++i) {
-      if (query.eval_tile(i)) {
-         os << "/tile/" << i << "/" << query.tile(i) << "/" << (uint32_t)query.resolution();
-      }
-   }
+   for (int index = 0; index < query.restrictions.size(); ++index) {
+      auto& r = query.restrictions[index];
+      if (r == nullptr) continue;
 
-   // /region/key/z/x0/y0/x1/y1
-   for (int i = 0; i < query._region.size(); ++i) {
-      if (query.eval_region(i)) {
-         os << "/region/" << i << "/" << query.region(i);
-      }
-   }
-
-   // /field/<category>
-   for (int i = 0; i < query._field.size(); ++i) {
-      if (query.eval_field(i)) {
-         os << "/field/" << i;
-      }
-   }
-
-   // /where/<category>=<[value]:[value]...:[value]>&<category>=<[value]:[value]...:[value]>
-   std::string where_stream;
-   for (int i = 0; i < query._where.size(); ++i) {
-      if (query.eval_where(i)) {
-
-         where_stream += std::to_string(i) + "=";
-
-         for (auto& value : query.where(i)) {
-            where_stream += std::to_string(value) + ":";
+      switch (r->id) {
+         case Query::query_t::spatial: {
+            auto spatial = static_cast<Query::spatial_query_t*>(r.get());
+            // /region/key/z/x0/y0/x1/y1
+            for (auto& region : spatial->region) {
+               os << "/region/" << index << "/" << region;
+            }
+            // /tile/key/x/y/z/r
+            for (auto& tile : spatial->tile) {
+               os << "/tile/" << index << "/" << tile << "/" << spatial->resolution;
+            }
          }
+            break;
+         case Query::query_t::categorical: {
+            auto categorical = static_cast<Query::categorical_query_t*>(r.get());
+            // /field/<key>
+            if (categorical->field) {
+               os << "/field/" << index;
+            }
 
-         where_stream = where_stream.substr(0, where_stream.size() - 1);
-         where_stream += "&";
+            // /where/<category>=<[value]:[value]...:[value]>&<category>=<[value]:[value]...:[value]>
+            if (categorical->where.size()) os << "/where/" << index << "=";
+            std::string where_stream;
+            for (auto& value : categorical->where) {
+               where_stream += std::to_string(value) + ":";
+            }
+            where_stream = where_stream.substr(0, where_stream.size() - 1);
+            if (categorical->where.size()) os << where_stream;
+         }
+            break;
+
+         case Query::query_t::temporal: {
+            auto temporal = static_cast<Query::temporal_query_t*>(r.get());
+            // /tseries/key/from_date/to_date
+            os << "/tseries/" << index << "/" << temporal->interval;
+         }
+            break;
+         default: break;
       }
    }
-
-   if (!where_stream.empty()) {
-      where_stream = "/where/" + where_stream;
-      where_stream = where_stream.substr(0, where_stream.size() - 1);
-      os << where_stream;
-   }
-
-   // /tseries/key/
-   for (int i = 0; i < query._interval.size(); ++i) {
-      if (query.eval_interval(i)) {
-         os << "/tseries/" << i << "/" << query.interval(i);
-      }
-   }*/
 
    return os;
 }

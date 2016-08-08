@@ -87,14 +87,32 @@ void SpatialElement::query_tile(const std::vector<spatial_t>& tile, uint8_t reso
 
 void SpatialElement::query_region(const std::vector<region_t>& region, binned_container& subset, uint8_t z) const {
    // BUG fix spatial at
-   if ((z == region[0].z || (*(spatial_t*)&el.value).leaf) && region[0].intersect((*(spatial_t*)&el.value), z)) {
+
+   if (z <= region[0].z) {
+      if ((z == region[0].z || (*(spatial_t*)&el.value).leaf)) {
+         if (region[0].intersect((*(spatial_t*)&el.value), z)) {
+            subset.emplace_back(&el);
+         } else {
+            return;
+         }
+      } else if(region[0].equals((*(spatial_t*)&el.value), z)) {
+         subset.emplace_back(&el);
+      } else {
+         if (_container[0] != nullptr) _container[0]->query_region(region, subset, z + 1);
+         if (_container[1] != nullptr) _container[1]->query_region(region, subset, z + 1);
+         if (_container[2] != nullptr) _container[2]->query_region(region, subset, z + 1);
+         if (_container[3] != nullptr) _container[3]->query_region(region, subset, z + 1);
+      }
+   }
+
+   /*if ((z == region[0].z || (*(spatial_t*)&el.value).leaf) && region[0].intersect((*(spatial_t*)&el.value), z)) {
       subset.emplace_back(&el);
    } else if (z < region[0].z) {
       if (_container[0] != nullptr) _container[0]->query_region(region, subset, z + 1);
       if (_container[1] != nullptr) _container[1]->query_region(region, subset, z + 1);
       if (_container[2] != nullptr) _container[2]->query_region(region, subset, z + 1);
       if (_container[3] != nullptr) _container[3]->query_region(region, subset, z + 1);
-   }
+   }*/
 }
 
 void SpatialElement::aggregate_tile(const std::vector<spatial_t>& tile, uint8_t resolution, binned_container& subset, uint8_t z) const {

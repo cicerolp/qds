@@ -55,7 +55,7 @@ std::string Dimension::serialize(const Query& query, range_container& range, ran
 
    // start json
    writer.StartArray();
-   
+
    switch (query.type()) {
       case Query::TILE: 
          if (option == CopyValueFromSubset) write_subset<spatial_t>(writer, range, subset);

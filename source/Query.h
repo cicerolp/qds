@@ -20,18 +20,28 @@ public:
 
    friend std::ostream& operator<<(std::ostream& os, const Query& query);
 
-   struct query_t { };
+   struct query_t {
+      enum type { spatial, categorical, temporal };
+      query_t(type _id) : id(_id) {}
+      type id;
+   };
    struct spatial_query_t : public query_t {
+      spatial_query_t() : query_t(spatial) {}
+
       // BUG fix multiple spatial dimenions
-      uint8_t resolution {0};
+      uint32_t resolution {0};
       std::vector<region_t> region;
       std::vector<spatial_t> tile;
    };
    struct categorical_query_t : public query_t {
+      categorical_query_t() : query_t(categorical) {}
+
       bool field{ false };
       std::vector<categorical_t> where;
    };
    struct temporal_query_t : public query_t {
+      temporal_query_t() : query_t(temporal) {}
+
       interval_t interval;
    };
 

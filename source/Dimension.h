@@ -45,7 +45,10 @@ protected:
 
    static inline bool search_iterators(range_iterator& it_range, const range_container& range,
                                        pivot_iterator& it_lower, const pivot_container& subset) {
-      if (it_lower == subset.end()) return false;
+      if (it_lower == subset.end()) {
+         it_range = range.end();
+         return false;
+      }
 
       if ((*it_range).pivot.ends_before(*it_lower)) {
          // binary search to find range iterator
@@ -54,6 +57,10 @@ protected:
       }
 
       if ((*it_range).pivot.begins_after(*it_lower)) {
+         if (it_lower == std::prev(subset.end())) {
+            it_range = range.end();
+            return false;
+         }
          // binnary search to find lower subset iterator
          pivot_iterator it = std::lower_bound(it_lower, subset.end(), (*it_range).pivot, Pivot::lower_bound_comp);
          if (it == subset.end()) return false;
