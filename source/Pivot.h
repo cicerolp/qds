@@ -56,6 +56,10 @@ using building_iterator = building_container::const_iterator;
 struct binned_t {
    uint64_t value;
    pivot_container pivots;
+
+   inline static bool Comp(const binned_t* lhs, const binned_t* rhs) {
+      return lhs->value < rhs->value;
+   }
 };
 
 using binned_container = std::vector<const binned_t*>;

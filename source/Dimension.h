@@ -76,9 +76,6 @@ protected:
 
 template<typename T>
 void Dimension::write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset) {
-   std::sort(subset.begin(), subset.end(), [](const binned_t* lhs, const binned_t* rhs) {
-      return lhs->value < rhs->value;
-   });
    std::vector<uint32_t> map(subset.size(), 0);
 
    for (auto el = 0; el < subset.size(); ++el) {

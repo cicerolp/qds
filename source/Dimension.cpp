@@ -62,12 +62,16 @@ std::string Dimension::serialize(const Query& query, range_container& range, ran
          else write_range<spatial_t, std::unordered_map>(writer, range, subset);         
          break;
       case Query::GROUP: 
-         if (option == CopyValueFromSubset) write_subset<categorical_t>(writer, range, subset);
-         else write_range<categorical_t, std::map>(writer, range, subset);
+         if (option == CopyValueFromSubset) {
+            std::sort(subset.begin(), subset.end(), binned_t::Comp);
+            write_subset<categorical_t>(writer, range, subset);
+         } else write_range<uint64_t, std::map>(writer, range, subset);
          break;
       case Query::TSERIES: 
-         if (option == CopyValueFromSubset) write_subset<temporal_t>(writer, range, subset);
-         else write_range<temporal_t, std::map>(writer, range, subset);
+         if (option == CopyValueFromSubset) {
+            std::sort(subset.begin(), subset.end(), binned_t::Comp);
+            write_subset<temporal_t>(writer, range, subset);
+         } else write_range<uint64_t, std::map>(writer, range, subset);
          break;
       case Query::SCATTER: break;
       case Query::MYSQL: break;

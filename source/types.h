@@ -66,11 +66,7 @@ struct spatial_t {
    };
 };
 
-inline void toJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer, const temporal_t& data) {
-   writer.Uint(data);
-}
-
-inline void toJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer, const categorical_t& data) {
+inline void toJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer, const uint64_t& data) {
    writer.Uint(data);
 }
 

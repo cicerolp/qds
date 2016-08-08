@@ -24,8 +24,8 @@ int main(int argc, char* argv[]) {
    uint32_t benchmark_passes = 2;
    std::vector<std::string> benchmark_files;
 
-   /**/
-   telemetry = true;
+   /*
+   //telemetry = true;
    benchmark = true;
    benchmark_files.emplace_back("./csv/brightkite.csv");
    //benchmark_files.emplace_back("./csv/brightkite-bench.csv");
