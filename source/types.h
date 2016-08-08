@@ -32,7 +32,7 @@ struct spatial_t {
 
    inline bool contains(const spatial_t& other) const {
       if (other.z > z) {
-         uint32_t n = 2 << (other.z - z - 1);
+         uint32_t n = 1 << (other.z - z);
 
          uint32_t x_min = static_cast<uint32_t>(x) * n;
          uint32_t x_max = x_min + n;
@@ -98,9 +98,9 @@ struct region_t {
       return tile1.y;
    }
 
-   inline bool equals(const spatial_t& tile, uint8_t tile_z) const {
-      if (z > tile_z) {
-         uint32_t n = 2 << (z - tile_z - 1);
+   inline bool equals(const spatial_t& tile) const {
+      if (z > tile.z) {
+         uint32_t n = 1 << (z - tile.z);
 
          uint32_t x_min = static_cast<uint32_t>(tile.x) * n;
          uint32_t x_max = x_min + n;
@@ -112,9 +112,9 @@ struct region_t {
       } else return false;
    }
 
-   inline bool intersect(const spatial_t& tile, uint8_t tile_z) const {
-      if (z > tile_z) {
-         uint32_t n = 2 << (z - tile_z - 1);
+   inline bool intersect(const spatial_t& tile) const {
+      if (z > tile.z) {
+         uint32_t n = 1 << (z - tile.z);
 
          uint32_t x_min = static_cast<uint32_t>(tile.x) * n;
          uint32_t x_max = x_min + n;
@@ -123,7 +123,7 @@ struct region_t {
          uint32_t y_max = y_min + n;
 
          return (x0() <= x_max && y0() <= y_max && x1() >= x_min && y1() >= y_min);
-      } else if (z == tile_z) {
+      } else if (z == tile.z) {
          return x0() <= tile.x && y0() <= tile.y && x1() >= tile.x && y1() >= tile.y;
       } else {
          return false;

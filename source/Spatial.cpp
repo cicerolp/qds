@@ -27,9 +27,9 @@ void Spatial::query(const Query& query, range_container& range, range_container&
    restrict(range, response, subset, option);
    
    if (restriction->tile.size()) {
-      _container.query_tile(restriction->tile, restriction->resolution, subset, 0);
+      _container.query_tile(restriction->tile, restriction->resolution, subset);
    } else if (restriction->region.size()) {
-      _container.query_region(restriction->region, subset, 0);
+      _container.query_region(restriction->region, subset);
    }
 
    if (query.type() == Query::TILE) option = CopyValueFromSubset;
