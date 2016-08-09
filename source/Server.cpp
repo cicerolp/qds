@@ -36,59 +36,69 @@ void Server::handler(mg_connection* conn, int ev, void* p) {
 
       } else if (tokens[1] == "rest" && tokens.size() >= 4) {
          if (tokens[2] == "schema") {
-            printJson(conn, NDSInstances::getInstance().schema(tokens[3]), 200);
+            printJson(conn, NDSInstances::getInstance().schema(tokens[3]));
          } else if (tokens.size() >= 5 && tokens[2] == "query") {
-            printJson(conn, NDSInstances::getInstance().query(Query(tokens)), 200);
+            printJson(conn, NDSInstances::getInstance().query(Query(tokens)));
          } else {
-            printJson(conn, "[]", 200);
+            printJson(conn, "[]");
          }
       } else {
          mg_serve_http(conn, hm, Server::getInstance().http_server_opts);
       }
    } catch (...) {
       std::cout << uri << std::endl;
-      printJson(conn, "[]", 200);
+      printJson(conn, "[]");
    }
 }
 
-void Server::printText(mg_connection* conn, const std::string& content, int code) {
-   static const std::string sep = "\r\n";
-
-   std::stringstream ss;
-   ss << "HTTP/1.1 " << code << " OK" << sep
-      << "Content-Type: text/plain" << sep
-      << "Access-Control-Allow-Origin: " << "*" << sep
-      << "Connection: keep-alive" << sep;
-
-      if (Server::getInstance().nds_opts.cache) {
-         ss << "Cache-Control: public, max-age=" << "86400" << sep;
-      } else {
-         ss << "Cache-Control: no-cache, no-store, must-revalidate" << sep;
-      }
-
-      ss << "Content-Length: %d" << sep << sep
-      << "%s";
-
-   mg_printf(conn, ss.str().c_str(), (int)content.size(), content.c_str());
+void Server::printText(mg_connection* conn, const std::string& content) {
+   if (Server::getInstance().nds_opts.cache) {
+      mg_printf(conn,
+         "HTTP/1.1 200 OK\r\n"
+         "Content-Type: text/plain\r\n"
+         "Content-Length: %d\r\n"
+         "Access-Control-Allow-Origin: *\r\n"
+         "Connection: keep-alive\r\n"
+         "Cache-Control: public, max-age=86400\r\n"
+         "\r\n"
+         "%s",
+         (int)content.size(), content.c_str());
+   } else {
+      mg_printf(conn,
+         "HTTP/1.1 200 OK\r\n"
+         "Content-Type: text/plain\r\n"
+         "Content-Length: %d\r\n"
+         "Access-Control-Allow-Origin: *\r\n"
+         "Connection: keep-alive\r\n"
+         "Cache-Control: no-cache, no-store, must-revalidate\r\n"
+         "\r\n"
+         "%s",
+         (int)content.size(), content.c_str());
+   }
 }
 
-void Server::printJson(mg_connection* conn, const std::string& content, int code) {
-   static const std::string sep = "\r\n";
-
-   std::stringstream ss;
-   ss << "HTTP/1.1 " << code << " OK" << sep
-      << "Content-Type: application/json" << sep
-      << "Access-Control-Allow-Origin: " << "*" << sep
-      << "Connection: keep-alive" << sep;
-
-      if (Server::getInstance().nds_opts.cache && content != "[]") {
-         ss << "Cache-Control: public, max-age=" << "86400" << sep;
-      } else {
-         ss << "Cache-Control: no-cache, no-store, must-revalidate" << sep;
-      }
-
-      ss << "Content-Length: %d" << sep << sep
-      << "%s";
-
-   mg_printf(conn, ss.str().c_str(), (int)content.size(), content.c_str());
+void Server::printJson(mg_connection* conn, const std::string& content) {
+   if (Server::getInstance().nds_opts.cache && content != "[]") {
+      mg_printf(conn,
+         "HTTP/1.1 200 OK\r\n"
+         "Content-Type: application/json\r\n"
+         "Content-Length: %d\r\n"
+         "Access-Control-Allow-Origin: *\r\n"
+         "Connection: keep-alive\r\n"
+         "Cache-Control: public, max-age=86400\r\n"
+         "\r\n"
+         "%s",
+         (int)content.size(), content.c_str());
+   } else {
+      mg_printf(conn,
+         "HTTP/1.1 200 OK\r\n"
+         "Content-Type: application/json\r\n"
+         "Content-Length: %d\r\n"
+         "Access-Control-Allow-Origin: *\r\n"
+         "Connection: keep-alive\r\n"
+         "Cache-Control: no-cache, no-store, must-revalidate\r\n"
+         "\r\n"
+         "%s",
+         (int)content.size(), content.c_str());
+   }
 }

@@ -100,7 +100,7 @@ void SpatialElement::query_region(const std::vector<region_t>& region, binned_co
          } else {
             return;
          }
-      } else if(region[0].equals(value)) {
+      } else if(region[0].cover(value)) {
          subset.emplace_back(&el);
       } else {
          if (_container[0] != nullptr) _container[0]->query_region(region, subset);

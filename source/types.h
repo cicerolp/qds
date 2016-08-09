@@ -98,7 +98,7 @@ struct region_t {
       return tile1.y;
    }
 
-   inline bool equals(const spatial_t& tile) const {
+   inline bool cover(const spatial_t& tile) const {
       if (z > tile.z) {
          uint32_t n = 1 << (z - tile.z);
 
@@ -108,7 +108,7 @@ struct region_t {
          uint32_t y_min = static_cast<uint32_t>(tile.y) * n;
          uint32_t y_max = y_min + n;
 
-         return (x0() == x_min && y0() == y_min && x1() == x_max && y1() == y_max);
+         return (x_min >= x0() && y_min >= y0() && x_max <= x1()  && y_max <= y1());
       } else return false;
    }
 

@@ -26,8 +26,8 @@ public:
 	static void run(server_opts opts);
 	static void handler(struct mg_connection* conn, int ev, void *p);
 
-	static void printText(struct mg_connection* conn, const std::string& content, int code);
-	static void printJson(struct mg_connection* conn, const std::string& content, int code);
+	static void printText(struct mg_connection* conn, const std::string& content);
+	static void printJson(struct mg_connection* conn, const std::string& content);
 
 	void stop() { running = false; };
 

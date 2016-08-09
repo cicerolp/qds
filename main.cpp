@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
    Server::server_opts nds_opts;
    nds_opts.port = 8200;
    nds_opts.cache = false;
-   nds_opts.multithreading = false;
+   nds_opts.multithreading = true;
 
    bool telemetry = false;
 
