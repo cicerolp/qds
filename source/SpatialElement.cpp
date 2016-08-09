@@ -73,54 +73,47 @@ uint32_t SpatialElement::expand(Data& data, building_container& response, const 
    return pivots_count;
 }
 
-void SpatialElement::query_tile(const std::vector<spatial_t>& tile, uint8_t resolution, binned_container& subset) const {
+void SpatialElement::query_tile(const spatial_t& tile, uint64_t resolution, binned_container& subset, uint64_t zoom) const {
    const spatial_t& value = (*reinterpret_cast<const spatial_t*>(&el.value));
 
-   // BUG fix spatial at   
-   if (value.contains(tile[0])) {
-      if (value.z == tile[0].z || value.leaf) {
-         return aggregate_tile(tile, resolution, subset);
+   if (value.contains(tile)) {
+      if (value.leaf || zoom == tile.z) {
+         return aggregate_tile(tile.z + resolution, subset, zoom);
       } else {
-         if (_container[0] != nullptr) _container[0]->query_tile(tile, resolution, subset);
-         if (_container[1] != nullptr) _container[1]->query_tile(tile, resolution, subset);
-         if (_container[2] != nullptr) _container[2]->query_tile(tile, resolution, subset);
-         if (_container[3] != nullptr) _container[3]->query_tile(tile, resolution, subset);
+         if (_container[0] != nullptr) _container[0]->query_tile(tile, resolution, subset, zoom + 1);
+         if (_container[1] != nullptr) _container[1]->query_tile(tile, resolution, subset, zoom + 1);
+         if (_container[2] != nullptr) _container[2]->query_tile(tile, resolution, subset, zoom + 1);
+         if (_container[3] != nullptr) _container[3]->query_tile(tile, resolution, subset, zoom + 1);
       }
    }
 }
 
-void SpatialElement::query_region(const std::vector<region_t>& region, binned_container& subset) const {
+void SpatialElement::query_region(const region_t& region, binned_container& subset, uint64_t zoom) const {
    const spatial_t& value = (*reinterpret_cast<const spatial_t*>(&el.value));
 
-   // BUG fix spatial at
-   if (value.z <= region[0].z) {
-      if (value.z == region[0].z || value.leaf) {
-         if (region[0].intersect(value)) {
-            subset.emplace_back(&el);
-         } else {
-            return;
-         }
-      } else if(region[0].cover(value)) {
+   if (region.intersect(value)) {
+      if (zoom == region.z || value.leaf) {
+         subset.emplace_back(&el);
+      } else if(region.cover(value)) {
          subset.emplace_back(&el);
       } else {
-         if (_container[0] != nullptr) _container[0]->query_region(region, subset);
-         if (_container[1] != nullptr) _container[1]->query_region(region, subset);
-         if (_container[2] != nullptr) _container[2]->query_region(region, subset);
-         if (_container[3] != nullptr) _container[3]->query_region(region, subset);
+         if (_container[0] != nullptr) _container[0]->query_region(region, subset, zoom + 1);
+         if (_container[1] != nullptr) _container[1]->query_region(region, subset, zoom + 1);
+         if (_container[2] != nullptr) _container[2]->query_region(region, subset, zoom + 1);
+         if (_container[3] != nullptr) _container[3]->query_region(region, subset, zoom + 1);
       }
    }
 }
 
-void SpatialElement::aggregate_tile(const std::vector<spatial_t>& tile, uint8_t resolution, binned_container& subset) const {
+void SpatialElement::aggregate_tile(uint64_t resolution, binned_container& subset, uint64_t zoom) const {
    const spatial_t& value = (*reinterpret_cast<const spatial_t*>(&el.value));
 
-   // BUG fix spatial at
-   if (value.leaf || value.z == tile[0].z + resolution) {
+   if (zoom == resolution || value.leaf) {
       subset.emplace_back(&el);
    } else {
-      if (_container[0] != nullptr) _container[0]->aggregate_tile(tile, resolution, subset);
-      if (_container[1] != nullptr) _container[1]->aggregate_tile(tile, resolution, subset);
-      if (_container[2] != nullptr) _container[2]->aggregate_tile(tile, resolution, subset);
-      if (_container[3] != nullptr) _container[3]->aggregate_tile(tile, resolution, subset);
+      if (_container[0] != nullptr) _container[0]->aggregate_tile(resolution, subset, zoom + 1);
+      if (_container[1] != nullptr) _container[1]->aggregate_tile(resolution, subset, zoom + 1);
+      if (_container[2] != nullptr) _container[2]->aggregate_tile(resolution, subset, zoom + 1);
+      if (_container[3] != nullptr) _container[3]->aggregate_tile(resolution, subset, zoom + 1);
    }
 }

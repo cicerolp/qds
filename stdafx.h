@@ -35,6 +35,7 @@
 // ResidentSetSize
 #include <nadeau/ResidentSetSize.h>
 
+#define PICOTCP
 // mongoose
 #include <mongoose/mongoose.h>
 

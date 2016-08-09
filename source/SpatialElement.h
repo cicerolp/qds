@@ -6,7 +6,7 @@
 
 class SpatialElement {
    static const uint32_t max_levels{ 25 };
-   static const uint32_t leaf_size{ 32 };
+   static const uint32_t leaf_size{ 1 };
 
 public:
    SpatialElement(const spatial_t& tile);
@@ -17,13 +17,13 @@ public:
 
    uint32_t expand(Data& data, building_container& response, const uint8_t offset);
 
-   void query_tile(const std::vector<spatial_t>& tile, uint8_t resolution, binned_container& subset) const;
-   void query_region(const std::vector<region_t>& region, binned_container& subset) const;
+   void query_tile(const spatial_t& tile, uint64_t resolution, binned_container& subset, uint64_t zoom) const;
+   void query_region(const region_t& region, binned_container& subset, uint64_t zoom) const;
 
    binned_t el;
 
 private:
-   void aggregate_tile(const std::vector<spatial_t>& tile, uint8_t resolution, binned_container& subset) const;
+   void aggregate_tile(uint64_t resolution, binned_container& subset, uint64_t zoom) const;
    inline bool count_expand() const;
 
    std::array<std::unique_ptr<SpatialElement>, 4> _container;
