@@ -19,8 +19,7 @@ public:
       Categorical
    };
 
-   Dimension(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
-      : _key(std::get<0>(tuple)), _bin(std::get<1>(tuple)), _offset(std::get<2>(tuple)) { }
+   Dimension(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple);
 
    virtual ~Dimension() = default;
 

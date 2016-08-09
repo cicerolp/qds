@@ -1,14 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
 	<name>gowalla</name>
-	<bytes>14</bytes>	
+	<bytes>14</bytes>
 	<file>gowalla.nds</file>
 	<schema>
-		<spatial>
-			<index>0</index>
-			<bin>32</bin>
-			<offset>0</offset>
-		</spatial>
 		<categorical>
 			<index>1</index>
 			<bin>7</bin>
@@ -24,5 +19,10 @@
 			<bin>604800</bin>
 			<offset>10</offset>
 		</temporal>
+		<spatial>
+			<index>0</index>
+			<bin>32</bin>
+			<offset>0</offset>
+		</spatial>
 	</schema>
 </config>

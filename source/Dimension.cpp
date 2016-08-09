@@ -2,6 +2,11 @@
 #include "Dimension.h"
 #include "NDSInstances.h"
 
+Dimension::Dimension(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
+                    : _key(std::get<0>(tuple)), _bin(std::get<1>(tuple)), _offset(std::get<2>(tuple)) {
+   std::cout << "\t\tKey: [" << _key  << "], Bin: [" << _bin << "], Offset: [" << _offset << "]" << std::endl;
+}
+
 void Dimension::restrict(range_container& range, range_container& response, binned_container& subset, CopyOption& option) {
    
    if (subset.size() == 0) return;

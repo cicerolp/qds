@@ -10,7 +10,7 @@ uint32_t Spatial::build(const building_container& range, building_container& res
    uint32_t pivots_count = 0;
 
    _container.set_range(range);
-   pivots_count += _container.expand(data, response, _offset);
+   pivots_count += _container.expand(data, response, _offset, _bin);
 
    std::sort(response.begin(), response.end());
 

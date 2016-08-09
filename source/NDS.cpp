@@ -27,15 +27,15 @@ NDS::NDS(const Schema& schema) {
 
       switch (std::get<0>(tuple)) {
          case Dimension::Spatial:
-            std::cout << "\tBuilding Spatial Dimension: " << std::get<1>(tuple) << " ... ";
+            std::cout << "\tBuilding Spatial Dimension: " << std::get<1>(tuple) << std::endl;
             _dimension.emplace_back(std::make_pair(std::get<0>(tuple), std::make_unique<Spatial>(opt)));
             break;
          case Dimension::Temporal:
-            std::cout << "\tBuilding Temporal Dimension: " << std::get<1>(tuple) << " ... ";
+            std::cout << "\tBuilding Temporal Dimension: " << std::get<1>(tuple) << std::endl;
             _dimension.emplace_back(std::make_pair(std::get<0>(tuple), std::make_unique<Temporal>(opt)));
             break;
          case Dimension::Categorical:
-            std::cout << "\tBuilding Categorical Dimension: " << std::get<1>(tuple) << " ... ";
+            std::cout << "\tBuilding Categorical Dimension: " << std::get<1>(tuple) << std::endl;
             _dimension.emplace_back(std::make_pair(std::get<0>(tuple), std::make_unique<Categorical>(opt)));
             break;
          default:
@@ -50,7 +50,7 @@ NDS::NDS(const Schema& schema) {
       current.swap(expand);
       expand.clear();
 
-      std::cout << "OK. \n\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
+      std::cout << "\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
    }
 
    std::cout << "\n\tTotal Number of Pivots: " << pivots_count << std::endl;

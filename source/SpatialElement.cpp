@@ -12,14 +12,14 @@ SpatialElement::SpatialElement(const spatial_t& tile, const building_container& 
    set_range(container);
 }
 
-uint32_t SpatialElement::expand(Data& data, building_container& response, const uint8_t offset) {
+uint32_t SpatialElement::expand(Data& data, building_container& response, uint32_t offset, uint32_t bin) {
 
    spatial_t& value = (*reinterpret_cast<spatial_t*>(&el.value));
 
    uint8_t next_level = value.z + 1;
    uint32_t pivots_count = static_cast<uint32_t>(el.pivots.size());
 
-   if (next_level < max_levels && count_expand()) {
+   if (next_level < max_levels && count_expand(bin)) {
 
       std::map<spatial_t, building_container> tmp_container;
 
@@ -63,7 +63,7 @@ uint32_t SpatialElement::expand(Data& data, building_container& response, const 
 
       for (auto& binned : _container) {
          if (binned != nullptr) {
-            pivots_count += binned->expand(data, response, offset);
+            pivots_count += binned->expand(data, response, offset, bin);
          }
       }
    } else {
