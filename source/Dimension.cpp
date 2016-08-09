@@ -7,7 +7,7 @@ void Dimension::restrict(range_container& range, range_container& response, binn
    if (subset.size() == 0) return;
 
    // sort range only when necessary
-   swap_and_sort(range, response);
+   swap_and_sort(range, response, option);
 
    for (const auto& el : subset) {
       auto it_lower = el->pivots.begin();
@@ -42,12 +42,10 @@ void Dimension::restrict(range_container& range, range_container& response, binn
 
 std::string Dimension::serialize(const Query& query, range_container& range, range_container& response, binned_container& subset, CopyOption option) {
 
-   range.swap(response);
-
-   if (range.size() == 0) return std::string("[]");
-
    // sort range only when necessary
-   std::sort(range.begin(), range.end());
+   swap_and_sort(range, response, option);
+   
+   if (range.size() == 0) return std::string("[]");
 
    // serialization
    rapidjson::StringBuffer buffer;

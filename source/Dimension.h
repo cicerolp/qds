@@ -70,9 +70,24 @@ protected:
       return true;
    }
 
-   static inline void swap_and_sort(range_container& range, range_container& response) {
-      range.swap(response);
-      std::sort(range.begin(), range.end());
+   static inline void swap_and_sort(range_container& range, range_container& response, CopyOption option) {
+      std::sort(response.begin(), response.end());
+      
+      if (option == DefaultCopy || option == CopyValueFromSubset) {         
+         range.clear();
+         range.emplace_back(response.front());
+
+         for (size_t i = 1; i < response.size(); ++i) {
+            if (response[i].pivot.front() == range.back().pivot.back()) {
+               range.back().pivot.back(response[i].pivot.back());
+            } else {
+               range.emplace_back(response[i]);
+            }
+         }
+      } else {
+         range.swap(response);
+      }
+            
       response.clear();
    }
 
@@ -93,6 +108,8 @@ void Dimension::write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer,
             map[el] += (*it_lower++).size();
          }
       }
+
+      if (map[el] == 0) continue;
 
       // serialization
       writer.StartArray();

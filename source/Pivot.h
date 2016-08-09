@@ -21,6 +21,9 @@ public:
    inline uint32_t front() const;
    inline uint32_t back() const;
 
+   inline void front(uint32_t value);
+   inline void back(uint32_t value);
+
    inline bool operator<(const Pivot& other) const;
    inline bool operator>(const Pivot& other) const;
 
@@ -79,6 +82,14 @@ uint32_t Pivot::front() const {
 
 uint32_t Pivot::back() const {
    return _pivot[1];
+}
+
+void Pivot::front(uint32_t value) {
+   _pivot[0] = value;
+}
+
+void Pivot::back(uint32_t value) {
+   _pivot[1] = value;
 }
 
 bool Pivot::operator<(const Pivot& other) const {
