@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
 
    bool server = true;
    Server::server_opts nds_opts;
-   nds_opts.port = 8200;
+   nds_opts.port = 7000;
    nds_opts.cache = false;
    nds_opts.multithreading = true;
 
@@ -36,9 +36,9 @@ int main(int argc, char* argv[]) {
 
    try {
       if (argc < 2) {
-         inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
+         //inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
          //inputFiles.emplace_back("./xml/brightkite.nds.xml");
-         //inputFiles.emplace_back("./xml/gowalla.nds.xml");
+         inputFiles.emplace_back("./xml/gowalla.nds.xml");
          //inputFiles.emplace_back("./xml/performance.nds.xml");
          //inputFiles.emplace_back("./xml/twitter-small.nds.xml");
       } else {
