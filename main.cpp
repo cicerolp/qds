@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
    bool telemetry = false;
 
    bool benchmark = false;
-   uint32_t benchmark_passes = 2;
+   uint32_t benchmark_passes = 10;
    std::vector<std::string> benchmark_files;
 
    /*
@@ -37,10 +37,18 @@ int main(int argc, char* argv[]) {
    try {
       if (argc < 2) {
          //inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
-         //inputFiles.emplace_back("./xml/brightkite.nds.xml");
-         inputFiles.emplace_back("./xml/gowalla.nds.xml");
+
+         inputFiles.emplace_back("./xml/brightkite.nds.xml");
+         //inputFiles.emplace_back("./xml/brightkite.nds-leaf.xml");
+         
+         //inputFiles.emplace_back("./xml/gowalla.nds.xml");
+         //inputFiles.emplace_back("./xml/gowalla.nds-leaf.xml");
+
          //inputFiles.emplace_back("./xml/performance.nds.xml");
+         //inputFiles.emplace_back("./xml/performance.nds-leaf.xml");
+
          //inputFiles.emplace_back("./xml/twitter-small.nds.xml");
+         //inputFiles.emplace_back("./xml/twitter-small.nds-leaf.xml");
       } else {
          for (int i = 1; i < argc; i++) {
             if (argv[i][0] != '-') {
