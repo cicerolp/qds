@@ -7,9 +7,19 @@ Dimension::Dimension(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
    std::cout << "\t\tKey: [" << _key  << "], Bin: [" << _bin << "], Offset: [" << _offset << "]" << std::endl;
 }
 
-void Dimension::restrict(range_container& range, range_container& response, binned_container& subset, CopyOption& option) {
-   
-   if (subset.size() == 0) return;
+bool Dimension::restrict(range_container& range, range_container& response, binned_container& subset, binned_container& subset_exp, CopyOption& option) {
+ 
+   if (subset_exp.size() != 0) {
+      if (subset.size() == 0) {
+         // initial query
+         subset.swap(subset_exp);
+         return true;
+      }
+   } else if (subset.size() != 0) {
+      // empty result, nothing to compute
+      subset.clear();
+      return false;
+   }
 
    // sort range only when necessary
    swap_and_sort(range, response, option);
@@ -40,17 +50,21 @@ void Dimension::restrict(range_container& range, range_container& response, binn
       }
    }
 
-   subset.clear();
+   subset.swap(subset_exp);
+   subset_exp.clear();
 
    if (option == CopyValueFromSubset) option = CopyValueFromRange;
+
+   if (response.size() == 0) return false;
+   else return true;
 }
 
 std::string Dimension::serialize(const Query& query, range_container& range, range_container& response, binned_container& subset, CopyOption option) {
 
+   if (subset.size() == 0 || response.size() == 0) return std::string("[]");
+
    // sort range only when necessary
    swap_and_sort(range, response, option);
-   
-   if (range.size() == 0) return std::string("[]");
 
    // serialization
    rapidjson::StringBuffer buffer;

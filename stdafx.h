@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cassert>
+#include <cstdint>
 
 // C++ includes
 #include <map>

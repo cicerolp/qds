@@ -23,14 +23,14 @@ public:
 
    virtual ~Dimension() = default;
 
-   virtual void query(const Query& query, range_container& range, range_container& response, binned_container& subset, CopyOption& option) const = 0;
+   virtual bool query(const Query& query, range_container& range, range_container& response, binned_container& subset, binned_container& subset_exp, CopyOption& option) const = 0;
    virtual uint32_t build(const building_container& range, building_container& response, Data& data) = 0;
 
    static std::string serialize(const Query& query, range_container& range, range_container& response, binned_container& subset, CopyOption option);
 
 protected:
 
-   static void restrict(range_container& range, range_container& response, binned_container& subset, CopyOption& option);
+   static bool restrict(range_container& range, range_container& response, binned_container& subset, binned_container& subset_exp, CopyOption& option);
 
    template<typename T>
    static void write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset);
@@ -67,6 +67,11 @@ protected:
       }
 
       return true;
+   }
+
+   static inline void swap_subset(binned_container& lhs, binned_container& rhs) {
+      lhs.swap(rhs);
+      rhs.clear();
    }
 
    static inline void swap_and_sort(range_container& range, range_container& response, CopyOption option) {

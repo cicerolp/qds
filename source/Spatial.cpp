@@ -17,20 +17,22 @@ uint32_t Spatial::build(const building_container& range, building_container& res
    return pivots_count;
 }
 
-void Spatial::query(const Query& query, range_container& range, range_container& response, binned_container& subset, CopyOption& option) const {
+bool Spatial::query(const Query& query, range_container& range, range_container& response, binned_container& subset, binned_container& subset_exp, CopyOption& option) const {
 
-   if (!query.eval(_key)) return;
+   if (!query.eval(_key)) return true;
 
    auto restriction = query.get<Query::spatial_query_t>(_key);
 
-   // restrict only when necessary
-   restrict(range, response, subset, option);
-   
    if (restriction->tile.size()) {
-      _container.query_tile(restriction->tile[0], restriction->resolution, subset, 0);
+      _container.query_tile(restriction->tile[0], restriction->resolution, subset_exp, 0);
    } else if (restriction->region.size()) {
-      _container.query_region(restriction->region[0], subset, 0);
+      _container.query_region(restriction->region[0], subset_exp, 0);
    }
 
+   // restrict only when necessary
+   auto result = restrict(range, response, subset, subset_exp, option);
+
    if (query.type() == Query::TILE) option = CopyValueFromSubset;
+
+   return result;
 }

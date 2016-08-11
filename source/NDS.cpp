@@ -16,7 +16,7 @@ NDS::NDS(const Schema& schema) {
 
    std::cout << std::endl;
 
-   building_container current, expand;
+   building_container current, response;
    current.emplace_back(0, data.size());
 
    _root = BinnedPivot(Pivot(0, data.size()), 0);
@@ -44,11 +44,11 @@ NDS::NDS(const Schema& schema) {
             break;
       }
 
-      uint32_t curr_count = _dimension.back().second->build(current, expand, data);
+      uint32_t curr_count = _dimension.back().second->build(current, response, data);
       pivots_count += curr_count;
 
-      current.swap(expand);
-      expand.clear();
+      current.swap(response);
+      response.clear();
 
       std::cout << "\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
    }
@@ -68,7 +68,7 @@ std::string NDS::query(const Query& query, std::ofstream* telemetry) {
    Dimension::CopyOption option = Dimension::DefaultCopy;
 
    std::string buffer;
-   binned_container subset;
+   binned_container subset, subset_exp;
    range_container range, response;
 
    response.emplace_back(_root);
@@ -76,7 +76,7 @@ std::string NDS::query(const Query& query, std::ofstream* telemetry) {
    start = std::chrono::high_resolution_clock::now();
 
    for (auto& pair : _dimension) {
-      pair.second->query(query, range, response, subset, option);
+      if (!pair.second->query(query, range, response, subset, subset_exp, option)) break;
    }
 
    buffer = Dimension::serialize(query, range, response, subset, option);
