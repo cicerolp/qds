@@ -7,29 +7,17 @@ Dimension::Dimension(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
    std::cout << "\t\tKey: [" << _key  << "], Bin: [" << _bin << "], Offset: [" << _offset << "]" << std::endl;
 }
 
-bool Dimension::restrict(range_container& range, range_container& response, binned_container& subset, binned_container& subset_exp, CopyOption& option) {
- 
-   if (subset_exp.size() != 0) {
-      if (subset.size() == 0) {
-         // initial query
-         subset.swap(subset_exp);
-         return true;
-      }
-   } else if (subset.size() != 0) {
-      // empty result, nothing to compute
-      subset.clear();
-      return false;
-   }
+void Dimension::restrict(range_container& range, range_container& response, const subset_t& subset, CopyOption& option) {
+
+   if (option == DefaultCopy) option = subset.option;
 
    // sort range only when necessary
    swap_and_sort(range, response, option);
 
-   for (const auto& el : subset) {
+   for (const auto& el : subset.container) {
       auto it_lower = el->pivots.begin();
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-
          if (!search_iterators(it_range, range, it_lower, el->pivots)) break;
-         
          switch (option) {
          case CopyValueFromRange:
             while (it_lower != el->pivots.end() && (*it_range).pivot >= (*it_lower)) {
@@ -50,18 +38,22 @@ bool Dimension::restrict(range_container& range, range_container& response, binn
       }
    }
 
-   subset.swap(subset_exp);
-   subset_exp.clear();
-
    if (option == CopyValueFromSubset) option = CopyValueFromRange;
-
-   if (response.size() == 0) return false;
-   else return true;
 }
 
-std::string Dimension::serialize(const Query& query, range_container& range, range_container& response, binned_container& subset, CopyOption option) {
+std::string Dimension::serialize(const Query& query, subset_container& subsets, const BinnedPivot& root) {
 
-   if (subset.size() == 0 || response.size() == 0) return std::string("[]");
+   if (subsets.size() == 0) return std::string("[]");
+   
+   CopyOption option = DefaultCopy;
+   range_container range, response;
+   response.emplace_back(root);
+
+   for (auto i = 0; i < subsets.size() - 1; ++i) {
+      Dimension::restrict(range, response, subsets[i], option);
+   }
+
+   if (option == DefaultCopy) option = subsets.back().option;
 
    // sort range only when necessary
    swap_and_sort(range, response, option);
@@ -75,25 +67,25 @@ std::string Dimension::serialize(const Query& query, range_container& range, ran
 
    switch (query.type()) {
       case Query::TILE: 
-         if (option == CopyValueFromSubset) write_subset<spatial_t>(writer, range, subset);
-         else write_range<spatial_t, std::unordered_map>(writer, range, subset);         
+         if (option == CopyValueFromSubset) write_subset<spatial_t>(writer, range, subsets.back().container);
+         else write_range<spatial_t, std::unordered_map>(writer, range, subsets.back().container);
          break;
       case Query::GROUP: 
          if (option == CopyValueFromSubset) {
-            std::sort(subset.begin(), subset.end(), binned_t::Comp);
-            write_subset<categorical_t>(writer, range, subset);
-         } else write_range<uint64_t, std::map>(writer, range, subset);
+            std::sort(subsets.back().container.begin(), subsets.back().container.end(), binned_t::Comp);
+            write_subset<categorical_t>(writer, range, subsets.back().container);
+         } else write_range<uint64_t, std::map>(writer, range, subsets.back().container);
          break;
       case Query::TSERIES: 
          if (option == CopyValueFromSubset) {
-            std::sort(subset.begin(), subset.end(), binned_t::Comp);
-            write_subset<temporal_t>(writer, range, subset);
-         } else write_range<uint64_t, std::map>(writer, range, subset);
+            std::sort(subsets.back().container.begin(), subsets.back().container.end(), binned_t::Comp);
+            write_subset<temporal_t>(writer, range, subsets.back().container);
+         } else write_range<uint64_t, std::map>(writer, range, subsets.back().container);
          break;
       case Query::SCATTER: break;
       case Query::MYSQL: break;
       case Query::REGION: 
-         write_count(writer, range, subset);
+         write_count(writer, range, subsets.back().container);
          break;
       default: break;
    }
@@ -103,7 +95,7 @@ std::string Dimension::serialize(const Query& query, range_container& range, ran
    return buffer.GetString();
 }
 
-void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset) {
+void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_container& subset) {
    uint32_t count = 0;
 
    for (const auto& el : subset) {
@@ -121,7 +113,7 @@ void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, 
    writer.EndArray();
 }
 
-void Dimension::write_pivtos(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset) {
+void Dimension::write_pivtos(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_container& subset) {
    for (const auto& el : subset) {
       auto it_lower = el->pivots.begin();
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {

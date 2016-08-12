@@ -11,9 +11,10 @@ public:
 
    Pivot(uint32_t first, uint32_t second) : _pivot({ first, second }) { };
 
-   Pivot(const Pivot&) = default;
-
-   ~Pivot() = default;
+   Pivot(const Pivot& other) = default;
+   Pivot(Pivot&& other) = default;
+   Pivot& operator=(const Pivot& other) = default;
+   Pivot& operator=(Pivot&& other) = default;
 
    inline bool empty() const;
    inline uint32_t size() const;
@@ -67,6 +68,14 @@ struct binned_t {
 
 using binned_container = std::vector<const binned_t*>;
 using binned_iterator = binned_container::const_iterator;
+
+struct subset_t {
+   subset_t() : option(DefaultCopy) { }
+   CopyOption option;
+   binned_container container;
+};
+
+using subset_container = std::vector<subset_t>;
 
 bool Pivot::empty() const {
    return (back() - front()) == 0;

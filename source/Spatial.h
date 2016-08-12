@@ -9,7 +9,7 @@ public:
 	~Spatial() = default;
 
 	uint32_t build(const building_container& range, building_container& response, Data& data) override;
-   bool query(const Query& query, range_container& range, range_container& response, binned_container& subset, binned_container& subset_exp, CopyOption& option) const override;
+   bool query(const Query& query, subset_container& subsets) const override;
 
 private:
    SpatialElement _container;

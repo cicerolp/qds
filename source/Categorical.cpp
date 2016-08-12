@@ -48,35 +48,32 @@ uint32_t Categorical::build(const building_container& range, building_container&
    return pivots_count;
 }
 
-bool Categorical::query(const Query& query, range_container& range, range_container& response, binned_container& subset, binned_container& subset_exp, CopyOption& option) const {
+bool Categorical::query(const Query& query, subset_container& subsets) const {
 
    if (!query.eval(_key)) return true;
 
-   bool result = true;
+   subset_t subset;
    const auto& restriction = query.get<Query::categorical_query_t>(_key);
 
    if (restriction->where.size()) {
       if (restriction->where.size() == _bin && !restriction->field) return true;
 
       for (const auto& value : restriction->where) {
-         subset_exp.emplace_back(&_container[value]);
+         subset.container.emplace_back(&_container[value]);
       }
 
-      // restrict only when necessary
-      result = restrict(range, response, subset, subset_exp, option);
-            
-      if (restriction->field) option = CopyValueFromSubset;
-      
+      if (restriction->field) subset.option = CopyValueFromSubset;
+
    } else if (restriction->field) {
       for (const auto& el : _container) {
-         subset_exp.emplace_back(&el);
+         subset.container.emplace_back(&el);
       }
 
-      // restrict only when necessary
-      result = restrict(range, response, subset, subset_exp, option);
-
-      option = CopyValueFromSubset;
+      subset.option = CopyValueFromSubset;
    }
 
-   return result;
+   if (subset.container.size() != 0) {
+      subsets.emplace_back(subset);
+      return true;
+   } else return false;
 }

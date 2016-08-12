@@ -50,7 +50,7 @@ uint32_t Temporal::build(const building_container& range, building_container& re
    return pivots_count;
 }
 
-bool Temporal::query(const Query& query, range_container& range, range_container& response, binned_container& subset, binned_container& subset_exp, CopyOption& option) const {
+bool Temporal::query(const Query& query, subset_container& subsets) const {
 
    if (!query.eval(_key)) return true;
 
@@ -60,17 +60,19 @@ bool Temporal::query(const Query& query, range_container& range, range_container
       return true;
    }
 
+   subset_t subset;
+
    auto it_lower_data = std::lower_bound(_container.begin(), _container.end(), interval.bound[0]);
    auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), interval.bound[1]);
    
    for (auto it = it_lower_data; it < it_upper_date; ++it) {
-      subset_exp.emplace_back(&(*it).el);
+      subset.container.emplace_back(&(*it).el);
    }
 
-   // restrict only when necessary
-   bool result = restrict(range, response, subset, subset_exp, option);
+   if (query.type() == Query::TSERIES) subset.option = CopyValueFromSubset;
 
-   if (query.type() == Query::TSERIES) option = CopyValueFromSubset;
-
-   return result;
+   if (subset.container.size() != 0) {
+      subsets.emplace_back(subset);
+      return true;
+   } else return false;
 }

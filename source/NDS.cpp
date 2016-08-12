@@ -64,22 +64,19 @@ NDS::NDS(const Schema& schema) {
 std::string NDS::query(const Query& query, std::ofstream* telemetry) {
 
    std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
-
-   Dimension::CopyOption option = Dimension::DefaultCopy;
-
-   std::string buffer;
-   binned_container subset, subset_exp;
-   range_container range, response;
-
-   response.emplace_back(_root);
+   
+   subset_container subsets;   
 
    start = std::chrono::high_resolution_clock::now();
 
    for (auto& pair : _dimension) {
-      if (!pair.second->query(query, range, response, subset, subset_exp, option)) break;
+      if (!pair.second->query(query, subsets)) {
+         subsets.clear();
+         break;
+      }
    }
 
-   buffer = Dimension::serialize(query, range, response, subset, option);
+   std::string buffer = Dimension::serialize(query, subsets, _root);
 
    end = std::chrono::high_resolution_clock::now();
 

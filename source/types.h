@@ -3,6 +3,12 @@
 #include "stdafx.h"
 #include "mercator_util.h"
 
+enum CopyOption {
+   CopyValueFromRange,
+   CopyValueFromSubset,
+   DefaultCopy
+};
+
 typedef uint32_t temporal_t;
 typedef uint8_t categorical_t;
 

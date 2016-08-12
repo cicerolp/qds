@@ -7,12 +7,6 @@
 
 class Dimension {
 public:
-   enum CopyOption {
-      CopyValueFromRange,
-      CopyValueFromSubset,
-      DefaultCopy
-   };
-
    enum Type {
       Spatial,
       Temporal,
@@ -23,24 +17,50 @@ public:
 
    virtual ~Dimension() = default;
 
-   virtual bool query(const Query& query, range_container& range, range_container& response, binned_container& subset, binned_container& subset_exp, CopyOption& option) const = 0;
+   virtual bool query(const Query& query, subset_container& subsets) const = 0;
    virtual uint32_t build(const building_container& range, building_container& response, Data& data) = 0;
 
-   static std::string serialize(const Query& query, range_container& range, range_container& response, binned_container& subset, CopyOption option);
+   static std::string serialize(const Query& query, subset_container& subsets, const BinnedPivot& root);
 
 protected:
+   /*struct k_way_merge {
+      using range_pair = std::pair<range_iterator, range_iterator>;
 
-   static bool restrict(range_container& range, range_container& response, binned_container& subset, binned_container& subset_exp, CopyOption& option);
+      inline bool operator()(const range_pair& lhs, const range_pair& rhs) const {
+         return (*lhs.first).pivot.front() > (*rhs.first).pivot.front();
+      }
+
+      static inline void sort(range_container &output, std::vector<range_container> &input) {
+         std::priority_queue<range_pair, std::vector<range_pair>, k_way_merge> pq;
+
+         for (size_t i = 0; i < input.size(); i++) {
+            if (!input[i].empty())
+               pq.emplace(input[i].begin(), input[i].end());
+         }
+
+         while (!pq.empty()) {
+            auto it_pair = pq.top();
+            pq.pop();
+
+            output.emplace_back((*it_pair.first).pivot, (*it_pair.first).value);
+            ++it_pair.first;
+
+            if (it_pair.first != it_pair.second) pq.push(it_pair);
+         }
+      }
+   };*/
+
+   static void restrict(range_container& range, range_container& response, const subset_t& subset, CopyOption& option);
 
    template<typename T>
-   static void write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset);
+   static void write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_container& subset);
 
    template<typename T, template<typename...> typename Container>
-   static void write_range(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset);
+   static void write_range(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_container& subset);
 
-   static void write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset);
+   static void write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_container& subset);
 
-   static void write_pivtos(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset);
+   static void write_pivtos(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_container& subset);
 
    static inline bool search_iterators(range_iterator& it_range, const range_container& range,
                                        pivot_iterator& it_lower, const pivot_container& subset) {
@@ -69,15 +89,9 @@ protected:
       return true;
    }
 
-   static inline void swap_subset(binned_container& lhs, binned_container& rhs) {
-      lhs.swap(rhs);
-      rhs.clear();
-   }
-
    static inline void swap_and_sort(range_container& range, range_container& response, CopyOption option) {
       std::sort(response.begin(), response.end());
-      
-      if (option == DefaultCopy || option == CopyValueFromSubset) {         
+      if (option == DefaultCopy || option == CopyValueFromSubset) {
          range.clear();
          range.emplace_back(response.front());
 
@@ -88,10 +102,11 @@ protected:
                range.emplace_back(response[i]);
             }
          }
-      } else {
+      } else {         
          range.swap(response);
       }
             
+      range.swap(response);
       response.clear();
    }
 
@@ -101,7 +116,7 @@ protected:
 };
 
 template<typename T>
-void Dimension::write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset) {
+void Dimension::write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_container& subset) {
    std::vector<uint32_t> map(subset.size(), 0);
 
    for (auto el = 0; el < subset.size(); ++el) {
@@ -124,7 +139,7 @@ void Dimension::write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer,
 }
 
 template<typename T, template <typename ...> class Container>
-void Dimension::write_range(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, binned_container& subset) {
+void Dimension::write_range(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_container& subset) {
    Container<uint64_t, uint32_t> map;
 
    for (const auto& el : subset) {

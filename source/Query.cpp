@@ -44,15 +44,19 @@ Query::Query(const std::vector<std::string>& tokens) : Query(tokens[3], tokens[4
             std::vector<std::string> literals = string_util::split(clause, std::regex("=|:"));
             auto key = std::stoul(literals[0]);
 
-            if (!restrictions[key]) restrictions[key] = std::make_unique<categorical_query_t>();
-
             if ((literals.size() - 1) <= 0) continue;
 
+            std::vector<categorical_t> where;
             for (size_t i = 1; i < literals.size(); i++) {
-               get<categorical_query_t>(key)->where.emplace_back(std::stoi(literals[i]));
+               where.emplace_back(std::stoi(literals[i]));
             }
 
-            std::sort(get<categorical_query_t>(key)->where.begin(), get<categorical_query_t>(key)->where.end());
+            std::sort(where.begin(), where.end());
+
+            if (where.size() != 0) {
+               if (!restrictions[key]) restrictions[key] = std::make_unique<categorical_query_t>();
+               get<categorical_query_t>(key)->where.assign(where.begin(), where.end());
+            }
          }
       } else if ((*it) == "tseries") {
          auto key = std::stoul(string_util::next_token(it));
