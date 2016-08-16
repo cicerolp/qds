@@ -4,6 +4,7 @@
 
 #pragma once
 
+#define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #define _USE_MATH_DEFINES
 #define _CRT_SECURE_NO_WARNINGS
@@ -46,5 +47,8 @@
 
 // dynarray
 #include <robbepop/dynarray.hpp>
+
+// timsort
+#include <gfx/timsort.hpp>
 
 #include "types.h"

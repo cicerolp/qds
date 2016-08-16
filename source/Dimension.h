@@ -90,10 +90,9 @@ protected:
    }
 
    static inline void swap_and_sort(range_container& range, range_container& response, CopyOption option) {
-      //std::sort(response.begin(), response.end());      
-      boost::sort::parallel::parallel_sort(response.begin(), response.end());
-
-      // TODO create benchmark to test /else/ statement
+      /*According to benchmark, this is a bit slower than std::sort() on randomized sequences, 
+      but much faster on partially - sorted sequences.*/
+      gfx::timsort(response.begin(), response.end());
 
       range.clear();
       range.emplace_back(response.front());
@@ -116,18 +115,20 @@ protected:
          }
       }
 
+      // TODO create benchmark to test /else/ statement
+
       /*if (option == DefaultCopy || option == CopyValueFromSubset) {
-         range.clear();
-         range.emplace_back(response.front());
-         for (size_t i = 1; i < response.size(); ++i) {
-            if (response[i].pivot.front() == range.back().pivot.back()) {
-               range.back().pivot.back(response[i].pivot.back());
-            } else {
-               range.emplace_back(response[i]);
-            }
-         }
-      } else {         
-         range.swap(response);
+      range.clear();
+      range.emplace_back(response.front());
+      for (size_t i = 1; i < response.size(); ++i) {
+      if (response[i].pivot.front() == range.back().pivot.back()) {
+      range.back().pivot.back(response[i].pivot.back());
+      } else {
+      range.emplace_back(response[i]);
+      }
+      }
+      } else {
+      range.swap(response);
       }*/
 
       response.clear();

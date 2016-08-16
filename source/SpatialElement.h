@@ -5,7 +5,7 @@
 #include "Pivot.h"
 
 class SpatialElement {
-   static const uint32_t max_levels{ 25 };
+   static const uint32_t max_levels{ 8 };
 
 public:
    SpatialElement(const spatial_t& tile);
