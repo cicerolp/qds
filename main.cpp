@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
    std::vector<std::string> benchmark_files;
 
    /**/
-   //telemetry = true;
+   telemetry = true;
    benchmark = true;
 
    benchmark_files.emplace_back("./csv/flights-bench.csv");
