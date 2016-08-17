@@ -63,7 +63,7 @@ protected:
    static void write_pivtos(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_container& subset);
 
    static inline bool search_iterators(range_iterator& it_range, const range_container& range,
-                                       pivot_iterator& it_lower, const pivot_container& subset) {
+                                       pivot_iterator& it_lower, pivot_iterator& it_upper, const pivot_container& subset) {
       if (it_lower == subset.end()) {
          it_range = range.end();
          return false;
@@ -86,6 +86,8 @@ protected:
          it_lower = it;
       }
 
+      it_upper = std::upper_bound(it_lower, subset.end(), (*it_range).pivot, Pivot::upper_bound_comp);
+
       return true;
    }
 
@@ -97,7 +99,31 @@ protected:
       range.clear();
       range.emplace_back(response.front());
 
+      // compaction phase
       if (option == DefaultCopy || option == CopyValueFromSubset) {
+         for (size_t i = 1; i < response.size(); ++i) {
+            if (range.back().pivot.back() == response[i].pivot.front()) {
+               range.back().pivot.back(response[i].pivot.back());
+            } else {
+               range.emplace_back(response[i]);
+            }
+         }
+      } else {
+         for (size_t i = 1; i < response.size(); ++i) {
+            if (range.back().pivot.back() == response[i].pivot.front() && response[i].value == range.back().value) {
+               range.back().pivot.back(response[i].pivot.back());
+            } else {
+               range.emplace_back(response[i]);
+            }
+         }
+      }
+      response.clear();
+
+      // TODO create benchmark to test /else/ statement
+
+      /*if (option == DefaultCopy || option == CopyValueFromSubset) {
+         range.clear();
+         range.emplace_back(response.front());
          for (size_t i = 1; i < response.size(); ++i) {
             if (response[i].pivot.front() == range.back().pivot.back()) {
                range.back().pivot.back(response[i].pivot.back());
@@ -106,32 +132,9 @@ protected:
             }
          }
       } else {
-         for (size_t i = 1; i < response.size(); ++i) {
-            if (response[i].pivot.front() == range.back().pivot.back() && response[i].value == range.back().value) {
-               range.back().pivot.back(response[i].pivot.back());
-            } else {
-               range.emplace_back(response[i]);
-            }
-         }
+         range.swap(response);
       }
-
-      // TODO create benchmark to test /else/ statement
-
-      /*if (option == DefaultCopy || option == CopyValueFromSubset) {
-      range.clear();
-      range.emplace_back(response.front());
-      for (size_t i = 1; i < response.size(); ++i) {
-      if (response[i].pivot.front() == range.back().pivot.back()) {
-      range.back().pivot.back(response[i].pivot.back());
-      } else {
-      range.emplace_back(response[i]);
-      }
-      }
-      } else {
-      range.swap(response);
-      }*/
-
-      response.clear();
+      response.clear();*/
    }
 
    const uint32_t _key;
@@ -144,10 +147,10 @@ void Dimension::write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer,
    std::vector<uint32_t> map(subset.size(), 0);
 
    for (auto el = 0; el < subset.size(); ++el) {
-      auto it_lower = subset[el]->pivots.begin();
+      pivot_iterator it_lower = subset[el]->pivots.begin(), it_upper;
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if (!search_iterators(it_range, range, it_lower, subset[el]->pivots)) break;
-         while (it_lower != subset[el]->pivots.end() && (*it_range).pivot >= (*it_lower)) {
+         if (!search_iterators(it_range, range, it_lower, it_upper, subset[el]->pivots)) break;
+         while (it_lower != it_upper) {
             map[el] += (*it_lower++).size();
          }
       }
@@ -167,10 +170,10 @@ void Dimension::write_range(rapidjson::Writer<rapidjson::StringBuffer>& writer, 
    Container<uint64_t, uint32_t> map;
 
    for (const auto& el : subset) {
-      auto it_lower = el->pivots.begin();
+      pivot_iterator it_lower = el->pivots.begin(), it_upper;
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if (!search_iterators(it_range, range, it_lower, el->pivots)) break;
-         while (it_lower != el->pivots.end() && (*it_range).pivot >= (*it_lower)) {
+         if (!search_iterators(it_range, range, it_lower, it_upper, el->pivots)) break;
+         while (it_lower != it_upper) {
             map[(*it_range).value] += (*it_lower++).size();
          }
       }

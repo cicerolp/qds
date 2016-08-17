@@ -3,8 +3,8 @@
 #include "NDSInstances.h"
 
 Dimension::Dimension(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
-                    : _key(std::get<0>(tuple)), _bin(std::get<1>(tuple)), _offset(std::get<2>(tuple)) {
-   std::cout << "\t\tKey: [" << _key  << "], Bin: [" << _bin << "], Offset: [" << _offset << "]" << std::endl;
+   : _key(std::get<0>(tuple)), _bin(std::get<1>(tuple)), _offset(std::get<2>(tuple)) {
+   std::cout << "\t\tKey: [" << _key << "], Bin: [" << _bin << "], Offset: [" << _offset << "]" << std::endl;
 }
 
 void Dimension::restrict(range_container& range, range_container& response, const subset_t& subset, CopyOption& option) {
@@ -17,25 +17,24 @@ void Dimension::restrict(range_container& range, range_container& response, cons
    response.reserve(subset.container.size() * subset.container[0]->pivots.size());
 
    for (const auto& el : subset.container) {
-      auto it_lower = el->pivots.begin();
+      pivot_iterator it_lower = el->pivots.begin(), it_upper;
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if (!search_iterators(it_range, range, it_lower, el->pivots)) break;
+         if (!search_iterators(it_range, range, it_lower, it_upper, el->pivots)) break;
          switch (option) {
-         case CopyValueFromRange:
-            while (it_lower != el->pivots.end() && (*it_range).pivot >= (*it_lower)) {
-               response.emplace_back((*it_lower++), (*it_range).value);
-            }
-            break;
-         case CopyValueFromSubset:
-            while (it_lower != el->pivots.end() && (*it_range).pivot >= (*it_lower)) {
-               response.emplace_back((*it_lower++), el->value);
-            }
-            break;
-         default:
-            while (it_lower != el->pivots.end() && (*it_range).pivot >= (*it_lower)) {
-               response.emplace_back((*it_lower++));
-            }
-            break;
+            case CopyValueFromRange:
+               while (it_lower != it_upper) {
+                  response.emplace_back((*it_lower++), (*it_range).value);
+               }
+               break;
+            case CopyValueFromSubset:
+               while (it_lower != it_upper) {
+                  response.emplace_back((*it_lower++), el->value);
+               }
+               break;
+            default:
+               response.insert(response.end(), it_lower, it_upper);
+               it_lower = it_upper;
+               break;
          }
       }
    }
@@ -46,7 +45,7 @@ void Dimension::restrict(range_container& range, range_container& response, cons
 std::string Dimension::serialize(const Query& query, subset_container& subsets, const BinnedPivot& root) {
 
    if (subsets.size() == 0) return std::string("[]");
-   
+
    CopyOption option = DefaultCopy;
    range_container range, response;
    response.emplace_back(root);
@@ -68,25 +67,21 @@ std::string Dimension::serialize(const Query& query, subset_container& subsets, 
    writer.StartArray();
 
    switch (query.type()) {
-      case Query::TILE: 
+      case Query::TILE:
          if (option == CopyValueFromSubset) write_subset<spatial_t>(writer, range, subsets.back().container);
          else write_range<spatial_t, std::unordered_map>(writer, range, subsets.back().container);
          break;
-      case Query::GROUP: 
-         if (option == CopyValueFromSubset) {
-            std::sort(subsets.back().container.begin(), subsets.back().container.end(), binned_t::Comp);
-            write_subset<categorical_t>(writer, range, subsets.back().container);
-         } else write_range<uint64_t, std::map>(writer, range, subsets.back().container);
+      case Query::GROUP:
+         if (option == CopyValueFromSubset) write_subset<categorical_t>(writer, range, subsets.back().container);            
+         else write_range<uint64_t, std::map>(writer, range, subsets.back().container);
          break;
-      case Query::TSERIES: 
-         if (option == CopyValueFromSubset) {
-            std::sort(subsets.back().container.begin(), subsets.back().container.end(), binned_t::Comp);
-            write_subset<temporal_t>(writer, range, subsets.back().container);
-         } else write_range<uint64_t, std::map>(writer, range, subsets.back().container);
+      case Query::TSERIES:
+         if (option == CopyValueFromSubset) write_subset<temporal_t>(writer, range, subsets.back().container);            
+         else write_range<uint64_t, std::map>(writer, range, subsets.back().container);
          break;
       case Query::SCATTER: break;
       case Query::MYSQL: break;
-      case Query::REGION: 
+      case Query::REGION:
          write_count(writer, range, subsets.back().container);
          break;
       default: break;
@@ -101,10 +96,10 @@ void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, 
    uint32_t count = 0;
 
    for (const auto& el : subset) {
-      auto it_lower = el->pivots.begin();
+      pivot_iterator it_lower = el->pivots.begin(), it_upper;
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if (!search_iterators(it_range, range, it_lower, el->pivots)) break;
-         while (it_lower != el->pivots.end() && (*it_range).pivot >= (*it_lower)) {
+         if (!search_iterators(it_range, range, it_lower, it_upper, el->pivots)) break;
+         while (it_lower != it_upper) {
             count += (*it_lower++).size();
          }
       }
@@ -117,15 +112,15 @@ void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, 
 
 void Dimension::write_pivtos(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_container& subset) {
    for (const auto& el : subset) {
-      auto it_lower = el->pivots.begin();
+      pivot_iterator it_lower = el->pivots.begin(), it_upper;
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if (!search_iterators(it_range, range, it_lower, el->pivots)) break;
-         while (it_lower != el->pivots.end() && (*it_range).pivot >= (*it_lower)) {
+         if (!search_iterators(it_range, range, it_lower, it_upper, el->pivots)) break;
+         while (it_lower != it_upper) {
             writer.StartArray();
             writer.Uint((*it_lower).front());
             writer.Uint((*it_lower++).back());
             writer.EndArray();
          }
       }
-   }   
+   }
 }
