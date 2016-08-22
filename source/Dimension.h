@@ -91,32 +91,41 @@ protected:
       return true;
    }
 
+   static inline void compactation(range_container& input, range_container& output, CopyOption option) {
+      output.emplace_back(input.front());
+
+      if (option == DefaultCopy || option == CopyValueFromSubset) {
+         for (size_t i = 1; i < input.size(); ++i) {
+            if (output.back().pivot.back() == input[i].pivot.front()) {
+               output.back().pivot.back(input[i].pivot.back());
+            }
+            else {
+               output.emplace_back(input[i]);
+            }
+         }
+      }
+      else {
+         for (size_t i = 1; i < input.size(); ++i) {
+            if (output.back().pivot.back() == input[i].pivot.front() && input[i].value == output.back().value) {
+               output.back().pivot.back(input[i].pivot.back());
+            }
+            else {
+               output.emplace_back(input[i]);
+            }
+         }
+      }
+   }
+
    static inline void swap_and_sort(range_container& range, range_container& response, CopyOption option) {
       /*According to benchmark, this is a bit slower than std::sort() on randomized sequences, 
       but much faster on partially - sorted sequences.*/
       gfx::timsort(response.begin(), response.end());
 
       range.clear();
-      range.emplace_back(response.front());
 
-      // compaction phase
-      if (option == DefaultCopy || option == CopyValueFromSubset) {
-         for (size_t i = 1; i < response.size(); ++i) {
-            if (range.back().pivot.back() == response[i].pivot.front()) {
-               range.back().pivot.back(response[i].pivot.back());
-            } else {
-               range.emplace_back(response[i]);
-            }
-         }
-      } else {
-         for (size_t i = 1; i < response.size(); ++i) {
-            if (range.back().pivot.back() == response[i].pivot.front() && response[i].value == range.back().value) {
-               range.back().pivot.back(response[i].pivot.back());
-            } else {
-               range.emplace_back(response[i]);
-            }
-         }
-      }
+      // compaction (and swap) phase
+      compactation(response, range, option);
+
       response.clear();
 
       // TODO create benchmark to test /else/ statement
