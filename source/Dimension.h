@@ -64,26 +64,22 @@ protected:
 
    static inline bool search_iterators(range_iterator& it_range, const range_container& range,
                                        pivot_iterator& it_lower, pivot_iterator& it_upper, const pivot_container& subset) {
-      if (it_lower == subset.end()) {
-         it_range = range.end();
-         return false;
-      }
+      if (it_lower == subset.end()) return false;
 
       if ((*it_range).pivot.ends_before(*it_lower)) {
          // binary search to find range iterator
          it_range = std::lower_bound(it_range, range.end(), (*it_lower), BinnedPivot::upper_bound_comp);
+
          if (it_range == range.end()) return false;
       }
 
       if ((*it_range).pivot.begins_after(*it_lower)) {
-         if (it_lower == std::prev(subset.end())) {
-            it_range = range.end();
-            return false;
-         }
+         if (it_lower == std::prev(subset.end())) return false;
+
          // binnary search to find lower subset iterator
-         pivot_iterator it = std::lower_bound(it_lower, subset.end(), (*it_range).pivot, Pivot::lower_bound_comp);
-         if (it == subset.end()) return false;
-         it_lower = it;
+         it_lower = std::lower_bound(it_lower, subset.end(), (*it_range).pivot, Pivot::lower_bound_comp);
+
+         if (it_lower == subset.end()) return false;
       }
 
       it_upper = std::upper_bound(it_lower, subset.end(), (*it_range).pivot, Pivot::upper_bound_comp);
@@ -98,18 +94,15 @@ protected:
          for (size_t i = 1; i < input.size(); ++i) {
             if (output.back().pivot.back() == input[i].pivot.front()) {
                output.back().pivot.back(input[i].pivot.back());
-            }
-            else {
+            } else {
                output.emplace_back(input[i]);
             }
          }
-      }
-      else {
+      } else {
          for (size_t i = 1; i < input.size(); ++i) {
             if (output.back().pivot.back() == input[i].pivot.front() && input[i].value == output.back().value) {
                output.back().pivot.back(input[i].pivot.back());
-            }
-            else {
+            } else {
                output.emplace_back(input[i]);
             }
          }
