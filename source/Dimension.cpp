@@ -14,7 +14,7 @@ void Dimension::restrict(range_container& range, range_container& response, cons
    // sort range only when necessary
    swap_and_sort(range, response, option);
 
-   response.reserve(subset.container.size() * subset.container[0]->pivots.size());
+   //response.reserve(subset.container.size() * subset.container[0]->pivots.size());
 
    for (const auto& el : subset.container) {
       pivot_iterator it_lower = el->pivots.begin(), it_upper;
