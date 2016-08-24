@@ -19,12 +19,11 @@ public:
    void query_tile(const spatial_t& tile, uint64_t resolution, binned_container& subset, uint64_t zoom) const;
    void query_region(const region_t& region, binned_container& subset, uint64_t zoom) const;
 
-   binned_t el;
-
 private:
    void aggregate_tile(uint64_t resolution, binned_container& subset, uint64_t zoom) const;
    inline bool count_expand(uint32_t bin) const;
 
+   binned_t el;
    std::array<std::unique_ptr<SpatialElement>, 4> _container;
 };
 
@@ -34,6 +33,8 @@ void SpatialElement::set_range(const building_container& range) {
 }
 
 bool SpatialElement::count_expand(uint32_t bin) const {
+   if (el.pivots.size() > bin) return true;
+
    uint32_t count = 0;
    for (auto& ptr : el.pivots) {
       count += ptr.size();
