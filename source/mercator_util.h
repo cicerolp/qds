@@ -1,6 +1,16 @@
 #pragma once
 
 namespace mercator_util {
+   inline uint32_t index(uint32_t x, uint32_t y) {
+      if (x % 2 == 0) {
+         if (y % 2 == 0) return 0;
+         else return 1;
+      } else {
+         if (y % 2 == 0) return 2;
+         else return 3;
+      }
+   }
+
    inline uint32_t lon2tilex(double lon, int z) {
       //lon = std::max(std::min(lon, 179.8), -179.8);
       int x = static_cast<int>(std::floor((lon + 180.0) / 360.0 * (1 << z)));

@@ -16,24 +16,10 @@ struct spatial_t {
    spatial_t() : spatial_t(0, 0, 0) { }
 
    spatial_t(uint32_t _x, uint32_t _y, uint8_t _z, uint8_t _l = 1)
-      : x(_x), y(_y), z(_z), leaf(_l) {
-
-      if (x % 2 == 0) {
-         if (y % 2 == 0) index = 0;
-         else index = 1;
-      } else {
-         if (y % 2 == 0) index = 2;
-         else index = 3;
-      }
-   }
+      : x(_x), y(_y), z(_z), leaf(_l) { }
 
    inline bool operator ==(const spatial_t& other) const {
       return (z == other.z && x == other.x && y == other.y);
-   }
-
-   // index
-   inline /*explicit*/ operator uint8_t() const {
-      return index;
    }
 
    inline bool contains(const spatial_t& other) const {
@@ -64,7 +50,6 @@ struct spatial_t {
          uint64_t x : 25;
          uint64_t y : 25;
          uint64_t z : 5;
-         uint64_t index : 2;
          uint64_t leaf : 1;
       };
 

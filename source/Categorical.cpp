@@ -20,7 +20,7 @@ uint32_t Categorical::build(const building_container& range, building_container&
          categorical_t value = data.record<categorical_t>(i);
 
          data.setHash(i, value);
-         used[value]++;
+         ++used[value];
       }
 
       uint32_t accum = ptr.front();
@@ -35,7 +35,7 @@ uint32_t Categorical::build(const building_container& range, building_container&
          tmp_container[i].emplace_back(first, second);
 
          response.emplace_back(first, second);
-         pivots_count++;
+         ++pivots_count;
       }
 
       data.sort(ptr.front(), ptr.back());

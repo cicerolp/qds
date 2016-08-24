@@ -14,14 +14,14 @@ uint32_t Temporal::build(const building_container& range, building_container& re
    std::map<temporal_t, std::vector<Pivot>> tmp_container;
 
    for (const auto& ptr : range) {
-      std::map<temporal_t, uint32_t> used;
+      std::unordered_map<temporal_t, uint32_t> used;
 
       for (auto i = ptr.front(); i < ptr.back(); ++i) {
          temporal_t value = data.record<temporal_t>(i);
          value = (temporal_t)(std::floor(value / (float)_bin) * (float)_bin);
 
          data.setHash(i, value);
-         used[value]++;
+         ++used[value];
       }
 
       uint32_t accum = ptr.front();
