@@ -14,7 +14,7 @@ uint32_t Temporal::build(const building_container& range, building_container& re
    std::map<temporal_t, std::vector<Pivot>> tmp_container;
 
    for (const auto& ptr : range) {
-      std::unordered_map<temporal_t, uint32_t> used;
+      std::map<temporal_t, uint32_t> used;
 
       for (auto i = ptr.front(); i < ptr.back(); ++i) {
          temporal_t value = data.record<temporal_t>(i);
