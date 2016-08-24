@@ -20,29 +20,43 @@ public:
    void setHash(size_t id, uint32_t value);
 
    template<typename T>
-   T record(size_t id, uint8_t offset);
+   T record(size_t id);
+
+   template<typename T>
+   void prepareOffset(uint8_t offset);
+   void dispose();
 
    inline uint32_t size() const;
 
 private:
-   inline bool comparator(const DataElement& bit0, const DataElement& bit1) const;
+   static inline bool comparator(const DataElement& bit0, const DataElement& bit1) {
+      return bit0.hash < bit1.hash;
+   }
 
    BinaryHeader _header;
+   std::string _path;
 
    std::vector<uint8_t> _data;
    std::vector<DataElement> _element;
 };
 
 template<typename T>
-T Data::record(size_t id, uint8_t offset) {
-   return *((T*)&_data[(_element[id].index * sizeof(T)) + (_header.records * offset)]);
+T Data::record(size_t id) {
+   return *((T*)&_data[_element[id].index * sizeof(T)]);
+}
+
+template<typename T>
+void Data::prepareOffset(uint8_t offset) {
+   std::ifstream infile(_path, std::ios::binary);
+
+   infile.ignore(sizeof(BinaryHeader) + (_header.records * offset));
+
+   _data.resize(sizeof(T) * _header.records);
+   infile.read(reinterpret_cast<char*>(&_data[0]), sizeof(T) * _header.records);
+
+   infile.close();
 }
 
 uint32_t Data::size() const {
    return _header.records;
 }
-
-bool Data::comparator(const DataElement& bit0, const DataElement& bit1) const {   
-   return bit0.hash < bit1.hash;
-}
-

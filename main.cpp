@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
    bool telemetry = false;
 
    bool benchmark = false;
-   uint32_t benchmark_passes = 100;
+   uint32_t benchmark_passes = 10;
    std::vector<std::string> benchmark_files;
 
    /*

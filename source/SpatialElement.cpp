@@ -12,7 +12,7 @@ SpatialElement::SpatialElement(const spatial_t& tile, const building_container& 
    set_range(container);
 }
 
-uint32_t SpatialElement::expand(Data& data, building_container& response, uint32_t offset, uint32_t bin) {
+uint32_t SpatialElement::expand(Data& data, building_container& response, uint32_t bin) {
 
    spatial_t& value = (*reinterpret_cast<spatial_t*>(&el.value));
 
@@ -30,7 +30,7 @@ uint32_t SpatialElement::expand(Data& data, building_container& response, uint32
          std::map<spatial_t, uint32_t> used;
 
          for (auto i = ptr.front(); i < ptr.back(); ++i) {
-            coordinates_t coords = data.record<coordinates_t>(i, offset);
+            coordinates_t coords = data.record<coordinates_t>(i);
 
             auto y = mercator_util::lat2tiley(coords.lat, next_level);
             auto x = mercator_util::lon2tilex(coords.lon, next_level);
@@ -63,7 +63,7 @@ uint32_t SpatialElement::expand(Data& data, building_container& response, uint32
 
       for (auto& binned : _container) {
          if (binned != nullptr) {
-            pivots_count += binned->expand(data, response, offset, bin);
+            pivots_count += binned->expand(data, response, bin);
          }
       }
    } else {

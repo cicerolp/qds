@@ -14,7 +14,7 @@ public:
 
    inline void set_range(const building_container& range);
 
-   uint32_t expand(Data& data, building_container& response, uint32_t offset, uint32_t bin);
+   uint32_t expand(Data& data, building_container& response, uint32_t bin);
 
    void query_tile(const spatial_t& tile, uint64_t resolution, binned_container& subset, uint64_t zoom) const;
    void query_region(const region_t& region, binned_container& subset, uint64_t zoom) const;

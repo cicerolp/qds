@@ -7,12 +7,16 @@ Spatial::Spatial(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
 
 uint32_t Spatial::build(const building_container& range, building_container& response, Data& data) {
 
+   data.prepareOffset<coordinates_t>(_offset);
+
    uint32_t pivots_count = 0;
 
    _container.set_range(range);
-   pivots_count += _container.expand(data, response, _offset, _bin);
+   pivots_count += _container.expand(data, response, _bin);
 
    std::sort(response.begin(), response.end());
+
+   data.dispose();
 
    return pivots_count;
 }

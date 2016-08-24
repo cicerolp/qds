@@ -7,15 +7,17 @@ Categorical::Categorical(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
 
 uint32_t Categorical::build(const building_container& range, building_container& response, Data& data) {
 
+   data.prepareOffset<categorical_t>(_offset);
+
    uint32_t pivots_count = 0;
 
-   std::vector<building_container> tmp_container(_bin);
+   std::vector<building_container> tmp_container(_bin);  
 
    for (const auto& ptr : range) {
       std::vector<uint32_t> used(_bin, 0);
 
       for (auto i = ptr.front(); i < ptr.back(); ++i) {
-         categorical_t value = data.record<categorical_t>(i, _offset);
+         categorical_t value = data.record<categorical_t>(i);
 
          data.setHash(i, value);
          used[value]++;
@@ -44,6 +46,8 @@ uint32_t Categorical::build(const building_container& range, building_container&
       _container[index].pivots = pivot_container(tmp_container[index].size());
       std::memcpy(&_container[index].pivots[0], &tmp_container[index][0], tmp_container[index].size() * sizeof(Pivot));
    }
+
+   data.dispose();
 
    return pivots_count;
 }
