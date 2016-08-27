@@ -27,7 +27,7 @@ private:
 };
 
 void SpatialElement::set_range(const building_container& range, NDS& nds) {
-   nds.share(el, range);
+   nds.share(el, range);   
 }
 
 bool SpatialElement::count_expand(uint32_t bin) const {

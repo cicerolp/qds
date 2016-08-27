@@ -2,7 +2,6 @@
 #include "SpatialElement.h"
 #include "mercator_util.h"
 
-
 SpatialElement::SpatialElement(const spatial_t& tile) {
    el.value = tile.data;
 }

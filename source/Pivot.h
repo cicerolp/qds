@@ -61,8 +61,8 @@ using building_iterator = building_container::const_iterator;
 
 struct binned_t {
 public:
-   uint64_t value {0};  
-   pivot_container* pivots{ nullptr };
+   uint64_t value;  
+   pivot_container* pivots;
 
    inline pivot_container& ptr() const {
       return *pivots;
