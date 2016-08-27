@@ -12,15 +12,14 @@ namespace mercator_util {
    }
 
    inline uint32_t lon2tilex(double lon, int z) {
-      uint32_t n = 1 << z;
-      return static_cast<uint32_t>((lon + 180.0) / 360.0 * n) % n;
+      uint32_t x = (lon + 180.0) / 360.0 * (1 << z);
+      return x & ((1 << z) - 1);
    }
 
    inline uint32_t lat2tiley(double lat, int z) {
-      static const double PI_4 = M_PI / 4.0;
-      uint32_t n = 1 << z;      
-      uint32_t y = (1.0 - (log(tan(PI_4 + (lat / 180.0 * M_PI) / 2.0)) / M_PI)) / 2.0 * n;
-      return y % n;
+      static const double PI_180 = M_PI / 180.0;
+      uint32_t y = (1.0 - log(tan(lat * PI_180) + 1.0 / cos(lat * PI_180)) / M_PI) / 2.0 * (1 << z);
+      return y & ((1 << z) - 1);
    }
 
    inline float tilex2lon(double x, int z) {
