@@ -12,24 +12,23 @@ namespace mercator_util {
    }
 
    inline uint32_t lon2tilex(double lon, int z) {
-      //lon = std::max(std::min(lon, 179.8), -179.8);
-      int x = static_cast<int>(std::floor((lon + 180.0) / 360.0 * (1 << z)));
-      return x & ((1 << z) - 1);
+      uint32_t n = 1 << z;
+      return static_cast<uint32_t>((lon + 180.0) / 360.0 * n) % n;
    }
 
    inline uint32_t lat2tiley(double lat, int z) {
-      //lat = std::max(std::min(lat, 89.8), -89.8);
-      static const double PI_180 = M_PI / 180.0;
-      int y = static_cast<int>(std::floor((1.0 - log(tan(lat * PI_180) + 1.0 / cos(lat * PI_180)) / M_PI) / 2.0 * (1 << z)));
-      return y & ((1 << z) - 1);
+      static const double PI_4 = M_PI / 4.0;
+      uint32_t n = 1 << z;      
+      uint32_t y = (1.0 - (log(tan(PI_4 + (lat / 180.0 * M_PI) / 2.0)) / M_PI)) / 2.0 * n;
+      return y % n;
    }
 
    inline float tilex2lon(double x, int z) {
-      return static_cast<float>(x / pow(2.0, z) * 360.0 - 180);
+      return static_cast<float>(x / (1 << z) * 360.0 - 180);
    }
 
    inline float tiley2lat(double y, int z) {
-      double n = M_PI - 2.0 * M_PI * y / pow(2.0, z);
+      double n = M_PI - 2.0 * M_PI * y / (1 << z);
       return static_cast<float>(180.0 / M_PI * atan(0.5 * (exp(n) - exp(-n))));
    }
 
