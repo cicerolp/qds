@@ -5,21 +5,20 @@
 Categorical::Categorical(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
    : Dimension(tuple), _container(_bin) { }
 
-uint32_t Categorical::build(const building_container& range, building_container& response, Data& data) {
-
-   data.prepareOffset<categorical_t>(_offset);
+uint32_t Categorical::build(const building_container& range, building_container& response, NDS& nds) {
+   nds.data()->prepareOffset<categorical_t>(_offset);
 
    uint32_t pivots_count = 0;
 
-   std::vector<building_container> tmp_container(_bin);  
+   std::vector<building_container> tmp_container(_bin);
 
    for (const auto& ptr : range) {
       std::vector<uint32_t> used(_bin, 0);
 
       for (auto i = ptr.front(); i < ptr.back(); ++i) {
-         categorical_t value = data.record<categorical_t>(i);
+         categorical_t value = nds.data()->record<categorical_t>(i);
 
-         data.setHash(i, value);
+         nds.data()->setHash(i, value);
          ++used[value];
       }
 
@@ -38,16 +37,15 @@ uint32_t Categorical::build(const building_container& range, building_container&
          ++pivots_count;
       }
 
-      data.sort(ptr.front(), ptr.back());
+      nds.data()->sort(ptr.front(), ptr.back());
    }
 
    for (uint32_t index = 0; index < _bin; ++index) {
       _container[index].value = index;
-      _container[index].pivots = pivot_container(tmp_container[index].size());
-      std::memcpy(&_container[index].pivots[0], &tmp_container[index][0], tmp_container[index].size() * sizeof(Pivot));
+      nds.share(_container[index], tmp_container[index]);
    }
 
-   data.dispose();
+   nds.data()->dispose();
 
    return pivots_count;
 }

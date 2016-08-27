@@ -5,10 +5,9 @@
 Temporal::Temporal(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
    : Dimension(tuple) { }
 
-uint32_t Temporal::build(const building_container& range, building_container& response, Data& data) {
-   
-   data.prepareOffset<temporal_t>(_offset);
-   
+uint32_t Temporal::build(const building_container& range, building_container& response, NDS& nds) {
+   nds.data()->prepareOffset<temporal_t>(_offset);
+
    uint32_t pivots_count = 0;
 
    std::map<temporal_t, std::vector<Pivot>> tmp_container;
@@ -17,10 +16,10 @@ uint32_t Temporal::build(const building_container& range, building_container& re
       std::map<temporal_t, uint32_t> used;
 
       for (auto i = ptr.front(); i < ptr.back(); ++i) {
-         temporal_t value = data.record<temporal_t>(i);
+         temporal_t value = nds.data()->record<temporal_t>(i);
          value = (temporal_t)(std::floor(value / (float)_bin) * (float)_bin);
 
-         data.setHash(i, value);
+         nds.data()->setHash(i, value);
          ++used[value];
       }
 
@@ -37,7 +36,7 @@ uint32_t Temporal::build(const building_container& range, building_container& re
          pivots_count++;
       }
 
-      data.sort(ptr.front(), ptr.back());
+      nds.data()->sort(ptr.front(), ptr.back());
    }
 
    _container = stde::dynarray<TemporalElement>(tmp_container.size());
@@ -45,12 +44,11 @@ uint32_t Temporal::build(const building_container& range, building_container& re
    uint32_t index = 0;
    for (auto& pair : tmp_container) {
       _container[index].el.value = pair.first;
-      _container[index].el.pivots = pivot_container(pair.second.size());
-      std::memcpy(&_container[index].el.pivots[0], &pair.second[0], pair.second.size() * sizeof(Pivot));
+      nds.share(_container[index].el, pair.second);
       ++index;
    }
 
-   data.dispose();
+   nds.data()->dispose();
 
    return pivots_count;
 }

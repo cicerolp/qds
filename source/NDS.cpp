@@ -1,6 +1,10 @@
 #include "stdafx.h"
 #include "NDS.h"
 
+#include "Spatial.h"
+#include "Temporal.h"
+#include "Categorical.h"
+
 NDS::NDS(const Schema& schema) {
 
    std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
@@ -8,18 +12,19 @@ NDS::NDS(const Schema& schema) {
 
    uint32_t pivots_count = 0;
 
-   Data data(schema.file);
+   data_ptr = std::make_unique<Data>(schema.file);
+
+   pivots.emplace_back(pivot_container(1));
+   pivots[0][0] = Pivot(0, data_ptr->size());
 
    std::cout << "\nBuildind NDS: " << std::endl;
    std::cout << "\tName: " << schema.name << std::endl;
-   std::cout << "\tSize: " << data.size() << std::endl;
+   std::cout << "\tSize: " << data_ptr->size() << std::endl;
 
    std::cout << std::endl;
 
    building_container current, response;
-   current.emplace_back(0, data.size());
-
-   _root = BinnedPivot(Pivot(0, data.size()), 0);
+   current.emplace_back(0, data_ptr->size());
 
    for (const auto& tuple : schema.dimension) {
 
@@ -44,7 +49,7 @@ NDS::NDS(const Schema& schema) {
             break;
       }
 
-      uint32_t curr_count = _dimension.back().second->build(current, response, data);
+      uint32_t curr_count = _dimension.back().second->build(current, response, *this);
       pivots_count += curr_count;
 
       current.swap(response);
@@ -59,6 +64,9 @@ NDS::NDS(const Schema& schema) {
    long long duration = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
 
    std::cout << "\tDuration: " + std::to_string(duration) + "s\n" << std::endl;
+
+   // release data
+   data_ptr = nullptr;
 }
 
 std::string NDS::query(const Query& query, std::ofstream* telemetry) {
@@ -75,8 +83,8 @@ std::string NDS::query(const Query& query, std::ofstream* telemetry) {
          break;
       }
    }
-
-   std::string buffer = Dimension::serialize(query, subsets, _root);
+   
+   std::string buffer = Dimension::serialize(query, subsets, BinnedPivot(pivots[0].front()));
 
    end = std::chrono::high_resolution_clock::now();
 
@@ -86,4 +94,15 @@ std::string NDS::query(const Query& query, std::ofstream* telemetry) {
    }
 
    return buffer;
+}
+
+interval_t NDS::get_interval() const {
+   interval_t interval;
+   for (auto& pair : _dimension) {
+      if (pair.first == Dimension::Temporal) {
+         interval = ((Temporal*)pair.second.get())->get_interval();
+         break;
+      }
+   }
+   return interval;
 }

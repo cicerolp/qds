@@ -4,11 +4,8 @@
 #include "Query.h"
 #include "Pivot.h"
 #include "Schema.h"
-#include "BinnedPivot.h"
+#include "Dimension.h"
 
-#include "Spatial.h"
-#include "Temporal.h"
-#include "Categorical.h"
 
 class NDS {
 public:
@@ -17,22 +14,24 @@ public:
 
    std::string query(const Query& query, std::ofstream* telemetry);
 
-   inline interval_t get_interval() const {
-      interval_t interval;
-      for (auto& pair : _dimension) {
-         if (pair.first == Dimension::Temporal) {
-            interval = ((Temporal*)pair.second.get())->get_interval();
-            break;
-         }
-      }
-      return interval;
-   }
+   interval_t get_interval() const;
+
    inline uint32_t size() const {
-      return _root.pivot.back() - _root.pivot.front();
+      return pivots[0].front().back();
+   }
+
+   inline void share(binned_t &binned, const building_container& container) {
+      pivots.emplace_back(container.size());
+      std::memcpy(&pivots.back()[0], &container[0], container.size() * sizeof(Pivot));
+      binned.pivots = &pivots.back();
+   }
+
+   inline Data* data() const {
+      return data_ptr.get();
    }
 
 private:
-
-   BinnedPivot _root;
+   std::unique_ptr<Data> data_ptr;
+   std::vector<pivot_container> pivots;
    std::vector<std::pair<Dimension::Type, std::unique_ptr<Dimension>>> _dimension;
 };

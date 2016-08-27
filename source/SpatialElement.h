@@ -1,7 +1,7 @@
 ﻿#pragma once
 
+#include "NDS.h"
 #include "Data.h"
-#include "Query.h"
 #include "Pivot.h"
 
 class SpatialElement {
@@ -9,12 +9,11 @@ class SpatialElement {
 
 public:
    SpatialElement(const spatial_t& tile);
-   SpatialElement(const spatial_t& tile, const building_container& container);
    ~SpatialElement() = default;
 
-   inline void set_range(const building_container& range);
+   inline void set_range(const building_container& range, NDS& nds);
 
-   uint32_t expand(Data& data, building_container& response, uint32_t bin);
+   uint32_t expand(building_container& response, uint32_t bin, NDS& nds);
 
    void query_tile(const spatial_t& tile, uint64_t resolution, binned_container& subset, uint64_t zoom) const;
    void query_region(const region_t& region, binned_container& subset, uint64_t zoom) const;
@@ -27,16 +26,15 @@ private:
    std::array<std::unique_ptr<SpatialElement>, 4> _container;
 };
 
-void SpatialElement::set_range(const building_container& range) {
-   el.pivots = pivot_container(range.size());
-   std::memcpy(&el.pivots[0], &range[0], range.size() * sizeof(Pivot));
+void SpatialElement::set_range(const building_container& range, NDS& nds) {
+   nds.share(el, range);
 }
 
 bool SpatialElement::count_expand(uint32_t bin) const {
-   if (el.pivots.size() > bin) return true;
+   if (el.ptr().size() > bin) return true;
 
    uint32_t count = 0;
-   for (auto& ptr : el.pivots) {
+   for (auto& ptr : el.ptr()) {
       count += ptr.size();
    }
    return (count > bin) ? true : false;

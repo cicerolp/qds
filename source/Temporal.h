@@ -24,13 +24,15 @@ public:
 	Temporal(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple);
    ~Temporal() = default;
 
-   uint32_t build(const building_container& range, building_container& response, Data& data) override;
+   uint32_t build(const building_container& range, building_container& response, NDS& nds) override;
+
    bool query(const Query& query, subset_container& subsets) const override;
 
    inline interval_t get_interval() const {
       return interval_t(_container.front().el.value, _container.back().el.value);
    }
 
+   
 private:
    stde::dynarray<TemporalElement> _container;
 };

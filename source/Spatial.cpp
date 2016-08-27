@@ -5,18 +5,17 @@
 Spatial::Spatial(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
    : Dimension(tuple), _container(spatial_t(0, 0, 0)) { }
 
-uint32_t Spatial::build(const building_container& range, building_container& response, Data& data) {
-
-   data.prepareOffset<coordinates_t>(_offset);
+uint32_t Spatial::build(const building_container& range, building_container& response, NDS& nds) {
+   nds.data()->prepareOffset<coordinates_t>(_offset);
 
    uint32_t pivots_count = 0;
 
-   _container.set_range(range);
-   pivots_count += _container.expand(data, response, _bin);
+   _container.set_range(range, nds);
+   pivots_count += _container.expand(response, _bin, nds);
 
    std::sort(response.begin(), response.end());
 
-   data.dispose();
+   nds.data()->dispose();
 
    return pivots_count;
 }

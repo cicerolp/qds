@@ -54,12 +54,19 @@ protected:
 using pivot_container = stde::dynarray<Pivot>;
 using pivot_iterator = pivot_container::const_iterator;
 
+using share_container = std::vector<pivot_container*>;
+
 using building_container = std::vector<Pivot>;
 using building_iterator = building_container::const_iterator;
 
 struct binned_t {
-   uint64_t value;
-   pivot_container pivots;
+public:
+   uint64_t value {0};  
+   pivot_container* pivots{ nullptr };
+
+   inline pivot_container& ptr() const {
+      return *pivots;
+   }
 
    inline static bool Comp(const binned_t* lhs, const binned_t* rhs) {
       return lhs->value < rhs->value;

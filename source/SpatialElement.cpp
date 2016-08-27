@@ -1,23 +1,18 @@
 ﻿#include "stdafx.h"
 #include "SpatialElement.h"
-
 #include "mercator_util.h"
+
 
 SpatialElement::SpatialElement(const spatial_t& tile) {
    el.value = tile.data;
 }
 
-SpatialElement::SpatialElement(const spatial_t& tile, const building_container& container) {
-   el.value = tile.data;
-   set_range(container);
-}
-
-uint32_t SpatialElement::expand(Data& data, building_container& response, uint32_t bin) {
+uint32_t SpatialElement::expand(building_container& response, uint32_t bin, NDS& nds) {
 
    spatial_t& value = (*reinterpret_cast<spatial_t*>(&el.value));
 
    uint8_t next_level = value.z + 1;
-   uint32_t pivots_count = static_cast<uint32_t>(el.pivots.size());
+   uint32_t pivots_count = static_cast<uint32_t>(el.ptr().size());
 
    if (next_level < max_levels && count_expand(bin)) {
 
@@ -26,22 +21,22 @@ uint32_t SpatialElement::expand(Data& data, building_container& response, uint32
       // node will be expanded
       value.leaf = 0;
 
-      for (const auto& ptr : el.pivots) {
+      for (const auto& ptr : el.ptr()) {
          std::vector<uint32_t> used(4, 0);
 
          for (auto i = ptr.front(); i < ptr.back(); ++i) {
-            coordinates_t coords = data.record<coordinates_t>(i);
+            coordinates_t coords = nds.data()->record<coordinates_t>(i);
 
             auto y = mercator_util::lat2tiley(coords.lat, next_level);
             auto x = mercator_util::lon2tilex(coords.lon, next_level);
             auto index = mercator_util::index(x, y);
 
-            data.setHash(i, index);
+            nds.data()->setHash(i, index);
             ++used[index];
          }
 
          // sorting
-         data.sort(ptr.front(), ptr.back());
+         nds.data()->sort(ptr.front(), ptr.back());
 
          uint32_t accum = ptr.front();
          for (int i = 0; i < 4; ++i) {
@@ -70,11 +65,12 @@ uint32_t SpatialElement::expand(Data& data, building_container& response, uint32
             ++x;
          }
 
-         _container[i] = std::make_unique<SpatialElement>(spatial_t(x, y, next_level), tmp_container[i]);
-         pivots_count += _container[i]->expand(data, response, bin);
+         _container[i] = std::make_unique<SpatialElement>(spatial_t(x, y, next_level));
+         _container[i]->set_range(tmp_container[i], nds);
+         pivots_count += _container[i]->expand(response, bin, nds);
       }
    } else {
-      response.insert(response.end(), el.pivots.begin(), el.pivots.end());
+      response.insert(response.end(), el.ptr().begin(), el.ptr().end());
    }
 
    return pivots_count;

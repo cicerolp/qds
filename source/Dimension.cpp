@@ -17,9 +17,9 @@ void Dimension::restrict(range_container& range, range_container& response, cons
    //response.reserve(subset.container.size() * subset.container[0]->pivots.size());
 
    for (const auto& el : subset.container) {
-      pivot_iterator it_lower = el->pivots.begin(), it_upper;
+      pivot_iterator it_lower = el->ptr().begin(), it_upper;
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if (!search_iterators(it_range, range, it_lower, it_upper, el->pivots)) break;
+         if (!search_iterators(it_range, range, it_lower, it_upper, el->ptr())) break;
          switch (option) {
             case CopyValueFromRange:
                while (it_lower != it_upper) {
@@ -96,9 +96,9 @@ void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, 
    uint32_t count = 0;
 
    for (const auto& el : subset) {
-      pivot_iterator it_lower = el->pivots.begin(), it_upper;
+      pivot_iterator it_lower = el->ptr().begin(), it_upper;
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if (!search_iterators(it_range, range, it_lower, it_upper, el->pivots)) break;
+         if (!search_iterators(it_range, range, it_lower, it_upper, el->ptr())) break;
          while (it_lower != it_upper) {
             count += (*it_lower++).size();
          }
@@ -112,9 +112,9 @@ void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, 
 
 void Dimension::write_pivtos(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_container& subset) {
    for (const auto& el : subset) {
-      pivot_iterator it_lower = el->pivots.begin(), it_upper;
+      pivot_iterator it_lower = el->ptr().begin(), it_upper;
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if (!search_iterators(it_range, range, it_lower, it_upper, el->pivots)) break;
+         if (!search_iterators(it_range, range, it_lower, it_upper, el->ptr())) break;
          while (it_lower != it_upper) {
             writer.StartArray();
             writer.Uint((*it_lower).front());

@@ -5,6 +5,8 @@
 #include "Pivot.h"
 #include "BinnedPivot.h"
 
+class NDS;
+
 class Dimension {
 public:
    enum Type {
@@ -18,7 +20,7 @@ public:
    virtual ~Dimension() = default;
 
    virtual bool query(const Query& query, subset_container& subsets) const = 0;
-   virtual uint32_t build(const building_container& range, building_container& response, Data& data) = 0;
+   virtual uint32_t build(const building_container& range, building_container& response, NDS& nds) = 0;
 
    static std::string serialize(const Query& query, subset_container& subsets, const BinnedPivot& root);
 
@@ -149,9 +151,9 @@ void Dimension::write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer,
    std::vector<uint32_t> map(subset.size(), 0);
 
    for (auto el = 0; el < subset.size(); ++el) {
-      pivot_iterator it_lower = subset[el]->pivots.begin(), it_upper;
+      pivot_iterator it_lower = subset[el]->ptr().begin(), it_upper;
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if (!search_iterators(it_range, range, it_lower, it_upper, subset[el]->pivots)) break;
+         if (!search_iterators(it_range, range, it_lower, it_upper, subset[el]->ptr())) break;
          while (it_lower != it_upper) {
             map[el] += (*it_lower++).size();
          }
@@ -172,9 +174,9 @@ void Dimension::write_range(rapidjson::Writer<rapidjson::StringBuffer>& writer, 
    Container<uint64_t, uint32_t> map;
 
    for (const auto& el : subset) {
-      pivot_iterator it_lower = el->pivots.begin(), it_upper;
+      pivot_iterator it_lower = el->ptr().begin(), it_upper;
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if (!search_iterators(it_range, range, it_lower, it_upper, el->pivots)) break;
+         if (!search_iterators(it_range, range, it_lower, it_upper, el->ptr())) break;
          while (it_lower != it_upper) {
             map[(*it_range).value] += (*it_lower++).size();
          }
