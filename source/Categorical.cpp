@@ -5,12 +5,12 @@
 Categorical::Categorical(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
    : Dimension(tuple), _container(_bin) { }
 
-uint32_t Categorical::build(const building_container& range, building_container& response, NDS& nds) {
+uint32_t Categorical::build(const build_ctn& range, build_ctn& response, const link_ctn& links, link_ctn& share, NDS& nds) {
    nds.data()->prepareOffset<categorical_t>(_offset);
 
    uint32_t pivots_count = 0;
 
-   std::vector<building_container> tmp_container(_bin);
+   std::vector<build_ctn> tmp_ctn(_bin);
 
    for (const auto& ptr : range) {
       std::vector<uint32_t> used(_bin, 0);
@@ -31,7 +31,7 @@ uint32_t Categorical::build(const building_container& range, building_container&
          accum += used[i];
          uint32_t second = accum;
 
-         tmp_container[i].emplace_back(first, second);
+         tmp_ctn[i].emplace_back(first, second);
 
          response.emplace_back(first, second);
          ++pivots_count;
@@ -42,7 +42,7 @@ uint32_t Categorical::build(const building_container& range, building_container&
 
    for (uint32_t index = 0; index < _bin; ++index) {
       _container[index].value = index;
-      nds.share(_container[index], tmp_container[index]);
+      nds.share(_container[index], tmp_ctn[index], links, share);
    }
 
    nds.data()->dispose();

@@ -2,6 +2,7 @@
 #include "Schema.h"
 #include "Server.h"
 #include "NDSInstances.h"
+#include "SpatialElement.h"
 
 int main(int argc, char* argv[]) {
    if (std::getenv("NDS_DATA") == nullptr) {

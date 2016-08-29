@@ -14,10 +14,8 @@ void Dimension::restrict(range_container& range, range_container& response, cons
    // sort range only when necessary
    swap_and_sort(range, response, option);
 
-   //response.reserve(subset.container.size() * subset.container[0]->pivots.size());
-
    for (const auto& el : subset.container) {
-      pivot_iterator it_lower = el->ptr().begin(), it_upper;
+      pivot_it it_lower = el->ptr().begin(), it_upper;
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
          if (!search_iterators(it_range, range, it_lower, it_upper, el->ptr())) break;
          switch (option) {
@@ -51,7 +49,7 @@ std::string Dimension::serialize(const Query& query, subset_container& subsets, 
    response.emplace_back(root);
 
    for (auto i = 0; i < subsets.size() - 1; ++i) {
-      Dimension::restrict(range, response, subsets[i], option);
+      restrict(range, response, subsets[i], option);
    }
 
    if (option == DefaultCopy) option = subsets.back().option;
@@ -92,11 +90,11 @@ std::string Dimension::serialize(const Query& query, subset_container& subsets, 
    return buffer.GetString();
 }
 
-void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_container& subset) {
+void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_ctn& subset) {
    uint32_t count = 0;
 
    for (const auto& el : subset) {
-      pivot_iterator it_lower = el->ptr().begin(), it_upper;
+      pivot_it it_lower = el->ptr().begin(), it_upper;
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
          if (!search_iterators(it_range, range, it_lower, it_upper, el->ptr())) break;
          while (it_lower != it_upper) {
@@ -110,9 +108,9 @@ void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, 
    writer.EndArray();
 }
 
-void Dimension::write_pivtos(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_container& subset) {
+void Dimension::write_pivtos(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_ctn& subset) {
    for (const auto& el : subset) {
-      pivot_iterator it_lower = el->ptr().begin(), it_upper;
+      pivot_it it_lower = el->ptr().begin(), it_upper;
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
          if (!search_iterators(it_range, range, it_lower, it_upper, el->ptr())) break;
          while (it_lower != it_upper) {

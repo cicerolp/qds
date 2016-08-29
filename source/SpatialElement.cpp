@@ -2,11 +2,17 @@
 #include "SpatialElement.h"
 #include "mercator_util.h"
 
-SpatialElement::SpatialElement(const spatial_t& tile) {
+SpatialElement::SpatialElement(const spatial_t& tile, pivot_ctn* ptr) {
    el.value = tile.data;
+   el.pivots = ptr;
 }
 
-uint32_t SpatialElement::expand(building_container& response, uint32_t bin, NDS& nds) {
+SpatialElement::SpatialElement(const spatial_t& tile, const build_ctn& range, NDS& nds) {
+   el.value = tile.data;
+   el.pivots = nds.get_link(range);
+}
+
+uint32_t SpatialElement::expand(build_ctn& response, uint32_t bin, link_ctn& share, NDS& nds) {
 
    spatial_t& value = (*reinterpret_cast<spatial_t*>(&el.value));
 
@@ -15,7 +21,7 @@ uint32_t SpatialElement::expand(building_container& response, uint32_t bin, NDS&
 
    if (next_level < max_levels && count_expand(bin)) {
 
-      std::vector<building_container> tmp_container(4);
+      std::vector<build_ctn> tmp_ctn(4);
 
       // node will be expanded
       value.leaf = 0;
@@ -45,37 +51,44 @@ uint32_t SpatialElement::expand(building_container& response, uint32_t bin, NDS&
             accum += used[i];
             uint32_t second = accum;
 
-            tmp_container[i].emplace_back(first, second);
+            tmp_ctn[i].emplace_back(first, second);
          }
       }
 
-      for (int i = 0; i < 4; ++i) {
-         if (tmp_container[i].size() == 0) continue;
-
-         uint32_t x = value.x * 2;
-         uint32_t y = value.y * 2;
-
-         if (i == 1) {
-            ++y;
-         } else if (i == 2) {
-            ++x;
-         } else if (i == 3) {
-            ++y;
-            ++x;
+      uint32_t index = 0, nodes_count = 0;
+      for (size_t i = 0; i < 4; ++i) {
+         if (tmp_ctn[i].size() != 0) {
+            ++nodes_count;
+            index = i;
          }
-
-         _container[i] = std::make_unique<SpatialElement>(spatial_t(x, y, next_level));
-         _container[i]->set_range(tmp_container[i], nds);
-         pivots_count += _container[i]->expand(response, bin, nds);
       }
+
+      if (nodes_count == 1) {
+         auto tile = get_tile(value.x * 2, value.y * 2, index);
+
+         _container[index] = std::make_unique<SpatialElement>(spatial_t(tile.first, tile.second, next_level), el.pivots);
+         pivots_count += _container[index]->expand(response, bin, share, nds);
+
+      } else {
+         for (size_t i = 0; i < 4; ++i) {
+            if (tmp_ctn[i].size() == 0) continue;
+
+            auto tile = get_tile(value.x * 2, value.y * 2, i);
+
+            _container[i] = std::make_unique<SpatialElement>(spatial_t(tile.first, tile.second, next_level), tmp_ctn[i], nds);
+            pivots_count += _container[i]->expand(response, bin, share, nds);
+         }
+      }
+
    } else {
+      share.emplace_back(el.pivots);
       response.insert(response.end(), el.ptr().begin(), el.ptr().end());
    }
 
    return pivots_count;
 }
 
-void SpatialElement::query_tile(const spatial_t& tile, uint64_t resolution, binned_container& subset, uint64_t zoom) const {
+void SpatialElement::query_tile(const spatial_t& tile, uint64_t resolution, binned_ctn& subset, uint64_t zoom) const {
    const spatial_t& value = (*reinterpret_cast<const spatial_t*>(&el.value));
 
    if (value.contains(tile)) {
@@ -90,7 +103,7 @@ void SpatialElement::query_tile(const spatial_t& tile, uint64_t resolution, binn
    }
 }
 
-void SpatialElement::query_region(const region_t& region, binned_container& subset, uint64_t zoom) const {
+void SpatialElement::query_region(const region_t& region, binned_ctn& subset, uint64_t zoom) const {
    const spatial_t& value = (*reinterpret_cast<const spatial_t*>(&el.value));
 
    if (region.intersect(value)) {
@@ -107,7 +120,7 @@ void SpatialElement::query_region(const region_t& region, binned_container& subs
    }
 }
 
-void SpatialElement::aggregate_tile(uint64_t resolution, binned_container& subset, uint64_t zoom) const {
+void SpatialElement::aggregate_tile(uint64_t resolution, binned_ctn& subset, uint64_t zoom) const {
    const spatial_t& value = (*reinterpret_cast<const spatial_t*>(&el.value));
 
    if (zoom == resolution || value.leaf) {

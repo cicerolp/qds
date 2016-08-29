@@ -14,16 +14,18 @@ NDS::NDS(const Schema& schema) {
 
    data_ptr = std::make_unique<Data>(schema.file);
 
-   pivots.emplace_back(new pivot_container(1));
-   pivots[0]->at(0) = Pivot(0, data_ptr->size());
-
    std::cout << "\nBuildind NDS: " << std::endl;
    std::cout << "\tName: " << schema.name << std::endl;
    std::cout << "\tSize: " << data_ptr->size() << std::endl;
-
    std::cout << std::endl;
 
-   building_container current, response;
+   pivots.emplace_back(new pivot_ctn(1));
+   pivots[0]->at(0) = Pivot(0, data_ptr->size());
+
+   link_ctn links, share;
+   links.emplace_back(pivots[0]);
+
+   build_ctn current, response;
    current.emplace_back(0, data_ptr->size());
 
    for (const auto& tuple : schema.dimension) {
@@ -49,11 +51,11 @@ NDS::NDS(const Schema& schema) {
             break;
       }
 
-      uint32_t curr_count = _dimension.back().second->build(current, response, *this);
+      uint32_t curr_count = _dimension.back().second->build(current, response, links, share, *this);
       pivots_count += curr_count;
 
-      current.swap(response);
-      response.clear();
+      swap_and_clear<link_ctn>(links, share);
+      swap_and_clear<build_ctn>(current, response);
 
       std::cout << "\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
    }

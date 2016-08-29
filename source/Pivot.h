@@ -25,6 +25,8 @@ public:
    inline void front(uint32_t value);
    inline void back(uint32_t value);
 
+   inline bool operator==(const Pivot& other) const;
+
    inline bool operator<(const Pivot& other) const;
    inline bool operator>(const Pivot& other) const;
 
@@ -51,20 +53,21 @@ protected:
    std::array<uint32_t, 2> _pivot;
 };
 
-using pivot_container = stde::dynarray<Pivot>;
-using pivot_iterator = pivot_container::const_iterator;
+using pivot_ctn = stde::dynarray<Pivot>;
+using pivot_it = pivot_ctn::const_iterator;
 
-using share_container = std::vector<pivot_container*>;
+using link_ctn = std::vector<pivot_ctn*>;
+using link_it = link_ctn::const_iterator;
 
-using building_container = std::vector<Pivot>;
-using building_iterator = building_container::const_iterator;
+using build_ctn = std::vector<Pivot>;
+using build_it = build_ctn::const_iterator;
 
 struct binned_t {
 public:
    uint64_t value;  
-   pivot_container* pivots;
+   pivot_ctn* pivots;
 
-   inline pivot_container& ptr() const {
+   inline pivot_ctn& ptr() const {
       return *pivots;
    }
 
@@ -73,13 +76,13 @@ public:
    }
 };
 
-using binned_container = std::vector<const binned_t*>;
-using binned_iterator = binned_container::const_iterator;
+using binned_ctn = std::vector<const binned_t*>;
+using binned_it = binned_ctn::const_iterator;
 
 struct subset_t {
    subset_t() : option(DefaultCopy) { }
    CopyOption option;
-   binned_container container;
+   binned_ctn container;
 };
 
 using subset_container = std::vector<subset_t>;
@@ -106,6 +109,10 @@ void Pivot::front(uint32_t value) {
 
 void Pivot::back(uint32_t value) {
    _pivot[1] = value;
+}
+
+bool Pivot::operator==(const Pivot& other) const {
+   return _pivot[0] == other._pivot[0] && _pivot[1] == other._pivot[1];
 }
 
 bool Pivot::operator<(const Pivot& other) const {
