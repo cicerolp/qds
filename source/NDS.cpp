@@ -12,21 +12,21 @@ NDS::NDS(const Schema& schema) {
 
    uint32_t pivots_count = 0;
 
-   data_ptr = std::make_unique<Data>(schema.file);
+   _data_ptr = std::make_unique<Data>(schema.file);
 
    std::cout << "\nBuildind NDS: " << std::endl;
    std::cout << "\tName: " << schema.name << std::endl;
-   std::cout << "\tSize: " << data_ptr->size() << std::endl;
+   std::cout << "\tSize: " << _data_ptr->size() << std::endl;
    std::cout << std::endl;
 
-   pivots.emplace_back(new pivot_ctn(1));
-   pivots[0]->at(0) = Pivot(0, data_ptr->size());
+   _root = pivot_ctn(1);
+   _root[0] = Pivot(0, _data_ptr->size());
 
    link_ctn links, share;
-   links.emplace_back(pivots[0]);
+   links.emplace_back(&_root);
 
    build_ctn current, response;
-   current.emplace_back(0, data_ptr->size());
+   current.emplace_back(0, _data_ptr->size());
 
    for (const auto& tuple : schema.dimension) {
 
@@ -59,7 +59,7 @@ NDS::NDS(const Schema& schema) {
 
       std::cout << "\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
    }
-
+   
    std::cout << "\n\tTotal Number of Pivots: " << pivots_count << std::endl;
 
    end = std::chrono::high_resolution_clock::now();
@@ -68,11 +68,7 @@ NDS::NDS(const Schema& schema) {
    std::cout << "\tDuration: " + std::to_string(duration) + "s\n" << std::endl;
 
    // release data
-   data_ptr = nullptr;
-}
-
-NDS::~NDS() {
-   for (auto ptr : pivots) delete ptr;
+   _data_ptr = nullptr;
 }
 
 std::string NDS::query(const Query& query, std::ofstream* telemetry) {
@@ -90,7 +86,7 @@ std::string NDS::query(const Query& query, std::ofstream* telemetry) {
       }
    }
    
-   std::string buffer = Dimension::serialize(query, subsets, BinnedPivot(pivots[0]->front()));
+   std::string buffer = Dimension::serialize(query, subsets, BinnedPivot(_root[0]));
 
    end = std::chrono::high_resolution_clock::now();
 

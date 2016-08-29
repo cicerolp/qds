@@ -64,8 +64,15 @@ using build_it = build_ctn::const_iterator;
 
 struct binned_t {
 public:
+   // shared (false) or proper (true) content
+   bool proper {false};
+
    uint64_t value;  
    pivot_ctn* pivots;
+
+   ~binned_t() {
+      if (proper) delete pivots;
+   }
 
    inline pivot_ctn& ptr() const {
       return *pivots;

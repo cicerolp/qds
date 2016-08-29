@@ -2,7 +2,6 @@
 #include "Schema.h"
 #include "Server.h"
 #include "NDSInstances.h"
-#include "SpatialElement.h"
 
 int main(int argc, char* argv[]) {
    if (std::getenv("NDS_DATA") == nullptr) {
@@ -12,7 +11,7 @@ int main(int argc, char* argv[]) {
       std::cout << "NDS_DATA: <"<< std::getenv("NDS_DATA") << ">" << std::endl;
    }
 
-   bool server = false;
+   bool server = true;
    Server::server_opts nds_opts;
    nds_opts.port = 7000;
    nds_opts.cache = false;
@@ -41,11 +40,11 @@ int main(int argc, char* argv[]) {
       if (argc < 2) {
          //inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
 
-         //inputFiles.emplace_back("./xml/brightkite.nds.xml");
+         inputFiles.emplace_back("./xml/brightkite.nds.xml");
          //inputFiles.emplace_back("./xml/brightkite.nds-leaf.xml");
          
          //inputFiles.emplace_back("./xml/gowalla.nds.xml");
-         inputFiles.emplace_back("./xml/gowalla.nds-leaf.xml");
+         //inputFiles.emplace_back("./xml/gowalla.nds-leaf.xml");
 
          //inputFiles.emplace_back("./xml/performance-example.nds.xml");
          //inputFiles.emplace_back("./xml/performance.nds.xml");

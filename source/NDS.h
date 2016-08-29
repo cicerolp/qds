@@ -9,7 +9,6 @@
 class NDS {
 public:
    NDS(const Schema& schema);
-   ~NDS();
 
    NDS(const NDS& that) = delete;
    NDS& operator=(NDS const&) = delete;
@@ -19,11 +18,11 @@ public:
    interval_t get_interval() const;
 
    inline uint32_t size() const {
-      return pivots[0]->front().back();
+      return _root[0].back();
    }
 
    inline Data* data() const {
-      return data_ptr.get();
+      return _data_ptr.get();
    }
 
    template<typename Container>
@@ -32,15 +31,16 @@ public:
       rhs.clear();
    }
 
-   inline pivot_ctn* create_link(const build_ctn& container) {
+   inline pivot_ctn* create_link(binned_t& binned, const build_ctn& container) {
       pivot_ctn* link = new pivot_ctn(container.size());
-      pivots.emplace_back(link);
       std::memcpy(&(*link)[0], &container[0], container.size() * sizeof(Pivot));
+
+      binned.proper = true;
 
       return link;
    }
 
-   inline pivot_ctn* get_link(const build_ctn& container, const link_ctn& links) {
+   inline pivot_ctn* get_link(binned_t& binned, const build_ctn& container, const link_ctn& links) {
       pivot_ctn* link = nullptr;
 
       for (auto& ptr : links) {
@@ -50,20 +50,19 @@ public:
          }
       }
 
-      if (link == nullptr) link = create_link(container);
-      
-      return link;
+      if (link == nullptr) return create_link(binned, container);
+      else return link;
    }
 
    inline void share(binned_t& binned, const build_ctn& container, const link_ctn& links, link_ctn& share) {
-      pivot_ctn* link = get_link(container, links);
+      pivot_ctn* link = get_link(binned, container, links);
 
       binned.pivots = link;
       share.emplace_back(link);
    }
 
 private:
-   std::unique_ptr<Data> data_ptr;
-   std::vector<pivot_ctn*> pivots;
+   pivot_ctn _root;
+   std::unique_ptr<Data> _data_ptr;
    std::vector<std::pair<Dimension::Type, std::unique_ptr<Dimension>>> _dimension;
 };
