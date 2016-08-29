@@ -32,24 +32,31 @@ public:
       rhs.clear();
    }
 
-   inline pivot_ctn* get_link(const build_ctn& container) {
-      auto ptr = new pivot_ctn(container.size());
-      pivots.emplace_back(ptr);
-      std::memcpy(&(*ptr)[0], &container[0], container.size() * sizeof(Pivot));
-      return ptr;
+   inline pivot_ctn* create_link(const build_ctn& container) {
+      pivot_ctn* link = new pivot_ctn(container.size());
+      pivots.emplace_back(link);
+      std::memcpy(&(*link)[0], &container[0], container.size() * sizeof(Pivot));
+
+      return link;
    }
 
-   inline void share(binned_t& binned, const build_ctn& container, const link_ctn& links, link_ctn& share) {
+   inline pivot_ctn* get_link(const build_ctn& container, const link_ctn& links) {
       pivot_ctn* link = nullptr;
+
       for (auto& ptr : links) {
          if (ptr->size() == container.size() && std::equal(container.begin(), container.end(), (*ptr).begin())) {
-            std::cout << "share" << std::endl;
             link = ptr;
             break;
          }
       }
 
-      if (link == nullptr) link = get_link(container);
+      if (link == nullptr) link = create_link(container);
+      
+      return link;
+   }
+
+   inline void share(binned_t& binned, const build_ctn& container, const link_ctn& links, link_ctn& share) {
+      pivot_ctn* link = get_link(container, links);
 
       binned.pivots = link;
       share.emplace_back(link);

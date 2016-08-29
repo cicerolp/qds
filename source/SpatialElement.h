@@ -10,6 +10,7 @@ class SpatialElement {
 public:
    SpatialElement(const spatial_t& tile, pivot_ctn* ptr);
    SpatialElement(const spatial_t& tile, const build_ctn& range, NDS& nds);
+   SpatialElement(const spatial_t& tile, const build_ctn& range, const link_ctn& links, NDS& nds);
    ~SpatialElement() = default;
 
    uint32_t expand(build_ctn& response, uint32_t bin, link_ctn& share, NDS& nds);

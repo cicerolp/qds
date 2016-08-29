@@ -9,7 +9,12 @@ SpatialElement::SpatialElement(const spatial_t& tile, pivot_ctn* ptr) {
 
 SpatialElement::SpatialElement(const spatial_t& tile, const build_ctn& range, NDS& nds) {
    el.value = tile.data;
-   el.pivots = nds.get_link(range);
+   el.pivots = nds.create_link(range);
+}
+
+SpatialElement::SpatialElement(const spatial_t& tile, const build_ctn& range, const link_ctn& links, NDS& nds) {
+   el.value = tile.data;
+   el.pivots = nds.get_link(range, links);
 }
 
 uint32_t SpatialElement::expand(build_ctn& response, uint32_t bin, link_ctn& share, NDS& nds) {

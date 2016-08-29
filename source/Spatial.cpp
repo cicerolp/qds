@@ -8,7 +8,7 @@ Spatial::Spatial(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
 uint32_t Spatial::build(const build_ctn& range, build_ctn& response, const link_ctn& links, link_ctn& share, NDS& nds) {
    nds.data()->prepareOffset<coordinates_t>(_offset);
 
-   _container = std::make_unique<SpatialElement>(spatial_t(0,0,0), range, nds);
+   _container = std::make_unique<SpatialElement>(spatial_t(0,0,0), range, links, nds);
    
    uint32_t pivots_count = 0;
 
