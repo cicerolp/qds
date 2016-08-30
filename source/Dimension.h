@@ -21,6 +21,9 @@ public:
 
 protected:
    static void restrict(range_container& range, range_container& response, const subset_t& subset, CopyOption& option);
+   static void restrictSubsetCopy(range_container& range, range_container& response, const subset_t& subset);
+   static void restrictRangeCopy(range_container& range, range_container& response, const subset_t& subset);
+   static void restrictDefaultCopy(range_container& range, range_container& response, const subset_t& subset);
 
    template<typename T>
    static void write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_ctn& subset);
@@ -112,17 +115,11 @@ void Dimension::write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer,
 
    for (auto el = 0; el < subset.size(); ++el) {
       pivot_it it_lower = subset[el]->ptr().begin(), it_upper;
-      
-      auto it_range = range.begin();
-      if (!search_iterators(it_range, range, it_lower, it_upper, subset[el]->ptr())) continue;
+      range_iterator it_range = range.begin();
 
-      if ((*it_range).pivot.contains(subset[el]->ptr().front(), subset[el]->ptr().back())) {
-         it_lower = subset[el]->ptr().begin(), it_upper = subset[el]->ptr().end();
+      while (search_iterators(it_range, range, it_lower, it_upper, subset[el]->ptr())) {
          map[el] += count_and_increment(it_lower, it_upper);
-      } else {
-         do {
-            map[el] += count_and_increment(it_lower, it_upper);
-         } while (search_iterators(++it_range, range, it_lower, it_upper, subset[el]->ptr()));
+         ++it_range;
       }
 
       if (map[el] == 0) continue;
@@ -141,17 +138,11 @@ void Dimension::write_range(rapidjson::Writer<rapidjson::StringBuffer>& writer, 
 
    for (const auto& el : subset) {
       pivot_it it_lower = el->ptr().begin(), it_upper;
+      range_iterator it_range = range.begin();
 
-      auto it_range = range.begin();
-      if (!search_iterators(it_range, range, it_lower, it_upper, el->ptr())) continue;
-
-      if ((*it_range).pivot.contains(el->ptr().front(), el->ptr().back())) {
-         it_lower = el->ptr().begin(), it_upper = el->ptr().end();
+      while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
          map[(*it_range).value] += count_and_increment(it_lower, it_upper);
-      } else {
-         do {
-            map[(*it_range).value] += count_and_increment(it_lower, it_upper);
-         } while (search_iterators(it_range, range, it_lower, it_upper, el->ptr()));
+         ++it_range;
       }
    }
 

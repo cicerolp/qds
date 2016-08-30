@@ -14,30 +14,57 @@ void Dimension::restrict(range_container& range, range_container& response, cons
    // sort range only when necessary
    swap_and_sort(range, response, option);
 
-   for (const auto& el : subset.container) {
-      pivot_it it_lower = el->ptr().begin(), it_upper;
-      for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if (!search_iterators(it_range, range, it_lower, it_upper, el->ptr())) break;
-         switch (option) {
-            case CopyValueFromRange:
-               while (it_lower != it_upper) {
-                  response.emplace_back((*it_lower++), (*it_range).value);
-               }
-               break;
-            case CopyValueFromSubset:
-               while (it_lower != it_upper) {
-                  response.emplace_back((*it_lower++), el->value);
-               }
-               break;
-            default:
-               response.insert(response.end(), it_lower, it_upper);
-               it_lower = it_upper;
-               break;
-         }
-      }
+   switch (option) {
+   case CopyValueFromRange:
+      restrictRangeCopy(range, response, subset);
+      break;
+   case CopyValueFromSubset:
+      restrictSubsetCopy(range, response, subset);
+      break;
+   default:
+      restrictDefaultCopy(range, response, subset);
+      break;
    }
 
    if (option == CopyValueFromSubset) option = CopyValueFromRange;
+}
+
+void Dimension::restrictSubsetCopy(range_container& range, range_container& response, const subset_t& subset) {
+   for (const auto& el : subset.container) {
+      pivot_it it_lower = el->ptr().begin(), it_upper;
+      range_iterator it_range = range.begin();
+      while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+         while (it_lower != it_upper) {
+            response.emplace_back((*it_lower++), el->value);
+         }
+         ++it_range;
+      }
+   }
+}
+
+void Dimension::restrictRangeCopy(range_container& range, range_container& response, const subset_t& subset) {
+   for (const auto& el : subset.container) {
+      pivot_it it_lower = el->ptr().begin(), it_upper;
+      range_iterator it_range = range.begin();
+      while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+         while (it_lower != it_upper) {
+            response.emplace_back((*it_lower++), (*it_range).value);
+         }
+         ++it_range;
+      }
+   }
+}
+
+void Dimension::restrictDefaultCopy(range_container& range, range_container& response, const subset_t& subset) {
+   for (const auto& el : subset.container) {
+      pivot_it it_lower = el->ptr().begin(), it_upper;
+      range_iterator it_range = range.begin();
+      while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+         response.insert(response.end(), it_lower, it_upper);
+         it_lower = it_upper;
+         ++it_range;
+      }
+   }
 }
 
 std::string Dimension::serialize(const Query& query, subset_container& subsets, const BinnedPivot& root) {
@@ -95,11 +122,11 @@ void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, 
 
    for (const auto& el : subset) {
       pivot_it it_lower = el->ptr().begin(), it_upper;
-      for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if (!search_iterators(it_range, range, it_lower, it_upper, el->ptr())) break;
-         while (it_lower != it_upper) {
-            count += (*it_lower++).size();
-         }
+      range_iterator it_range = range.begin();
+      
+      while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+         count += count_and_increment(it_lower, it_upper);
+         ++it_range;
       }
    }
 
@@ -111,14 +138,16 @@ void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer, 
 void Dimension::write_pivtos(rapidjson::Writer<rapidjson::StringBuffer>& writer, range_container& range, const binned_ctn& subset) {
    for (const auto& el : subset) {
       pivot_it it_lower = el->ptr().begin(), it_upper;
-      for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if (!search_iterators(it_range, range, it_lower, it_upper, el->ptr())) break;
+      range_iterator it_range = range.begin();
+
+      while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
          while (it_lower != it_upper) {
             writer.StartArray();
             writer.Uint((*it_lower).front());
             writer.Uint((*it_lower++).back());
             writer.EndArray();
          }
+         ++it_range;
       }
    }
 }
