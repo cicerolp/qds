@@ -35,10 +35,10 @@ uint32_t SpatialElement::expand(build_ctn& response, uint32_t bin, link_ctn& sha
          std::array<uint32_t, 4> used{};
 
          for (auto i = ptr.front(); i < ptr.back(); ++i) {
-            coordinates_t coords = nds.data()->record<coordinates_t>(i);
+            auto coords = nds.data()->record<coordinates_t>(i);
 
-            auto y = mercator_util::lat2tiley(coords.lat, next_level);
-            auto x = mercator_util::lon2tilex(coords.lon, next_level);
+            auto y = mercator_util::lat2tiley(coords->lat, next_level);
+            auto x = mercator_util::lon2tilex(coords->lon, next_level);
             auto index = mercator_util::index(x, y);
 
             nds.data()->setHash(i, index);

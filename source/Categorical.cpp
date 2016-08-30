@@ -16,7 +16,7 @@ uint32_t Categorical::build(const build_ctn& range, build_ctn& response, const l
       std::vector<uint32_t> used(_bin, 0);
 
       for (auto i = ptr.front(); i < ptr.back(); ++i) {
-         categorical_t value = nds.data()->record<categorical_t>(i);
+         auto value = (*nds.data()->record<categorical_t>(i));
 
          nds.data()->setHash(i, value);
          ++used[value];

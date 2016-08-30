@@ -16,8 +16,8 @@ uint32_t Temporal::build(const build_ctn& range, build_ctn& response, const link
       std::map<temporal_t, uint32_t> used;
 
       for (auto i = ptr.front(); i < ptr.back(); ++i) {
-         temporal_t value = nds.data()->record<temporal_t>(i);
-         value = (temporal_t)(std::floor(value / (float)_bin) * (float)_bin);
+         auto value = (*nds.data()->record<temporal_t>(i));
+         value = static_cast<temporal_t>(value / static_cast<float>(_bin)) * _bin;
 
          nds.data()->setHash(i, value);
          ++used[value];

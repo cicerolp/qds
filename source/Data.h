@@ -20,7 +20,7 @@ public:
    void setHash(size_t id, uint32_t value);
 
    template<typename T>
-   T record(size_t id);
+   T* record(size_t id);
 
    template<typename T>
    void prepareOffset(uint8_t offset);
@@ -41,8 +41,8 @@ private:
 };
 
 template<typename T>
-T Data::record(size_t id) {
-   return *((T*)&_data[_element[id].index * sizeof(T)]);
+T* Data::record(size_t id) {
+   return ((T*)&_data[_element[id].index * sizeof(T)]);
 }
 
 template<typename T>
