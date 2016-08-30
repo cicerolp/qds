@@ -36,6 +36,8 @@ public:
    inline bool ends_before(const Pivot& other) const;
    inline bool begins_after(const Pivot& other) const;
 
+   inline bool contains(const Pivot& lhs, const Pivot& rhs) const;
+
    friend std::ostream& operator<<(std::ostream& stream, const Pivot& pivot) {
       stream << "[" << pivot._pivot[0] << "," << pivot._pivot[1] << "]";
       return stream;
@@ -144,6 +146,10 @@ bool Pivot::ends_before(const Pivot& other) const {
 
 bool Pivot::begins_after(const Pivot& other) const {
    return front() >= other.back();
+}
+
+bool Pivot::contains(const Pivot& lhs, const Pivot& rhs) const {
+   return front() <= lhs.front() && back() >= rhs.back();
 }
 
 Pivot::operator const Pivot*() const {

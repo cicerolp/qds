@@ -20,33 +20,6 @@ public:
    static std::string serialize(const Query& query, subset_container& subsets, const BinnedPivot& root);
 
 protected:
-   /*struct k_way_merge {
-      using range_pair = std::pair<range_iterator, range_iterator>;
-
-      inline bool operator()(const range_pair& lhs, const range_pair& rhs) const {
-         return (*lhs.first).pivot.front() > (*rhs.first).pivot.front();
-      }
-
-      static inline void sort(range_container &output, std::vector<range_container> &input) {
-         std::priority_queue<range_pair, std::vector<range_pair>, k_way_merge> pq;
-
-         for (size_t i = 0; i < input.size(); i++) {
-            if (!input[i].empty())
-               pq.emplace(input[i].begin(), input[i].end());
-         }
-
-         while (!pq.empty()) {
-            auto it_pair = pq.top();
-            pq.pop();
-
-            output.emplace_back((*it_pair.first).pivot, (*it_pair.first).value);
-            ++it_pair.first;
-
-            if (it_pair.first != it_pair.second) pq.push(it_pair);
-         }
-      }
-   };*/
-
    static void restrict(range_container& range, range_container& response, const subset_t& subset, CopyOption& option);
 
    template<typename T>
@@ -120,6 +93,14 @@ protected:
       response.clear();
    }
 
+   static inline uint32_t count_and_increment(pivot_it& it_lower, pivot_it& it_upper) {
+      uint32_t count = 0;
+      while (it_lower != it_upper) {
+         count += (*it_lower++).size();
+      }
+      return count;
+   }
+
    const uint32_t _key;
    const uint32_t _bin;
    const uint32_t _offset;
@@ -132,10 +113,12 @@ void Dimension::write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer,
    for (auto el = 0; el < subset.size(); ++el) {
       pivot_it it_lower = subset[el]->ptr().begin(), it_upper;
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if (!search_iterators(it_range, range, it_lower, it_upper, subset[el]->ptr())) break;
-         while (it_lower != it_upper) {
-            map[el] += (*it_lower++).size();
+         if ((*it_range).pivot.contains(subset[el]->ptr().front(), subset[el]->ptr().back())) {
+            it_lower = subset[el]->ptr().begin(), it_upper = subset[el]->ptr().end();
+         } else {
+            if (!search_iterators(it_range, range, it_lower, it_upper, subset[el]->ptr())) break;            
          }
+         map[el] += count_and_increment(it_lower, it_upper);
       }
 
       if (map[el] == 0) continue;
@@ -155,10 +138,12 @@ void Dimension::write_range(rapidjson::Writer<rapidjson::StringBuffer>& writer, 
    for (const auto& el : subset) {
       pivot_it it_lower = el->ptr().begin(), it_upper;
       for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if (!search_iterators(it_range, range, it_lower, it_upper, el->ptr())) break;
-         while (it_lower != it_upper) {
-            map[(*it_range).value] += (*it_lower++).size();
+         if ((*it_range).pivot.contains(el->ptr().front(), el->ptr().back())) {
+            it_lower = el->ptr().begin(), it_upper = el->ptr().end();
+         } else {
+            if (!search_iterators(it_range, range, it_lower, it_upper, el->ptr())) break;
          }
+         map[(*it_range).value] += count_and_increment(it_lower, it_upper);
       }
    }
 

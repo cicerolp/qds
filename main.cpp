@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
       std::cout << "NDS_DATA: <"<< std::getenv("NDS_DATA") << ">" << std::endl;
    }
 
-   bool server = false;
+   bool server = true;
    Server::server_opts nds_opts;
    nds_opts.port = 7000;
    nds_opts.cache = false;
