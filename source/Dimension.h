@@ -34,7 +34,7 @@ protected:
 
    static inline bool search_iterators(range_iterator& it_range, const range_container& range,
                                        pivot_it& it_lower, pivot_it& it_upper, const pivot_ctn& subset) {
-      if (it_lower == subset.end()) return false;
+      if (it_lower == subset.end() || it_range == range.end()) return false;
 
       if ((*it_range).pivot.ends_before(*it_lower)) {
          // binary search to find range iterator
@@ -112,13 +112,17 @@ void Dimension::write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer,
 
    for (auto el = 0; el < subset.size(); ++el) {
       pivot_it it_lower = subset[el]->ptr().begin(), it_upper;
-      for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if ((*it_range).pivot.contains(subset[el]->ptr().front(), subset[el]->ptr().back())) {
-            it_lower = subset[el]->ptr().begin(), it_upper = subset[el]->ptr().end();
-         } else {
-            if (!search_iterators(it_range, range, it_lower, it_upper, subset[el]->ptr())) break;            
-         }
+      
+      auto it_range = range.begin();
+      if (!search_iterators(it_range, range, it_lower, it_upper, subset[el]->ptr())) continue;
+
+      if ((*it_range).pivot.contains(subset[el]->ptr().front(), subset[el]->ptr().back())) {
+         it_lower = subset[el]->ptr().begin(), it_upper = subset[el]->ptr().end();
          map[el] += count_and_increment(it_lower, it_upper);
+      } else {
+         do {
+            map[el] += count_and_increment(it_lower, it_upper);
+         } while (search_iterators(++it_range, range, it_lower, it_upper, subset[el]->ptr()));
       }
 
       if (map[el] == 0) continue;
@@ -137,13 +141,17 @@ void Dimension::write_range(rapidjson::Writer<rapidjson::StringBuffer>& writer, 
 
    for (const auto& el : subset) {
       pivot_it it_lower = el->ptr().begin(), it_upper;
-      for (auto it_range = range.begin(); it_range != range.end(); ++it_range) {
-         if ((*it_range).pivot.contains(el->ptr().front(), el->ptr().back())) {
-            it_lower = el->ptr().begin(), it_upper = el->ptr().end();
-         } else {
-            if (!search_iterators(it_range, range, it_lower, it_upper, el->ptr())) break;
-         }
+
+      auto it_range = range.begin();
+      if (!search_iterators(it_range, range, it_lower, it_upper, el->ptr())) continue;
+
+      if ((*it_range).pivot.contains(el->ptr().front(), el->ptr().back())) {
+         it_lower = el->ptr().begin(), it_upper = el->ptr().end();
          map[(*it_range).value] += count_and_increment(it_lower, it_upper);
+      } else {
+         do {
+            map[(*it_range).value] += count_and_increment(it_lower, it_upper);
+         } while (search_iterators(it_range, range, it_lower, it_upper, el->ptr()));
       }
    }
 
