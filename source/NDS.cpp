@@ -14,7 +14,7 @@ NDS::NDS(const Schema& schema) {
 
    _data_ptr = std::make_unique<Data>(schema.file);
 
-   std::cout << "\nBuildind NDS: " << std::endl;
+   std::cout << "Buildind NDS: " << std::endl;
    std::cout << "\tName: " << schema.name << std::endl;
    std::cout << "\tSize: " << _data_ptr->size() << std::endl;
    std::cout << std::endl;

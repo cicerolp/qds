@@ -61,7 +61,7 @@ uint32_t SpatialElement::expand(build_ctn& response, uint32_t bin, link_ctn& sha
       }
 
       uint32_t index = 0, nodes_count = 0;
-      for (size_t i = 0; i < 4; ++i) {
+      for (uint32_t i = 0; i < 4; ++i) {
          if (tmp_ctn[i].size() != 0) {
             ++nodes_count;
             index = i;
@@ -74,7 +74,7 @@ uint32_t SpatialElement::expand(build_ctn& response, uint32_t bin, link_ctn& sha
          pivots_count += _container[index]->expand(response, bin, share, nds);
 
       } else {
-         for (size_t i = 0; i < 4; ++i) {
+         for (uint32_t i = 0; i < 4; ++i) {
             if (tmp_ctn[i].size() == 0) continue;
             auto tile = get_tile(value.x * 2, value.y * 2, i);
             _container[i] = std::make_unique<SpatialElement>(spatial_t(tile.first, tile.second, next_level), tmp_ctn[i], nds);

@@ -19,7 +19,7 @@ public:
 
    inline bool operator< (const BinnedPivot& other) const {
       return pivot < other.pivot;
-   };
+   }
 
    static inline bool upper_bound_comp(const BinnedPivot& lhs, const Pivot& rhs);
 

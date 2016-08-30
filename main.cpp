@@ -62,6 +62,12 @@ int main(int argc, char* argv[]) {
                std::string arg = argv[i];
                if (arg == std::string("-telemetry")) {
                   telemetry = true;
+               } else if (arg == "-passes") {
+                  try {
+                     benchmark_passes = std::stoul(argv[++i]);
+                  } catch (...) {
+                     std::cerr << "error: invalid number of passes, using " << benchmark_passes << std::endl;
+                  }
                } else if (arg == "-depth") {
                   try {
                      g_Quadtree_Depth = std::stoul(argv[++i]);
@@ -98,13 +104,22 @@ int main(int argc, char* argv[]) {
    std::cout << "\tOn/Off: " << server << std::endl;
    std::cout << "\t" << nds_opts << std::endl;
 
+   std::cout << "NDS Options:" << std::endl;
+   std::cout << "\tQuadtree Depth: " << g_Quadtree_Depth << std::endl;
+   std::cout << std::endl;
+
    std::cout << "XML Files:" << std::endl;
    for (const auto& str : inputFiles) {
       std::cout << "\t" + str << std::endl;
       schemas.emplace_back(str);
    }
+   std::cout << std::endl;
 
    if (benchmark) {
+      std::cout << "Benchmark Options:" << std::endl;
+      std::cout << "\tNumber of Passes: " << benchmark_passes << std::endl;
+      std::cout << std::endl;
+
       std::cout << "Benchmark Files:" << std::endl;
       for (const auto& str : benchmark_files) {
          std::cout << "\t" + str << std::endl;

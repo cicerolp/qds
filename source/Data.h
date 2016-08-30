@@ -4,10 +4,8 @@
 
 class Data {
    struct DataElement {
-      uint32_t hash;
-      uint32_t index;
-      
-      bool operator<(const DataElement& e1) const {
+      uint32_t hash, index;
+      inline bool operator<(const DataElement& e1) const {         
          return hash < e1.hash;
       }
    };
