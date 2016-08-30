@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
                   try {
                      g_Quadtree_Depth = std::stoul(argv[++i]);
                   } catch (...) {
-                     std::cerr << "error: invalid quadtree depth, using " << nds_opts.port << std::endl;
+                     std::cerr << "error: invalid quadtree depth, using " << g_Quadtree_Depth << std::endl;
                   }
                } else if (arg == "-no-server") {
                   server = false;
