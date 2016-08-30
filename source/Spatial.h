@@ -12,5 +12,5 @@ public:
    bool query(const Query& query, subset_container& subsets) const override;
    
 private:
-   std::unique_ptr<SpatialElement> _container;
+   std::unique_ptr<SpatialElement> _tree;
 };

@@ -17,12 +17,28 @@ SpatialElement::SpatialElement(const spatial_t& tile, const build_ctn& range, co
    el.pivots = nds.get_link(el, range, links);
 }
 
-uint32_t SpatialElement::expand(build_ctn& response, uint32_t bin, link_ctn& share, NDS& nds) {
+uint32_t SpatialElement::create_tree(SpatialElement* root, build_ctn& response, uint32_t bin, link_ctn& share, NDS& nds) {
 
+   uint32_t pivots_count = 0;
+
+   tree_ctn range, nodes;
+   range.emplace_back(root);
+
+   while (range.size()) {
+      for (auto& ptr : range) {
+         pivots_count += ptr->expand(nodes, response, bin, share, nds);
+      }
+      range.swap(nodes);
+      nodes.clear();
+   }
+
+   return pivots_count;
+}
+
+uint32_t SpatialElement::expand(tree_ctn& nodes, build_ctn& response, uint32_t bin, link_ctn& share, NDS& nds) {
    spatial_t& value = (*reinterpret_cast<spatial_t*>(&el.value));
 
    uint8_t next_level = value.z + 1;
-   uint32_t pivots_count = static_cast<uint32_t>(el.ptr().size());
 
    if (next_level < max_levels && count_expand(bin)) {
 
@@ -70,27 +86,22 @@ uint32_t SpatialElement::expand(build_ctn& response, uint32_t bin, link_ctn& sha
 
       if (nodes_count == 1) {
          auto tile = get_tile(value.x * 2, value.y * 2, index);
-
          _container[index] = std::make_unique<SpatialElement>(spatial_t(tile.first, tile.second, next_level), el.pivots);
-         pivots_count += _container[index]->expand(response, bin, share, nds);
-
+         nodes.emplace_back(_container[index].get());
       } else {
          for (size_t i = 0; i < 4; ++i) {
             if (tmp_ctn[i].size() == 0) continue;
-
             auto tile = get_tile(value.x * 2, value.y * 2, i);
-
             _container[i] = std::make_unique<SpatialElement>(spatial_t(tile.first, tile.second, next_level), tmp_ctn[i], nds);
-            pivots_count += _container[i]->expand(response, bin, share, nds);
+            nodes.emplace_back(_container[i].get());
          }
       }
-
    } else {
       share.emplace_back(el.pivots);
       response.insert(response.end(), el.ptr().begin(), el.ptr().end());
    }
 
-   return pivots_count;
+   return static_cast<uint32_t>(el.ptr().size());
 }
 
 void SpatialElement::query_tile(const spatial_t& tile, uint64_t resolution, binned_ctn& subset, uint64_t zoom) const {
@@ -114,7 +125,7 @@ void SpatialElement::query_region(const region_t& region, binned_ctn& subset, ui
    if (region.intersect(value)) {
       if (zoom == region.z || value.leaf) {
          subset.emplace_back(&el);
-      } else if(region.cover(value)) {
+      } else if (region.cover(value)) {
          subset.emplace_back(&el);
       } else {
          if (_container[0] != nullptr) _container[0]->query_region(region, subset, zoom + 1);
