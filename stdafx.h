@@ -33,7 +33,6 @@
 // boost library
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
-#include <boost/sort/parallel/sort.hpp>
 
 // ResidentSetSize
 #include <nadeau/ResidentSetSize.h>
