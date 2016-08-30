@@ -24,7 +24,7 @@ uint32_t SpatialElement::expand(build_ctn& response, uint32_t bin, link_ctn& sha
    uint8_t next_level = value.z + 1;
    uint32_t pivots_count = static_cast<uint32_t>(el.ptr().size());
 
-   if (next_level < max_levels && count_expand(bin)) {
+   if (next_level < g_Quadtree_Depth && count_expand(bin)) {
 
       std::array<build_ctn, 4> tmp_ctn{};
 

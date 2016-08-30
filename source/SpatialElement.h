@@ -4,9 +4,9 @@
 #include "Data.h"
 #include "Pivot.h"
 
-class SpatialElement {
-   static const uint32_t max_levels{ 25 };
+extern uint32_t g_Quadtree_Depth;
 
+class SpatialElement {
 public:
    SpatialElement(const spatial_t& tile, pivot_ctn* ptr);
    SpatialElement(const spatial_t& tile, const build_ctn& range, NDS& nds);

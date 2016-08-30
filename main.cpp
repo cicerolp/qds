@@ -3,6 +3,8 @@
 #include "Server.h"
 #include "NDSInstances.h"
 
+uint32_t g_Quadtree_Depth{ 25 };
+
 int main(int argc, char* argv[]) {
    if (std::getenv("NDS_DATA") == nullptr) {
       std::cerr << "error: invalid environment path %NDS_DATA%" << std::endl;
@@ -60,6 +62,12 @@ int main(int argc, char* argv[]) {
                std::string arg = argv[i];
                if (arg == std::string("-telemetry")) {
                   telemetry = true;
+               } else if (arg == "-depth") {
+                  try {
+                     g_Quadtree_Depth = std::stoul(argv[++i]);
+                  } catch (...) {
+                     std::cerr << "error: invalid quadtree depth, using " << nds_opts.port << std::endl;
+                  }
                } else if (arg == "-no-server") {
                   server = false;
                } else if (arg == "-log") {
