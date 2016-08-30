@@ -6,7 +6,6 @@
 
 class SpatialElement {
    static const uint32_t max_levels{ 25 };
-   using tree_ctn = std::vector<SpatialElement*>;
 
 public:
    SpatialElement(const spatial_t& tile, pivot_ctn* ptr);
@@ -14,9 +13,8 @@ public:
    SpatialElement(const spatial_t& tile, const build_ctn& range, const link_ctn& links, NDS& nds);
    ~SpatialElement() = default;
 
-   static uint32_t create_tree(SpatialElement* root, build_ctn& response, uint32_t bin, link_ctn& share, NDS& nds);
-   uint32_t expand(tree_ctn& nodes, build_ctn& response, uint32_t bin, link_ctn& share, NDS& nds);
-  
+   uint32_t expand(build_ctn& response, uint32_t bin, link_ctn& share, NDS& nds);
+
    void query_tile(const spatial_t& tile, uint64_t resolution, binned_ctn& subset, uint64_t zoom) const;
    void query_region(const region_t& region, binned_ctn& subset, uint64_t zoom) const;
 
@@ -33,7 +31,7 @@ private:
          ++y;
          ++x;
       }
-      return{ x, y };
+      return { x, y };
    }
 
    binned_t el;

@@ -17,38 +17,22 @@ SpatialElement::SpatialElement(const spatial_t& tile, const build_ctn& range, co
    el.pivots = nds.get_link(el, range, links);
 }
 
-uint32_t SpatialElement::create_tree(SpatialElement* root, build_ctn& response, uint32_t bin, link_ctn& share, NDS& nds) {
+uint32_t SpatialElement::expand(build_ctn& response, uint32_t bin, link_ctn& share, NDS& nds) {
 
-   uint32_t pivots_count = 0;
-
-   tree_ctn range, nodes;
-   range.emplace_back(root);
-
-   while (range.size()) {
-      for (auto& ptr : range) {
-         pivots_count += ptr->expand(nodes, response, bin, share, nds);
-      }
-      range.swap(nodes);
-      nodes.clear();
-   }
-
-   return pivots_count;
-}
-
-uint32_t SpatialElement::expand(tree_ctn& nodes, build_ctn& response, uint32_t bin, link_ctn& share, NDS& nds) {
    spatial_t& value = (*reinterpret_cast<spatial_t*>(&el.value));
 
    uint8_t next_level = value.z + 1;
+   uint32_t pivots_count = static_cast<uint32_t>(el.ptr().size());
 
    if (next_level < max_levels && count_expand(bin)) {
 
-      std::vector<build_ctn> tmp_ctn(4);
+      std::array<build_ctn, 4> tmp_ctn{};
 
       // node will be expanded
       value.leaf = 0;
 
       for (const auto& ptr : el.ptr()) {
-         std::vector<uint32_t> used(4, 0);
+         std::array<uint32_t, 4> used{};
 
          for (auto i = ptr.front(); i < ptr.back(); ++i) {
             coordinates_t coords = nds.data()->record<coordinates_t>(i);
@@ -87,21 +71,23 @@ uint32_t SpatialElement::expand(tree_ctn& nodes, build_ctn& response, uint32_t b
       if (nodes_count == 1) {
          auto tile = get_tile(value.x * 2, value.y * 2, index);
          _container[index] = std::make_unique<SpatialElement>(spatial_t(tile.first, tile.second, next_level), el.pivots);
-         nodes.emplace_back(_container[index].get());
+         pivots_count += _container[index]->expand(response, bin, share, nds);
+
       } else {
          for (size_t i = 0; i < 4; ++i) {
             if (tmp_ctn[i].size() == 0) continue;
             auto tile = get_tile(value.x * 2, value.y * 2, i);
             _container[i] = std::make_unique<SpatialElement>(spatial_t(tile.first, tile.second, next_level), tmp_ctn[i], nds);
-            nodes.emplace_back(_container[i].get());
+            pivots_count += _container[i]->expand(response, bin, share, nds);
          }
       }
+
    } else {
       share.emplace_back(el.pivots);
       response.insert(response.end(), el.ptr().begin(), el.ptr().end());
    }
 
-   return static_cast<uint32_t>(el.ptr().size());
+   return pivots_count;
 }
 
 void SpatialElement::query_tile(const spatial_t& tile, uint64_t resolution, binned_ctn& subset, uint64_t zoom) const {
