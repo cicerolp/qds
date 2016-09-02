@@ -42,6 +42,7 @@
 #define GFX_TIMSORT_LOG(expr) ((void)0)
 #endif
 
+#define ENABLE_STD_MOVE 1
 #if __cplusplus >= 201103L && !DISABLE_STD_MOVE
 #define ENABLE_STD_MOVE 1
 #endif
