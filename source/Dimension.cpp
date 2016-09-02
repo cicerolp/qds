@@ -14,57 +14,48 @@ void Dimension::restrict(range_container& range, range_container& response, cons
    // sort range only when necessary
    swap_and_sort(range, response, option);
 
+   pivot_it it_lower, it_upper;
+   range_iterator it_range;
+
    switch (option) {
    case CopyValueFromRange:
-      restrictRangeCopy(range, response, subset);
+      for (const auto& el : subset.container) {
+         it_lower = el->ptr().begin();
+         it_range = range.begin();
+         while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+            while (it_lower != it_upper) {
+               response.emplace_back((*it_lower++), (*it_range).value);
+            }
+            ++it_range;
+         }
+      }
       break;
    case CopyValueFromSubset:
-      restrictSubsetCopy(range, response, subset);
+      for (const auto& el : subset.container) {
+         it_lower = el->ptr().begin();
+         it_range = range.begin();
+         while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+            while (it_lower != it_upper) {
+               response.emplace_back((*it_lower++), el->value);
+            }
+            ++it_range;
+         }
+      }
       break;
    default:
-      restrictDefaultCopy(range, response, subset);
+      for (const auto& el : subset.container) {
+         it_lower = el->ptr().begin();
+         it_range = range.begin();
+         while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+            response.insert(response.end(), it_lower, it_upper);
+            it_lower = it_upper;
+            ++it_range;
+         }
+      }
       break;
    }
 
    if (option == CopyValueFromSubset) option = CopyValueFromRange;
-}
-
-void Dimension::restrictSubsetCopy(range_container& range, range_container& response, const subset_t& subset) {
-   for (const auto& el : subset.container) {
-      pivot_it it_lower = el->ptr().begin(), it_upper;
-      range_iterator it_range = range.begin();
-      while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-         while (it_lower != it_upper) {
-            response.emplace_back((*it_lower++), el->value);
-         }
-         ++it_range;
-      }
-   }
-}
-
-void Dimension::restrictRangeCopy(range_container& range, range_container& response, const subset_t& subset) {
-   for (const auto& el : subset.container) {
-      pivot_it it_lower = el->ptr().begin(), it_upper;
-      range_iterator it_range = range.begin();
-      while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-         while (it_lower != it_upper) {
-            response.emplace_back((*it_lower++), (*it_range).value);
-         }
-         ++it_range;
-      }
-   }
-}
-
-void Dimension::restrictDefaultCopy(range_container& range, range_container& response, const subset_t& subset) {
-   for (const auto& el : subset.container) {
-      pivot_it it_lower = el->ptr().begin(), it_upper;
-      range_iterator it_range = range.begin();
-      while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-         response.insert(response.end(), it_lower, it_upper);
-         it_lower = it_upper;
-         ++it_range;
-      }
-   }
 }
 
 std::string Dimension::serialize(const Query& query, subset_container& subsets, const BinnedPivot& root) {
@@ -73,11 +64,11 @@ std::string Dimension::serialize(const Query& query, subset_container& subsets, 
 
    CopyOption option = DefaultCopy;
    range_container range, response;
+
    response.emplace_back(root);
 
-   for (auto i = 0; i < subsets.size() - 1; ++i) {
+   for (auto i = 0; i < subsets.size() - 1; ++i)
       restrict(range, response, subsets[i], option);
-   }
 
    if (option == DefaultCopy) option = subsets.back().option;
 

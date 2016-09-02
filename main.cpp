@@ -29,8 +29,8 @@ int main(int argc, char* argv[]) {
    //telemetry = true;
    benchmark = true;
 
-   benchmark_files.emplace_back("./csv/flights-bench.csv");
-   //benchmark_files.emplace_back("./csv/brightkite.csv");   
+   //benchmark_files.emplace_back("./csv/flights-bench.csv");
+   benchmark_files.emplace_back("./csv/brightkite.csv");   
    /**/
 
    std::vector<Schema> schemas;
@@ -38,9 +38,9 @@ int main(int argc, char* argv[]) {
 
    try {
       if (argc < 2) {
-         //inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
+         inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
 
-         inputFiles.emplace_back("./xml/brightkite.nds.xml");
+         //inputFiles.emplace_back("./xml/brightkite.nds.xml");
          //inputFiles.emplace_back("./xml/brightkite.nds-leaf.xml");
          
          //inputFiles.emplace_back("./xml/gowalla.nds.xml");

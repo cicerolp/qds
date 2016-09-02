@@ -9,50 +9,53 @@ class Pivot {
 public:
    Pivot() = default;
 
-   Pivot(uint32_t first, uint32_t second) : _pivot({ first, second }) { };
+   Pivot(uint32_t first, uint32_t second) : _first(first), _second(second) { };
 
    Pivot(const Pivot& other) = default;
    Pivot(Pivot&& other) = default;
    Pivot& operator=(const Pivot& other) = default;
    Pivot& operator=(Pivot&& other) = default;
 
-   inline bool empty() const;
-   inline uint32_t size() const;
+   inline bool empty() const { return (back() - front()) == 0; }
+   inline uint32_t size() const { return back() - front(); }
 
-   inline uint32_t front() const;
-   inline uint32_t back() const;
+   inline uint32_t front() const { return _first; }
+   inline uint32_t back() const { return _second; }
 
-   inline void front(uint32_t value);
-   inline void back(uint32_t value);
+   inline void front(uint32_t value) { _first = value; }
+   inline void back(uint32_t value) { _second = value; }
 
-   inline bool operator==(const Pivot& other) const;
+   inline bool operator==(const Pivot& other) const {
+      return front() == other.front() && back() == other.back();
+   }
+   inline bool operator<(const Pivot& other) const {
+      return front() < other.front();
+   }
 
-   inline bool operator<(const Pivot& other) const;
-   inline bool operator>(const Pivot& other) const;
-
-   inline bool operator<=(const Pivot& other) const;
-   inline bool operator>=(const Pivot& other) const;
-
-   inline bool ends_before(const Pivot& other) const;
-   inline bool begins_after(const Pivot& other) const;
-
-   inline bool contains(const Pivot& lhs, const Pivot& rhs) const;
+   inline bool ends_before(const Pivot& other) const {
+      return back() <= other.front();
+   }
+   inline bool begins_after(const Pivot& other) const {
+      return front() >= other.back();
+   }
 
    friend std::ostream& operator<<(std::ostream& stream, const Pivot& pivot) {
-      stream << "[" << pivot._pivot[0] << "," << pivot._pivot[1] << "]";
+      stream << "[" << pivot.front() << "," << pivot.back() << "]";
       return stream;
    }
 
-   // implicit conversion
-   inline operator const Pivot*() const;
-   inline operator std::string() const;
-   operator BinnedPivot() const;
-
-   static inline bool lower_bound_comp(const Pivot& lhs, const Pivot& rhs);
-   static inline bool upper_bound_comp(const Pivot& lhs, const Pivot& rhs);
+   static inline bool is_sequence(const Pivot& lhs, const Pivot& rhs) {
+      return lhs.back() == rhs.front();
+   }
+   static inline bool lower_bound_comp(const Pivot& lhs, const Pivot& rhs) {
+      return lhs.front() < rhs.front();
+   }
+   static inline bool upper_bound_comp(const Pivot& lhs, const Pivot& rhs) {
+      return lhs.back() <= rhs.front();
+   }
 
 protected:
-   std::array<uint32_t, 2> _pivot;
+   uint32_t _first, _second;
 };
 
 using pivot_ctn = stde::dynarray<Pivot>;
@@ -72,17 +75,8 @@ public:
    uint64_t value;  
    pivot_ctn* pivots;
 
-   ~binned_t() {
-      if (proper) delete pivots;
-   }
-
-   inline pivot_ctn& ptr() const {
-      return *pivots;
-   }
-
-   inline static bool Comp(const binned_t* lhs, const binned_t* rhs) {
-      return lhs->value < rhs->value;
-   }
+   ~binned_t() { if (proper) delete pivots; }
+   inline pivot_ctn& ptr() const { return *pivots; }
 };
 
 using binned_ctn = std::vector<const binned_t*>;
@@ -95,75 +89,3 @@ struct subset_t {
 };
 
 using subset_container = std::vector<subset_t>;
-
-bool Pivot::empty() const {
-   return (back() - front()) == 0;
-}
-
-uint32_t Pivot::size() const {
-   return back() - front();
-}
-
-uint32_t Pivot::front() const {
-   return _pivot[0];
-}
-
-uint32_t Pivot::back() const {
-   return _pivot[1];
-}
-
-void Pivot::front(uint32_t value) {
-   _pivot[0] = value;
-}
-
-void Pivot::back(uint32_t value) {
-   _pivot[1] = value;
-}
-
-bool Pivot::operator==(const Pivot& other) const {
-   return _pivot[0] == other._pivot[0] && _pivot[1] == other._pivot[1];
-}
-
-bool Pivot::operator<(const Pivot& other) const {
-   return front() < other.front();
-}
-
-bool Pivot::operator>(const Pivot& other) const {
-   return back() > other.back();
-}
-
-bool Pivot::operator<=(const Pivot& other) const {
-   return front() <= other.front();
-}
-
-bool Pivot::operator>=(const Pivot& other) const {
-   return back() >= other.back();
-}
-
-bool Pivot::ends_before(const Pivot& other) const {
-   return back() <= other.front();
-}
-
-bool Pivot::begins_after(const Pivot& other) const {
-   return front() >= other.back();
-}
-
-bool Pivot::contains(const Pivot& lhs, const Pivot& rhs) const {
-   return front() <= lhs.front() && back() >= rhs.back();
-}
-
-Pivot::operator const Pivot*() const {
-   return this;
-}
-
-Pivot::operator std::string() const {
-   return "[" + std::to_string(_pivot[0]) + "," + std::to_string(_pivot[1]) + "]";
-}
-
-bool Pivot::lower_bound_comp(const Pivot& lhs, const Pivot& rhs) {
-   return lhs.front() < rhs.front();
-}
-
-bool Pivot::upper_bound_comp(const Pivot& lhs, const Pivot& rhs) {
-   return lhs.back() <= rhs.front();
-}

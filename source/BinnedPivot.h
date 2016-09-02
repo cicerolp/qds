@@ -21,15 +21,17 @@ public:
       return pivot < other.pivot;
    }
 
-   static inline bool upper_bound_comp(const BinnedPivot& lhs, const Pivot& rhs);
+   static inline bool is_sequence(const BinnedPivot& lhs, const BinnedPivot& rhs) {
+      return Pivot::is_sequence(lhs.pivot, rhs.pivot) && lhs.value == rhs.value;
+   }
+
+   static inline bool upper_bound_comp(const BinnedPivot& lhs, const Pivot& rhs) {
+      return Pivot::upper_bound_comp(lhs.pivot, rhs);
+   }
 
    Pivot pivot;
    uint64_t value;
 };
-
-inline bool BinnedPivot::upper_bound_comp(const BinnedPivot& lhs, const Pivot& rhs) {
-   return Pivot::upper_bound_comp(lhs.pivot, rhs);
-}
 
 using range_container = std::vector<BinnedPivot>;
 using range_iterator = range_container::const_iterator;

@@ -83,9 +83,6 @@
     <ClCompile Include="include\mongoose\mongoose.c">
       <Filter>1.Include\mongoose</Filter>
     </ClCompile>
-    <ClCompile Include="source\Pivot.cpp">
-      <Filter>2.Source Files\pivots</Filter>
-    </ClCompile>
     <ClCompile Include="source\Dimension.cpp">
       <Filter>2.Source Files\core</Filter>
     </ClCompile>
@@ -156,6 +153,9 @@
     </ClInclude>
     <ClInclude Include="source\BinnedPivot.h">
       <Filter>2.Source Files\pivots</Filter>
+    </ClInclude>
+    <ClInclude Include="source\binary_search.h">
+      <Filter>2.Source Files\util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
