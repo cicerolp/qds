@@ -4,6 +4,9 @@
 
 #pragma once
 
+#define RAPIDJSON_SSE42
+
+// Windows specific defines
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
 #define _USE_MATH_DEFINES
