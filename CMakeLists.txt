@@ -44,7 +44,10 @@ include_directories(AFTER include)
 include_directories(AFTER source)
 include_directories(AFTER ./)
 
-add_executable (${PROJECT_NAME} ${SRC_LIST}
+file(GLOB_RECURSE HEADERS "source/*.h")
+source_group("Header Files" FILES ${HEADERS})
+
+add_executable (${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
    source/mongoose.c
    source/Categorical.cpp
    source/Data.cpp
@@ -65,7 +68,7 @@ find_package(Threads REQUIRED)
 set(Boost_USE_MULTITHREAD ON)
 set(Boost_USE_STATIC_LIBS ON)
 
-find_package(Boost 1.62 COMPONENTS system filesystem serialization iostreams REQUIRED)
+find_package(Boost 1.62 REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
