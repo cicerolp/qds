@@ -68,7 +68,7 @@ find_package(Threads REQUIRED)
 set(Boost_USE_MULTITHREAD ON)
 set(Boost_USE_STATIC_LIBS ON)
 
-find_package(Boost 1.62 REQUIRED)
+find_package(Boost 1.62 COMPONENTS program_options REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})

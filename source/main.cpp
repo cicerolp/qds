@@ -3,15 +3,17 @@
 #include "Server.h"
 #include "NDSInstances.h"
 
-uint32_t g_Quadtree_Depth{ 25 };
+uint32_t g_Quadtree_Depth{25};
 
 int main(int argc, char* argv[]) {
    if (std::getenv("NDS_DATA") == nullptr) {
       std::cerr << "error: invalid environment path %NDS_DATA%" << std::endl;
       exit(-1);
    } else {
-      std::cout << "NDS_DATA: <"<< std::getenv("NDS_DATA") << ">" << std::endl;
+      std::cout << "NDS_DATA: <" << std::getenv("NDS_DATA") << ">" << std::endl;
    }
+
+   namespace po = boost::program_options;
 
    bool server = true;
    Server::server_opts nds_opts;
@@ -20,79 +22,52 @@ int main(int argc, char* argv[]) {
    nds_opts.multithreading = true;
 
    bool telemetry = false;
-
    bool benchmark = false;
+
    uint32_t benchmark_passes = 10;
+
+   std::vector<std::string> input_files;
    std::vector<std::string> benchmark_files;
 
-   /*
-   //telemetry = true;
-   benchmark = true;
+   // Declare the supported options.
+   po::options_description desc("\nCommand Line Arguments");
+   desc.add_options()
+         ("help,h", "produce help message")
+         ("no-server,s", "disable server")
+         ("telemetry,t", "enable telemetry")
+         ("port,p", po::value<uint32_t>(&nds_opts.port)->default_value(nds_opts.port), "server port")
+         ("depth,d", po::value<uint32_t>(&g_Quadtree_Depth)->default_value(g_Quadtree_Depth), "quadtree depth")
+         ("passes,p", po::value<uint32_t>(&benchmark_passes)->default_value(benchmark_passes), "number of evaluatinons")
+         ("xml,x", po::value<std::vector<std::string>>(&input_files)
+          ->default_value(std::vector<std::string>(1, "./xml/brightkite.nds.xml"), "./xml/brightkite.nds.xml")->composing(), "input files")
+         ("log,l", po::value<std::vector<std::string>>(&benchmark_files)
+          ->default_value(std::vector<std::string>(1, "./csv/brightkite.csv"), "./csv/brightkite.csv")->composing(), "benchmark input files");
 
-   //benchmark_files.emplace_back("./csv/flights-bench.csv");
-   benchmark_files.emplace_back("./csv/brightkite.csv");   
-   /**/
+   po::positional_options_description p;
+   p.add("xml,x", -1);
 
-   std::vector<Schema> schemas;
-   std::vector<std::string> inputFiles;
+   po::variables_map vm;
+   po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
+   po::notify(vm);
 
-   try {
-      if (argc < 2) {
-         //inputFiles.emplace_back("./xml/brightkite-example.nds.xml");
-
-         //inputFiles.emplace_back("./xml/brightkite.nds.xml");
-         inputFiles.emplace_back("./xml/brightkite.nds-leaf.xml");
-         
-         //inputFiles.emplace_back("./xml/gowalla.nds.xml");
-         //inputFiles.emplace_back("./xml/gowalla.nds-leaf.xml");
-
-         //inputFiles.emplace_back("./xml/performance-example.nds.xml");
-         //inputFiles.emplace_back("./xml/performance.nds.xml");
-         //inputFiles.emplace_back("./xml/performance.nds-leaf.xml");
-
-         //inputFiles.emplace_back("./xml/twitter-small.nds.xml");
-         //inputFiles.emplace_back("./xml/twitter-small.nds-leaf.xml");
-      } else {
-         for (int i = 1; i < argc; i++) {
-            if (argv[i][0] != '-') {
-               inputFiles.emplace_back(argv[i]);
-            } else {
-               std::string arg = argv[i];
-               if (arg == std::string("-telemetry")) {
-                  telemetry = true;
-               } else if (arg == "-passes") {
-                  try {
-                     benchmark_passes = std::stoul(argv[++i]);
-                  } catch (...) {
-                     std::cerr << "error: invalid number of passes, using " << benchmark_passes << std::endl;
-                  }
-               } else if (arg == "-depth") {
-                  try {
-                     g_Quadtree_Depth = std::stoul(argv[++i]);
-                  } catch (...) {
-                     std::cerr << "error: invalid quadtree depth, using " << g_Quadtree_Depth << std::endl;
-                  }
-               } else if (arg == "-no-server") {
-                  server = false;
-               } else if (arg == "-log") {
-                  benchmark = true;
-                  benchmark_files.emplace_back(argv[++i]);
-               } else if (arg == "-port") {
-                  try {
-                     nds_opts.port = std::stoul(argv[++i]);
-                  } catch (...) {
-                     std::cerr << "error: invalid server port, using " << nds_opts.port << std::endl;
-                  }
-               }
-            }
-         }
-      }
-   } catch (...) {
-      std::cerr << "error: invalid arguments" << std::endl;
-      exit(-1);
+   if (vm.count("help")) {
+      std::cout << desc << std::endl;
+      exit(0);
    }
 
-   // disable server
+   if (vm.count("no-server")) {
+      server = false;
+   }
+
+   if (vm.count("telemetry")) {
+      telemetry = false;
+   }
+
+   if (vm.count("log,l")) {
+      benchmark = true;
+   }
+
+   // disable server if benchmarking
    if (benchmark) server = false;
 
    // disable server multithreading
@@ -106,8 +81,10 @@ int main(int argc, char* argv[]) {
    std::cout << "\tQuadtree Depth: " << g_Quadtree_Depth << std::endl;
    std::cout << std::endl;
 
+   std::vector<Schema> schemas;
+
    std::cout << "XML Files:" << std::endl;
-   for (const auto& str : inputFiles) {
+   for (const auto& str : input_files) {
       std::cout << "\t" + str << std::endl;
       schemas.emplace_back(str);
    }

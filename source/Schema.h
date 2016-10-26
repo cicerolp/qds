@@ -12,7 +12,7 @@ struct Schema {
 
          name = pt.get<std::string>("config.name");
          bytes = pt.get<uint8_t>("config.bytes");
-         file = std::string(std::getenv("NDS_DATA")) + "\\" + pt.get<std::string>("config.file");
+         file = std::string(std::getenv("NDS_DATA")) + "/" + pt.get<std::string>("config.file");
 
          for (auto& v : pt.get_child("config.schema")) {
             uint32_t index = v.second.get<uint32_t>("index");
