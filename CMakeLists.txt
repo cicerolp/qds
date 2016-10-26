@@ -40,9 +40,9 @@ include(cotire)
 
 aux_source_directory(. SRC_LIST)
 
-include_directories(AFTER include)
-include_directories(AFTER source)
 include_directories(AFTER ./)
+include_directories(AFTER source)
+include_directories(AFTER include)
 
 file(GLOB_RECURSE HEADERS "source/*.h")
 source_group("Header Files" FILES ${HEADERS})

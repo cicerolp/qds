@@ -33,18 +33,21 @@ int main(int argc, char* argv[]) {
    po::options_description desc("\nCommand Line Arguments");
    desc.add_options()
          ("help,h", "produce help message")
+
          ("no-server,s", "disable server")
          ("telemetry,t", "enable telemetry")
+
          ("port,p", po::value<uint32_t>(&nds_opts.port)->default_value(nds_opts.port), "server port")
          ("depth,d", po::value<uint32_t>(&g_Quadtree_Depth)->default_value(g_Quadtree_Depth), "quadtree depth")
          ("passes,p", po::value<uint32_t>(&benchmark_passes)->default_value(benchmark_passes), "number of evaluatinons")
+         
          ("xml,x", po::value<std::vector<std::string>>(&input_files)
           ->default_value(std::vector<std::string>(1, "./xml/brightkite.nds.xml"), "./xml/brightkite.nds.xml")->composing(), "input files")
          ("log,l", po::value<std::vector<std::string>>(&benchmark_files)
           ->default_value(std::vector<std::string>(1, "./csv/brightkite.csv"), "./csv/brightkite.csv")->composing(), "benchmark input files");
 
    po::positional_options_description p;
-   p.add("xml,x", -1);
+   p.add("xml", -1);
 
    po::variables_map vm;
    po::store(po::command_line_parser(argc, argv).options(desc).positional(p).run(), vm);
@@ -63,7 +66,7 @@ int main(int argc, char* argv[]) {
       telemetry = false;
    }
 
-   if (vm.count("log,l")) {
+   if (vm.count("log")) {
       benchmark = true;
    }
 
