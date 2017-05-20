@@ -1,6 +1,8 @@
 project (nds)
 cmake_minimum_required (VERSION 3.0)
 
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
+
 if(WIN32)
    if (MSVC)
       set(CMAKE_CXX_FLAGS "/EHsc")
@@ -32,9 +34,10 @@ if(UNIX)
      COMMAND ${CMAKE_COMMAND} -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ ${CMAKE_SOURCE_DIR}
      COMMENT "Force CMAKE_C/CXX_COMPILER to GCC"
    )
+   
+   find_package(Gperftools REQUIRED)
 endif()
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 
 include(cotire)
 
@@ -65,6 +68,7 @@ add_executable (${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
 
 find_package(Threads REQUIRED)
 
+
 set(Boost_USE_MULTITHREAD ON)
 set(Boost_USE_STATIC_LIBS ON)
 
@@ -73,7 +77,14 @@ find_package(Boost 1.62 COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 
-target_link_libraries (${PROJECT_NAME} LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+
+if(WIN32)
+	target_link_libraries (${PROJECT_NAME} LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+endif()
+
+if(UNIX)
+	target_link_libraries (${PROJECT_NAME} LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${GPERFTOOLS_LIBRARIES})
+endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "source/stdafx.h")
 
