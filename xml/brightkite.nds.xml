@@ -21,7 +21,7 @@
 		</temporal>
 		<spatial>
 			<index>0</index>
-			<bin>32</bin>
+			<bin>1</bin>
 			<offset>0</offset>
 		</spatial>
 	</schema>
