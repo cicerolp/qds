@@ -13,31 +13,9 @@ if(WIN32)
 endif()
 
 if(UNIX)
-   set(CMAKE_CXX_FLAGS "-std=c++1z")
-   
-   add_custom_target(debug
-     COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Debug ${CMAKE_SOURCE_DIR}
-     COMMENT "Switch CMAKE_BUILD_TYPE to Debug"
-   )
-
-   add_custom_target(release
-     COMMAND ${CMAKE_COMMAND} -DCMAKE_BUILD_TYPE=Release ${CMAKE_SOURCE_DIR}
-     COMMENT "Switch CMAKE_BUILD_TYPE to Release"
-   )
-
-   add_custom_target(clang
-     COMMAND ${CMAKE_COMMAND} -DCMAKE_C_COMPILER=/usr/bin/clang  -DCMAKE_CXX_COMPILER=/usr/bin/clang++ ${CMAKE_SOURCE_DIR}
-     COMMENT "Force CMAKE_C/CXX_COMPILER to Clang"
-   )
-
-   add_custom_target(gcc
-     COMMAND ${CMAKE_COMMAND} -DCMAKE_C_COMPILER=/usr/bin/gcc -DCMAKE_CXX_COMPILER=/usr/bin/g++ ${CMAKE_SOURCE_DIR}
-     COMMENT "Force CMAKE_C/CXX_COMPILER to GCC"
-   )
-   
+   #set(CMAKE_CXX_FLAGS "-ltcmalloc -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free") 
    find_package(Gperftools REQUIRED)
 endif()
-
 
 include(cotire)
 
@@ -68,23 +46,15 @@ add_executable (${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
 
 find_package(Threads REQUIRED)
 
-
 set(Boost_USE_MULTITHREAD ON)
 set(Boost_USE_STATIC_LIBS ON)
 
-find_package(Boost 1.62 COMPONENTS program_options REQUIRED)
+find_package(Boost COMPONENTS program_options REQUIRED)
 
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 
-
-if(WIN32)
-	target_link_libraries (${PROJECT_NAME} LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-endif()
-
-if(UNIX)
-	target_link_libraries (${PROJECT_NAME} LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${GPERFTOOLS_LIBRARIES})
-endif()
+target_link_libraries (${PROJECT_NAME} LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${GPERFTOOLS_LIBRARIES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "source/stdafx.h")
 

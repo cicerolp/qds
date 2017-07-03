@@ -13,25 +13,25 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 // C includes
-#include <cmath>
-#include <cstdio>
 #include <cassert>
+#include <cmath>
 #include <cstdint>
+#include <cstdio>
 
 // C++ includes
-#include <map>
-#include <regex>
-#include <array>
-#include <queue>
-#include <tuple>
-#include <thread>
-#include <vector>
-#include <string>
-#include <fstream>
-#include <iostream>
 #include <algorithm>
+#include <array>
+#include <fstream>
 #include <functional>
+#include <iostream>
+#include <map>
+#include <queue>
+#include <regex>
+#include <string>
+#include <thread>
+#include <tuple>
 #include <unordered_map>
+#include <vector>
 
 // boost library
 #include <boost/program_options.hpp>
@@ -45,8 +45,8 @@
 #include <mongoose.h>
 
 // rapidjson
-#include <rapidjson/writer.h>
 #include <rapidjson/stringbuffer.h>
+#include <rapidjson/writer.h>
 
 // dynarray
 #include <robbepop/dynarray.hpp>

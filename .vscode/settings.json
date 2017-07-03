@@ -1,0 +1,8 @@
+{
+  "files.associations": {
+    "chrono": "cpp",
+    "*.tcc": "cpp",
+    "*.ipp": "cpp",
+    "system_error": "cpp"
+  }
+}

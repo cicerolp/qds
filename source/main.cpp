@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
   bool server = true;
   Server::server_opts nds_opts;
   nds_opts.port = 7000;
-  nds_opts.cache = false;
+  nds_opts.cache = true;
   nds_opts.multithreading = true;
 
   bool telemetry = false;
@@ -31,30 +31,37 @@ int main(int argc, char* argv[]) {
 
   // Declare the supported options.
   po::options_description desc("\nCommand Line Arguments");
-  desc.add_options()("help,h", "produce help message")
+  desc.add_options()("help,h", "produce help message");
 
-      ("no-server,s", "disable server")("telemetry,t", "enable telemetry")
+  desc.add_options()("no-server,s", "disable server")("telemetry,t",
+                                                      "enable telemetry");
 
-          ("port,p",
-           po::value<uint32_t>(&nds_opts.port)->default_value(nds_opts.port),
-           "server port")("depth,d",
-                          po::value<uint32_t>(&g_Quadtree_Depth)
-                              ->default_value(g_Quadtree_Depth),
-                          "quadtree depth")(
-              "passes,p",
-              po::value<uint32_t>(&benchmark_passes)
-                  ->default_value(benchmark_passes),
-              "number of evaluatinons")
+  desc.add_options()(
+      "port,p",
+      po::value<uint32_t>(&nds_opts.port)->default_value(nds_opts.port),
+      "server port");
 
-              ("xml,x",
-               po::value<std::vector<std::string>>(&input_files)
-                   ->default_value(
-                       std::vector<std::string>(1, "./xml/brightkite.nds.xml"),
-                       "./xml/brightkite.nds.xml")
-                   ->composing(),
-               "input files")("log,l", po::value<std::vector<std::string>>(
-                                           &benchmark_files),
-                              "benchmark input files");
+  desc.add_options()(
+      "depth,d",
+      po::value<uint32_t>(&g_Quadtree_Depth)->default_value(g_Quadtree_Depth),
+      "quadtree depth");
+
+  desc.add_options()(
+      "passes,p",
+      po::value<uint32_t>(&benchmark_passes)->default_value(benchmark_passes),
+      "number of evaluatinons");
+
+  desc.add_options()("xml,x",
+                     po::value<std::vector<std::string>>(&input_files)
+                         ->default_value(std::vector<std::string>(
+                                             1, "./xml/brightkite.nds.xml"),
+                                         "./xml/brightkite.nds.xml")
+                         ->composing(),
+                     "input files");
+
+  desc.add_options()("log,l",
+                     po::value<std::vector<std::string>>(&benchmark_files),
+                     "benchmark input files");
 
   po::positional_options_description p;
   p.add("xml", -1);
@@ -149,23 +156,19 @@ int main(int argc, char* argv[]) {
     std::cout << "Done." << std::endl;
 
     for (uint32_t pass = 0; pass < benchmark_passes; ++pass) {
-      /*std::cout << "["
-         + std::to_string(pass + 1)
-         + " of "
-         + std::to_string(benchmark_passes)
-         + "] Running "
-         + std::to_string(queries.size())
-         + " queries... ";*/
+      std::cout << "[" + std::to_string(pass + 1) + " of " +
+                       std::to_string(benchmark_passes) + "] Running " +
+                       std::to_string(queries.size()) + " queries... ";
 
       for (auto& query : queries) {
         NDSInstances::getInstance().query(query);
       }
-      /*std::cout << "Done." << std::endl;*/
+      std::cout << "Done." << std::endl;
     }
   }
 
   if (server_ptr) {
-    std::cout << "Server Running..." << std::endl;
+    std::cout << "Server Running... Press any key to exit." << std::endl;
     getchar();
 
     Server::getInstance().stop();
