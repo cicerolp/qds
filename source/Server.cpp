@@ -1,5 +1,4 @@
 #include "Server.h"
-#include "stdafx.h"
 
 void Server::run(server_opts opts) {
   Server::getInstance().nds_opts = opts;

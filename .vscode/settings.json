@@ -3,6 +3,9 @@
     "chrono": "cpp",
     "*.tcc": "cpp",
     "*.ipp": "cpp",
-    "system_error": "cpp"
+    "system_error": "cpp",
+    "ostream": "cpp",
+    "streambuf": "cpp",
+    "cmakeccompilerid.c": "cpp"
   }
 }

@@ -1,6 +1,4 @@
 #include "Spatial.h"
-#include "NDS.h"
-#include "stdafx.h"
 
 Spatial::Spatial(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
     : Dimension(tuple) {}

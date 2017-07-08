@@ -1,5 +1,4 @@
 #include "NDS.h"
-#include "stdafx.h"
 
 #include "Categorical.h"
 #include "Spatial.h"

@@ -1,6 +1,5 @@
-﻿#include "stdafx.h"
+﻿
 #include "SpatialElement.h"
-#include "mercator_util.h"
 
 SpatialElement::SpatialElement(const spatial_t& tile, pivot_ctn* ptr) {
   el.value = tile.data;

@@ -1,6 +1,5 @@
 #include "Temporal.h"
 #include "NDS.h"
-#include "stdafx.h"
 
 Temporal::Temporal(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
     : Dimension(tuple) {}

@@ -1,5 +1,4 @@
 #include "NDSInstances.h"
-#include "stdafx.h"
 
 void NDSInstances::run(const std::vector<Schema>& args, bool telemetry) {
   std::chrono::time_point<std::chrono::high_resolution_clock> start, end;

@@ -1,6 +1,5 @@
 #include "Categorical.h"
 #include "NDS.h"
-#include "stdafx.h"
 
 Categorical::Categorical(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
     : Dimension(tuple), _container(_bin) {}

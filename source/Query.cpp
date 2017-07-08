@@ -1,5 +1,4 @@
 #include "Query.h"
-#include "stdafx.h"
 
 Query::Query(const std::string& url) : Query(string_util::split(url, "[/]+")) {}
 

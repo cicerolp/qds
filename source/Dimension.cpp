@@ -1,6 +1,4 @@
 #include "Dimension.h"
-#include "NDSInstances.h"
-#include "stdafx.h"
 
 Dimension::Dimension(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
     : _key(std::get<0>(tuple)),

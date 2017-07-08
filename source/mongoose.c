@@ -119,7 +119,6 @@ extern void *(*test_calloc)(size_t, size_t);
 #ifndef EXCLUDE_COMMON
 
 #include <assert.h>
-#include <string.h>
 /* Amalgamated: #include "mbuf.h" */
 
 #ifndef MBUF_REALLOC
@@ -675,7 +674,6 @@ void MD5_Final(unsigned char digest[16], MD5_CTX *ctx) {
 #ifndef EXCLUDE_COMMON
 
 /* Amalgamated: #include "base64.h" */
-#include <string.h>
 
 /* ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/ */
 
@@ -1222,10 +1220,6 @@ struct dirent *readdir(DIR *dir) {
 
 #define _CRT_SECURE_NO_WARNINGS /* Disable deprecation warning in VS2005+ */
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 /* Amalgamated: #include "frozen.h" */
 
 #ifdef _WIN32

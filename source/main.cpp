@@ -1,7 +1,5 @@
 #include "NDSInstances.h"
-#include "Schema.h"
 #include "Server.h"
-#include "stdafx.h"
 
 uint32_t g_Quadtree_Depth{25};
 

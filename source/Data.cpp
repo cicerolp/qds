@@ -1,5 +1,4 @@
 #include "Data.h"
-#include "stdafx.h"
 
 Data::Data(const std::string& path) : _path(path) {
   std::ifstream infile(_path, std::ios::binary);

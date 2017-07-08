@@ -3,20 +3,6 @@ cmake_minimum_required (VERSION 3.0)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 
-if(WIN32)
-   if (MSVC)
-      set(CMAKE_CXX_FLAGS "/EHsc")
-   endif()   
-
-   set(BOOST_LIBRARYDIR "C:/Boost/lib/")
-   set(BOOST_INCLUDEDIR "C:/Boost/include/boost-1_62/")
-endif()
-
-if(UNIX)
-   #set(CMAKE_CXX_FLAGS "-ltcmalloc -fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free") 
-   find_package(Gperftools REQUIRED)
-endif()
-
 include(cotire)
 
 aux_source_directory(. SRC_LIST)
@@ -25,10 +11,7 @@ include_directories(AFTER ./)
 include_directories(AFTER source)
 include_directories(AFTER include)
 
-file(GLOB_RECURSE HEADERS "source/*.h")
-source_group("Header Files" FILES ${HEADERS})
-
-add_executable (${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
+add_executable (${PROJECT_NAME} ${SRC_LIST}
    source/mongoose.c
    source/Categorical.cpp
    source/Data.cpp
@@ -44,6 +27,7 @@ add_executable (${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
    source/Temporal.cpp
 )
 
+find_package(Gperftools REQUIRED)
 find_package(Threads REQUIRED)
 
 set(Boost_USE_MULTITHREAD ON)
