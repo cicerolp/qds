@@ -1,5 +1,5 @@
-project (nds)
-cmake_minimum_required (VERSION 3.0)
+project(nds)
+cmake_minimum_required(VERSION 3.0)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 
@@ -11,21 +11,27 @@ include_directories(AFTER ./)
 include_directories(AFTER source)
 include_directories(AFTER include)
 
-add_executable (${PROJECT_NAME} ${SRC_LIST}
-   source/mongoose.c
-   source/Categorical.cpp
-   source/Data.cpp
-   source/Dimension.cpp
-   source/main.cpp
-   source/NDS.cpp
-   source/NDSInstances.cpp
-   source/Query.cpp
-   source/Server.cpp
-   source/Spatial.cpp
-   source/SpatialElement.cpp
-   source/string_util.cpp
-   source/Temporal.cpp
-)
+file(GLOB HEADERS "source/*.h")
+source_group("Header Files" FILES ${HEADERS})
+
+add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
+        source/mongoose.c
+        source/Categorical.cpp
+        source/Data.cpp
+        source/Dimension.cpp
+        source/main.cpp
+        source/NDS.cpp
+        source/NDSInstances.cpp
+        source/Query.cpp
+        source/Server.cpp
+        source/Spatial.cpp
+        source/SpatialElement.cpp
+        source/string_util.cpp
+        source/Temporal.cpp
+
+        include/cpp-tdigest/avltree.cpp
+        include/cpp-tdigest/tdigest.cpp
+        )
 
 find_package(Gperftools REQUIRED)
 find_package(Threads REQUIRED)
@@ -38,7 +44,7 @@ find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 
-target_link_libraries (${PROJECT_NAME} LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${GPERFTOOLS_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${GPERFTOOLS_LIBRARIES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "source/stdafx.h")
 
