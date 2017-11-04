@@ -32,8 +32,8 @@ add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
         include/cpp-tdigest/avltree.cpp
         include/cpp-tdigest/tdigest.cpp
 
-        source/tdigest/AVLTreeInterface.cpp
-        source/tdigest/AVLGroupTree.cpp
+        source/tdigest/AVLTree.cpp
+        source/tdigest/MergingDigest.cpp
         )
 
 find_package(Gperftools REQUIRED)

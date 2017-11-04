@@ -32,6 +32,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
+#include <numeric>
 
 // boost library
 #include <boost/program_options.hpp>

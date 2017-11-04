@@ -4,7 +4,7 @@
 
 #pragma once
 
-class AVLTreeInterface {
+class AVLTree {
  public:
   using node_t = int32_t;
   static const uint32_t NIL = 0;
@@ -14,9 +14,9 @@ class AVLTreeInterface {
     return size + (size >> 3);
   }
 
-  AVLTreeInterface() : AVLTreeInterface(16) {}
+  AVLTree() : AVLTree(16) {}
 
-  AVLTreeInterface(size_t capacity) {
+  AVLTree(size_t capacity) {
     _root = NIL;
     resize(capacity);
   }

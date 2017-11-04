@@ -2,15 +2,15 @@
 // Created by cicerolp on 11/2/17.
 //
 #include "stdafx.h"
-#include "AVLTreeInterface.h"
+#include "AVLTree.h"
 
-void AVLTreeInterface::resize(size_t capacity) {
+void AVLTree::resize(size_t capacity) {
   _parent.resize(capacity);
   _left.resize(capacity);
   _right.resize(capacity);
   _depth.resize(capacity);
 }
-int32_t AVLTreeInterface::first(int32_t node) const {
+int32_t AVLTree::first(int32_t node) const {
   if (node == NIL) {
     return NIL;
   }
@@ -25,7 +25,7 @@ int32_t AVLTreeInterface::first(int32_t node) const {
   return node;
 }
 
-int32_t AVLTreeInterface::last(int32_t node) const {
+int32_t AVLTree::last(int32_t node) const {
   while (true) {
     const int32_t r = right(node);
 
@@ -37,7 +37,7 @@ int32_t AVLTreeInterface::last(int32_t node) const {
   return node;
 }
 
-int32_t AVLTreeInterface::next(int32_t node) const {
+int32_t AVLTree::next(int32_t node) const {
   const int32_t r = right(node);
 
   if (r != NIL) {
@@ -53,7 +53,7 @@ int32_t AVLTreeInterface::next(int32_t node) const {
   }
 }
 
-int32_t AVLTreeInterface::prev(int32_t node) const {
+int32_t AVLTree::prev(int32_t node) const {
   const int32_t l = left(node);
 
   if (l != NIL) {
@@ -69,7 +69,7 @@ int32_t AVLTreeInterface::prev(int32_t node) const {
     return p;
   }
 }
-bool AVLTreeInterface::add() {
+bool AVLTree::add() {
   if (_root == NIL) {
     // TODO root = nodeAllocator.newNode();
     copy(_root);
@@ -117,7 +117,7 @@ bool AVLTreeInterface::add() {
   }
 }
 
-void AVLTreeInterface::rebalance(int32_t node) {
+void AVLTree::rebalance(int32_t node) {
   for (auto n = node; n != NIL;) {
     const int32_t p = parent(n);
 
@@ -150,7 +150,7 @@ void AVLTreeInterface::rebalance(int32_t node) {
     n = p;
   }
 }
-void AVLTreeInterface::rotateLeft(int32_t n) {
+void AVLTree::rotateLeft(int32_t n) {
   const int32_t r = right(n);
 
   const int32_t lr = left(r);
@@ -179,7 +179,7 @@ void AVLTreeInterface::rotateLeft(int32_t n) {
   fixAggregates(parent(n));
 }
 
-void AVLTreeInterface::rotateRight(int32_t n) {
+void AVLTree::rotateRight(int32_t n) {
   const int32_t l = left(n);
 
   const int32_t rl = right(l);
@@ -208,7 +208,7 @@ void AVLTreeInterface::rotateRight(int32_t n) {
   fixAggregates(parent(n));
 }
 
-int32_t AVLTreeInterface::find() const {
+int32_t AVLTree::find() const {
   for (int32_t node = _root; node != NIL;) {
     const int32_t cmp = compare(node);
 
@@ -225,7 +225,7 @@ int32_t AVLTreeInterface::find() const {
   return NIL;
 }
 
-void AVLTreeInterface::update(int32_t node) {
+void AVLTree::update(int32_t node) {
   const int32_t pr = prev(node);
   const int32_t ne = next(node);
 
@@ -245,7 +245,7 @@ void AVLTreeInterface::update(int32_t node) {
   }
 }
 
-void AVLTreeInterface::remove(int32_t node) {
+void AVLTree::remove(int32_t node) {
   if (left(node) != NIL && right(node) != NIL) {
     // inner node
     const int32_t ne = next(node);
