@@ -56,6 +56,3 @@
 #include <gfx/timsort.hpp>
 
 #include "types.h"
-
-#include "cpp-tdigest/avltree.hpp"
-#include "cpp-tdigest/tdigest.hpp"

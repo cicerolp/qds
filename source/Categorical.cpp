@@ -15,20 +15,11 @@ uint32_t Categorical::build(const build_ctn& range, build_ctn& response,
   for (const auto& ptr : range) {
     std::vector<uint32_t> used(_bin, 0);
 
-    // tdigest
-    std::vector<TDigest *> tdigests(_bin);
-    for (auto i = 0; i < tdigests.size(); ++i) {
-      tdigests[i] = new TDigest(100);
-    }
-
     for (auto i = ptr.front(); i < ptr.back(); ++i) {
       auto value = (*nds.data()->record<categorical_t>(i));
 
       nds.data()->setHash(i, value);
       ++used[value];
-
-      // tdigest
-      tdigests[value]->add(rand() % 1001);
     }
 
     uint32_t accum = ptr.front();
@@ -39,8 +30,7 @@ uint32_t Categorical::build(const build_ctn& range, build_ctn& response,
       accum += used[i];
       uint32_t second = accum;
 
-      // tdigest
-      tmp_ctn[i].emplace_back(first, second, tdigests[i]);
+      tmp_ctn[i].emplace_back(first, second);
 
       response.emplace_back(first, second);
       ++pivots_count;

@@ -1,44 +1,35 @@
 #include "Temporal.h"
 #include "NDS.h"
 
-Temporal::Temporal(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple)
+Temporal::Temporal(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
     : Dimension(tuple) {}
 
-uint32_t Temporal::build(const build_ctn &range, build_ctn &response,
-                         const link_ctn &links, link_ctn &share, NDS &nds) {
+uint32_t Temporal::build(const build_ctn& range, build_ctn& response,
+                         const link_ctn& links, link_ctn& share, NDS& nds) {
   nds.data()->prepareOffset<temporal_t>(_offset);
 
   uint32_t pivots_count = 0;
 
   std::map<temporal_t, std::vector<Pivot>> tmp_ctn;
 
-  for (const auto &ptr : range) {
+  for (const auto& ptr : range) {
     std::map<temporal_t, uint32_t> used;
-
-    // tdigest
-    std::map<temporal_t, TDigest *> tdigests;
 
     for (auto i = ptr.front(); i < ptr.back(); ++i) {
       auto value = (*nds.data()->record<temporal_t>(i));
-      auto binned_value = static_cast<temporal_t>(value / static_cast<float>(_bin)) * _bin;
+      value = static_cast<temporal_t>(value / static_cast<float>(_bin)) * _bin;
 
-      nds.data()->setHash(i, binned_value);
-      ++used[binned_value];
-
-      // tdigest
-      if (tdigests[binned_value] == nullptr) {
-        tdigests[binned_value] = new TDigest(100);
-      }
-      tdigests[binned_value]->add(rand() % 1001);
+      nds.data()->setHash(i, value);
+      ++used[value];
     }
 
     uint32_t accum = ptr.front();
-    for (const auto &entry : used) {
+    for (const auto& entry : used) {
       uint32_t first = accum;
       accum += entry.second;
       uint32_t second = accum;
 
-      tmp_ctn[entry.first].emplace_back(first, second, tdigests[entry.first]);
+      tmp_ctn[entry.first].emplace_back(first, second);
 
       response.emplace_back(first, second);
       pivots_count++;
@@ -50,7 +41,7 @@ uint32_t Temporal::build(const build_ctn &range, build_ctn &response,
   _container = stde::dynarray<TemporalElement>(tmp_ctn.size());
 
   uint32_t index = 0;
-  for (auto &pair : tmp_ctn) {
+  for (auto& pair : tmp_ctn) {
     _container[index].el.value = pair.first;
     nds.share(_container[index].el, pair.second, links, share);
     ++index;
@@ -61,10 +52,10 @@ uint32_t Temporal::build(const build_ctn &range, build_ctn &response,
   return pivots_count;
 }
 
-bool Temporal::query(const Query &query, subset_container &subsets) const {
+bool Temporal::query(const Query& query, subset_container& subsets) const {
   if (!query.eval(_key)) return true;
 
-  const auto &interval = query.get<Query::temporal_query_t>(_key)->interval;
+  const auto& interval = query.get<Query::temporal_query_t>(_key)->interval;
 
   if (query.type() != Query::TSERIES &&
       interval.contain(_container.front().el.value,

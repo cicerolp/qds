@@ -1,26 +1,26 @@
 ﻿
 #include "SpatialElement.h"
 
-SpatialElement::SpatialElement(const spatial_t &tile, pivot_ctn *ptr) {
+SpatialElement::SpatialElement(const spatial_t& tile, pivot_ctn* ptr) {
   el.value = tile.data;
   el.pivots = ptr;
 }
 
-SpatialElement::SpatialElement(const spatial_t &tile, const build_ctn &range,
-                               NDS &nds) {
+SpatialElement::SpatialElement(const spatial_t& tile, const build_ctn& range,
+                               NDS& nds) {
   el.value = tile.data;
   el.pivots = nds.create_link(el, range);
 }
 
-SpatialElement::SpatialElement(const spatial_t &tile, const build_ctn &range,
-                               const link_ctn &links, NDS &nds) {
+SpatialElement::SpatialElement(const spatial_t& tile, const build_ctn& range,
+                               const link_ctn& links, NDS& nds) {
   el.value = tile.data;
   el.pivots = nds.get_link(el, range, links);
 }
 
-uint32_t SpatialElement::expand(build_ctn &response, uint32_t bin,
-                                link_ctn &share, NDS &nds) {
-  spatial_t &value = (*reinterpret_cast<spatial_t *>(&el.value));
+uint32_t SpatialElement::expand(build_ctn& response, uint32_t bin,
+                                link_ctn& share, NDS& nds) {
+  spatial_t& value = (*reinterpret_cast<spatial_t*>(&el.value));
 
   uint8_t next_level = value.z + 1;
   uint32_t pivots_count = static_cast<uint32_t>(el.ptr().size());
@@ -31,14 +31,8 @@ uint32_t SpatialElement::expand(build_ctn &response, uint32_t bin,
     // node will be expanded
     value.leaf = 0;
 
-    for (const auto &ptr : el.ptr()) {
+    for (const auto& ptr : el.ptr()) {
       std::array<uint32_t, 4> used{};
-
-      // tdigest
-      std::array<TDigest *, 4> tdigests;
-      for (auto i = 0; i < tdigests.size(); ++i) {
-        tdigests[i] = new TDigest(100);
-      }
 
       for (auto i = ptr.front(); i < ptr.back(); ++i) {
         auto coords = nds.data()->record<coordinates_t>(i);
@@ -49,9 +43,6 @@ uint32_t SpatialElement::expand(build_ctn &response, uint32_t bin,
 
         nds.data()->setHash(i, index);
         ++used[index];
-
-        // tdigest
-        tdigests[index]->add(rand() % 1001);
       }
 
       // sorting
@@ -65,7 +56,7 @@ uint32_t SpatialElement::expand(build_ctn &response, uint32_t bin,
         accum += used[i];
         uint32_t second = accum;
 
-        tmp_ctn[i].emplace_back(first, second, tdigests[i]);
+        tmp_ctn[i].emplace_back(first, second);
       }
     }
 
@@ -101,9 +92,9 @@ uint32_t SpatialElement::expand(build_ctn &response, uint32_t bin,
   return pivots_count;
 }
 
-void SpatialElement::query_tile(const spatial_t &tile, uint64_t resolution,
-                                binned_ctn &subset, uint64_t zoom) const {
-  const spatial_t &value = (*reinterpret_cast<const spatial_t *>(&el.value));
+void SpatialElement::query_tile(const spatial_t& tile, uint64_t resolution,
+                                binned_ctn& subset, uint64_t zoom) const {
+  const spatial_t& value = (*reinterpret_cast<const spatial_t*>(&el.value));
 
   if (value.contains(tile)) {
     if (value.leaf || zoom == tile.z) {
@@ -121,9 +112,9 @@ void SpatialElement::query_tile(const spatial_t &tile, uint64_t resolution,
   }
 }
 
-void SpatialElement::query_region(const region_t &region, binned_ctn &subset,
+void SpatialElement::query_region(const region_t& region, binned_ctn& subset,
                                   uint64_t zoom) const {
-  const spatial_t &value = (*reinterpret_cast<const spatial_t *>(&el.value));
+  const spatial_t& value = (*reinterpret_cast<const spatial_t*>(&el.value));
 
   if (region.intersect(value)) {
     if (zoom == region.z || value.leaf) {
@@ -143,9 +134,9 @@ void SpatialElement::query_region(const region_t &region, binned_ctn &subset,
   }
 }
 
-void SpatialElement::aggregate_tile(uint64_t resolution, binned_ctn &subset,
+void SpatialElement::aggregate_tile(uint64_t resolution, binned_ctn& subset,
                                     uint64_t zoom) const {
-  const spatial_t &value = (*reinterpret_cast<const spatial_t *>(&el.value));
+  const spatial_t& value = (*reinterpret_cast<const spatial_t*>(&el.value));
 
   if (zoom == resolution || value.leaf) {
     subset.emplace_back(&el);
