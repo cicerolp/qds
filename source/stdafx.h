@@ -56,3 +56,5 @@
 #include <gfx/timsort.hpp>
 
 #include "types.h"
+
+#include "tdigest/MergingDigest.h"

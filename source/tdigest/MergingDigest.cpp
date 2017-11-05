@@ -23,13 +23,13 @@ MergingDigest::MergingDigest(double compression, int32_t size) : _compression(co
 
 void MergingDigest::add(std::vector<double> inMean, std::vector<double> inWeight) {
 
-  inMean.insert(inMean.end(), _mean.begin(), _mean.end());
-  inWeight.insert(inWeight.end(), _weight.begin(), _weight.end());
-
   double unmergedWeight = 0;
   for (const auto &w : inWeight) {
     unmergedWeight += w;
   }
+
+  inMean.insert(inMean.end(), _mean.begin(), _mean.begin() + _lastUsedCell);
+  inWeight.insert(inWeight.end(), _weight.begin(), _weight.begin() + _lastUsedCell);
 
   int32_t incomingCount = inMean.size();
 
@@ -97,9 +97,11 @@ void MergingDigest::add(std::vector<double> inMean, std::vector<double> inWeight
     _min = std::min(_min, _mean[0]);
     _max = std::max(_max, _mean[_lastUsedCell - 1]);
   }
+
+  assert (_lastUsedCell < _mean.size());
 }
 
-void MergingDigest::merge(MergingDigest &other) {
+void MergingDigest::merge(const MergingDigest &other) {
   //other.compress();
 
   add(other._mean, other._weight);

@@ -10,9 +10,14 @@ class MergingDigest {
 
   MergingDigest(double compression, int32_t size);
 
+  // TODO tdigest remove
+  inline void add(double m, double w) {
+    add(std::vector<double>{m}, std::vector<double>{w});
+  }
+
   void add(std::vector<double> inMean, std::vector<double> inWeight);
 
-  void merge(MergingDigest &other);
+  void merge(const MergingDigest &other);
 
   inline size_t size() const {
     return (size_t) _totalWeight;
@@ -86,10 +91,10 @@ class MergingDigest {
   const double _compression;
 
   // points to the first unused centroid
-  int32_t _lastUsedCell;
+  int32_t _lastUsedCell{0};
 
   // sum_i weight[i]  See also unmergedWeight
-  double _totalWeight = 0;
+  double _totalWeight{0};
 
   // number of points that have been added to each merged centroid
   std::vector<double> _weight;
@@ -97,5 +102,5 @@ class MergingDigest {
   std::vector<double> _mean;
 
   static const bool usePieceWiseApproximation = true;
-  static const bool useWeightLimit = true;
+  static const bool useWeightLimit = false;
 };
