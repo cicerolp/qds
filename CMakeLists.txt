@@ -1,6 +1,11 @@
 project(nds)
 cmake_minimum_required(VERSION 3.0)
 
+set(TDIGEST_COMPRESSION "100.0" CACHE STRING "TDigest Compression Ratio (double)")
+
+configure_file (source/config.h.in config.h)
+include_directories("${CMAKE_CURRENT_BINARY_DIR}") # To find the .h
+
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 
 include(cotire)

@@ -1,0 +1,10 @@
+//
+// Created by cicerolp on 11/5/17.
+//
+
+#ifndef NDS_CONFIG_H_IN
+#define NDS_CONFIG_H_IN
+
+#define TDIGEST_COMPRESSION @TDIGEST_COMPRESSION@
+
+#endif //NDS_CONFIG_H_IN
