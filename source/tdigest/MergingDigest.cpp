@@ -5,42 +5,39 @@
 #include "stdafx.h"
 #include "MergingDigest.h"
 
-MergingDigest::MergingDigest(double compression, int32_t size) : _compression(compression) {
-  if (size == -1) {
-    size = (int32_t) (2 * std::ceil(compression));
-    if (useWeightLimit) {
-      // the weight limit approach generates smaller centroids than necessary
-      // that can result in using a bit more memory than expected
-      size += 10;
-    }
+// TODO tdigest get mean from data
+void MergingDigest::add(NDS &nds, uint32_t front, uint32_t back) {
+  std::vector<double> inMean;
+  inMean.reserve(back - front);
+
+  for (auto p = front; p < back; ++p) {
+    inMean.emplace_back(rand() % 1001);
   }
 
-  _weight.resize(size);
-  _mean.resize(size);
+  std::vector<double> inWeight(back - front, 1);
 
-  _lastUsedCell = 0;
+  add(inMean, inWeight);
 }
 
 void MergingDigest::add(std::vector<double> inMean, std::vector<double> inWeight) {
-
-  double unmergedWeight = 0;
-  for (const auto &w : inWeight) {
-    unmergedWeight += w;
-  }
-
-  inMean.insert(inMean.end(), _mean.begin(), _mean.begin() + _lastUsedCell);
-  inWeight.insert(inWeight.end(), _weight.begin(), _weight.begin() + _lastUsedCell);
+  inMean.insert(inMean.end(), _mean.begin(), _mean.end());
+  inWeight.insert(inWeight.end(), _weight.begin(), _weight.end());
 
   int32_t incomingCount = inMean.size();
 
   auto inOrder = sort_indexes(inMean);
 
-  _totalWeight += unmergedWeight;
-  double normalizer = _compression / (M_PI * _totalWeight);
+  double totalWeight = std::accumulate(inWeight.begin(), inWeight.end(), 0.0);
 
-  _lastUsedCell = 0;
-  _mean[_lastUsedCell] = inMean[inOrder[0]];
-  _weight[_lastUsedCell] = inWeight[inOrder[0]];
+  double normalizer = TDIGEST_COMPRESSION / (M_PI * totalWeight);
+
+  // points to the first unused centroid
+  _mean.clear();
+  _weight.clear();
+
+  //_lastUsedCell = 0;
+  _mean.emplace_back(inMean[inOrder[0]]);
+  _weight.emplace_back(inWeight[inOrder[0]]);
 
   double wSoFar = 0;
 
@@ -48,19 +45,20 @@ void MergingDigest::add(std::vector<double> inMean, std::vector<double> inWeight
 
   // weight will contain all zeros
   double wLimit;
-  wLimit = _totalWeight * integratedQ(k1 + 1);
+  wLimit = totalWeight * integratedQ(k1 + 1);
 
   for (int i = 1; i < incomingCount; i++) {
     int ix = inOrder[i];
-    double proposedWeight = _weight[_lastUsedCell] + inWeight[ix];
+    double proposedWeight = _weight.back() + inWeight[ix];
+    //double proposedWeight = _weight[_lastUsedCell] + inWeight[ix];
 
     double projectedW = wSoFar + proposedWeight;
 
     bool addThis = false;
     if (useWeightLimit) {
       double z = proposedWeight * normalizer;
-      double q0 = wSoFar / _totalWeight;
-      double q2 = (wSoFar + proposedWeight) / _totalWeight;
+      double q0 = wSoFar / totalWeight;
+      double q2 = (wSoFar + proposedWeight) / totalWeight;
       addThis = z * z <= q0 * (1 - q0) && z * z <= q2 * (1 - q2);
     } else {
       addThis = projectedW <= wLimit;
@@ -69,36 +67,42 @@ void MergingDigest::add(std::vector<double> inMean, std::vector<double> inWeight
     if (addThis) {
       // next point will fit
       // so merge into existing centroid
-      _weight[_lastUsedCell] += inWeight[ix];
-      _mean[_lastUsedCell] = _mean[_lastUsedCell]
-          + (inMean[ix] - _mean[_lastUsedCell]) * inWeight[ix] / _weight[_lastUsedCell];
+      _weight.back() += inWeight[ix];
+      _mean.back() = _mean.back()
+          + (inMean[ix] - _mean.back()) * inWeight[ix] / _weight.back();
+
+      //_weight[_lastUsedCell] += inWeight[ix];
+      //_mean[_lastUsedCell] = _mean[_lastUsedCell]
+      //+ (inMean[ix] - _mean[_lastUsedCell]) * inWeight[ix] / _weight[_lastUsedCell];
 
       inWeight[ix] = 0;
 
     } else {
       // didn't fit ... move to next output, copy out first centroid
-      wSoFar += _weight[_lastUsedCell];
+      //wSoFar += _weight[_lastUsedCell];
+      wSoFar += _weight.back();
 
       if (!useWeightLimit) {
-        k1 = integratedLocation(wSoFar / _totalWeight);
-        wLimit = _totalWeight * integratedQ(k1 + 1);
+        k1 = integratedLocation(wSoFar / totalWeight);
+        wLimit = totalWeight * integratedQ(k1 + 1);
       }
 
-      _lastUsedCell++;
-      _mean[_lastUsedCell] = inMean[ix];
-      _weight[_lastUsedCell] = inWeight[ix];
+      _mean.emplace_back(inMean[ix]);
+      _weight.emplace_back(inWeight[ix]);
+      //_lastUsedCell++;
+      //_mean[_lastUsedCell] = inMean[ix];
+      //_weight[_lastUsedCell] = inWeight[ix];
       inWeight[ix] = 0;
     }
   }
   // points to next empty cell
-  _lastUsedCell++;
+  //_lastUsedCell++;
 
-  if (_totalWeight > 0) {
+  if (totalWeight > 0) {
     _min = std::min(_min, _mean[0]);
-    _max = std::max(_max, _mean[_lastUsedCell - 1]);
+    _max = std::max(_max, _mean.back());
+    //_max = std::max(_max, _mean[_lastUsedCell - 1]);
   }
-
-  assert (_lastUsedCell < _mean.size());
 }
 
 void MergingDigest::merge(const MergingDigest &other) {
@@ -108,20 +112,25 @@ void MergingDigest::merge(const MergingDigest &other) {
 }
 
 double MergingDigest::quantile(double q) {
-  if (_lastUsedCell == 0 && _weight[_lastUsedCell] == 0) {
+  //if (_lastUsedCell == 0 && _weight[_lastUsedCell] == 0) {
+  if (_mean.size() == 0) {
     // no centroids means no data, no way to get a quantile
     return std::numeric_limits<double>::quiet_NaN();
 
-  } else if (_lastUsedCell == 0) {
+    //} else if (_lastUsedCell == 0) {
+  } else if (_mean.size() == 1) {
     // with one data point, all quantiles lead to Rome
     return _mean[0];
   }
 
   // we know that there are at least two centroids now
-  int32_t n = _lastUsedCell;
+  //int32_t n = _lastUsedCell;
+  int32_t n = _mean.size();
+
+  double totalWeight = std::accumulate(_weight.begin(), _weight.end(), 0.0);
 
   // if values were stored in a sorted array, index would be the offset we are interested in
-  const double index = q * _totalWeight;
+  const double index = q * totalWeight;
 
   // at the boundaries, we return min or max
   if (index < _weight[0] / 2) {
@@ -146,7 +155,7 @@ double MergingDigest::quantile(double q) {
 
   // weightSoFar = totalWeight - weight[n-1]/2 (very nearly)
   // so we interpolate out to max value ever seen
-  double z1 = index - _totalWeight - _weight[n - 1] / 2.0;
+  double z1 = index - totalWeight - _weight[n - 1] / 2.0;
   double z2 = _weight[n - 1] / 2 - z1;
 
   return weightedAverage(_mean[n - 1], z1, _max, z2);
@@ -224,5 +233,6 @@ double MergingDigest::asinApproximation(double x) {
     return std::asin(x);
   }
 }
+
 
 

@@ -15,21 +15,15 @@ uint32_t Categorical::build(const build_ctn& range, build_ctn& response,
   for (const auto& ptr : range) {
     std::vector<uint32_t> used(_bin, 0);
 
-    // TODO tdigest
-    std::vector<std::shared_ptr<MergingDigest>> tdigests(_bin);
-    for (auto i = 0; i < tdigests.size(); ++i) {
-      tdigests[i] = std::make_shared<MergingDigest>(100);
-    }
-
     for (auto i = ptr.front(); i < ptr.back(); ++i) {
       auto value = (*nds.data()->record<categorical_t>(i));
 
       nds.data()->setHash(i, value);
       ++used[value];
-
-      // TODO tdigest
-      tdigests[value]->add(rand() % 1001, 1);
     }
+
+    // sort before tdigesting...
+    nds.data()->sort(ptr.front(), ptr.back());
 
     uint32_t accum = ptr.front();
     for (uint32_t i = 0; i < _bin; ++i) {
@@ -39,17 +33,11 @@ uint32_t Categorical::build(const build_ctn& range, build_ctn& response,
       accum += used[i];
       uint32_t second = accum;
 
-      // TODO tdigest
-      tmp_ctn[i].emplace_back(first, second, tdigests[i]);
-
-      std::cout << "MEDIAN: "          << tdigests[i]->quantile(0.1) << std::endl;
-      std::cout << "95-PERCENTILE "    << tdigests[i]->quantile(0.95) << std::endl;
+      tmp_ctn[i].emplace_back(first, second, std::make_shared<MergingDigest>(nds, first, second));
 
       response.emplace_back(first, second);
       ++pivots_count;
     }
-
-    nds.data()->sort(ptr.front(), ptr.back());
   }
 
   for (uint32_t index = 0; index < _bin; ++index) {

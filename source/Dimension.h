@@ -4,6 +4,7 @@
 #include "Data.h"
 #include "Pivot.h"
 #include "Query.h"
+#include "tdigest/MergingDigest.h"
 
 class NDS;
 
@@ -60,7 +61,7 @@ void Dimension::write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer,
   std::vector<uint32_t> map(subset.size(), 0);
 
   // TODO tdigest
-  MergingDigest tdigest(100);
+  MergingDigest tdigest;
 
   for (auto el = 0; el < subset.size(); ++el) {
     pivot_it it_lower = subset[el]->ptr().begin(), it_upper;
@@ -97,11 +98,21 @@ void Dimension::write_range(rapidjson::Writer<rapidjson::StringBuffer>& writer,
                             range_container& range, const binned_ctn& subset) {
   Container<uint64_t, uint32_t> map;
 
+  // TODO tdigest
+  MergingDigest tdigest;
+
   for (const auto& el : subset) {
     pivot_it it_lower = el->ptr().begin(), it_upper;
     range_iterator it_range = range.begin();
 
     while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+
+      // TODO tdigest
+      pivot_it it_tdigest = it_lower;
+      while (it_tdigest != it_upper) {
+        tdigest.merge((*it_tdigest++).tdigest());
+      }
+
       map[(*it_range).value] += count_and_increment(it_lower, it_upper);
       ++it_range;
     }
@@ -114,6 +125,9 @@ void Dimension::write_range(rapidjson::Writer<rapidjson::StringBuffer>& writer,
     writer.Uint(pair.second);
     writer.EndArray();
   }
+
+  std::cout << "MEDIAN: "          << tdigest.quantile(0.5) << std::endl;
+  std::cout << "95-PERCENTILE "    << tdigest.quantile(0.95) << std::endl;
 }
 
 bool Dimension::search_iterators(range_iterator& it_range,
@@ -146,11 +160,22 @@ bool Dimension::search_iterators(range_iterator& it_range,
   return true;
 }
 
+// TODO tdigest enable compactation
 void Dimension::compactation(range_container& input, range_container& output,
                              CopyOption option) {
   output.emplace_back(input.front());
 
   if (option == DefaultCopy || option == CopyValueFromSubset) {
+    for (size_t i = 1; i < input.size(); ++i) {
+      output.emplace_back(input[i]);
+    }
+  } else {
+    for (size_t i = 1; i < input.size(); ++i) {
+      output.emplace_back(input[i]);
+    }
+  }
+
+  /*if (option == DefaultCopy || option == CopyValueFromSubset) {
     for (size_t i = 1; i < input.size(); ++i) {
       if (Pivot::is_sequence(output.back().pivot, input[i].pivot)) {
         output.back().pivot.back(input[i].pivot.back());
@@ -166,7 +191,7 @@ void Dimension::compactation(range_container& input, range_container& output,
         output.emplace_back(input[i]);
       }
     }
-  }
+  }*/
 }
 
 void Dimension::swap_and_sort(range_container& range, range_container& response,

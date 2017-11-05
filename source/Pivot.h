@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include "types.h"
+#include "tdigest/MergingDigest.h"
 
 class BinnedPivot;
 
@@ -9,7 +10,8 @@ class Pivot {
  public:
   Pivot() = default;
 
-  Pivot(uint32_t first, uint32_t second) : _first(first), _second(second) {};
+  Pivot(uint32_t first, uint32_t second)
+      : _first(first), _second(second), _tdigest(std::make_shared<MergingDigest>()) {};
 
   Pivot(uint32_t first, uint32_t second, const std::shared_ptr<MergingDigest> &tdigest)
       : _first(first), _second(second), _tdigest(tdigest) {};
@@ -43,7 +45,7 @@ class Pivot {
   }
 
   // TODO tdigest
-  inline const MergingDigest& tdigest() const {
+  inline const MergingDigest &tdigest() const {
     return *_tdigest;
   }
 

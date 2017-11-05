@@ -4,38 +4,44 @@
 
 #pragma once
 
+class NDS;
+
 class MergingDigest {
  public:
-  MergingDigest(double compression) : MergingDigest(compression, -1) {}
-
-  MergingDigest(double compression, int32_t size);
-
-  // TODO tdigest remove
-  inline void add(double m, double w) {
-    add(std::vector<double>{m}, std::vector<double>{w});
+  MergingDigest() {
+    allocateArrays(-1);
   }
+
+  MergingDigest(NDS &nds, uint32_t front, uint32_t back) {
+    allocateArrays(-1);
+
+    add(nds, front, back);
+  }
+
+  void add(NDS &nds, uint32_t front, uint32_t back);
 
   void add(std::vector<double> inMean, std::vector<double> inWeight);
 
   void merge(const MergingDigest &other);
 
-  inline size_t size() const {
-    return (size_t) _totalWeight;
-  }
-
   double quantile(double q);
 
   inline int32_t centroidCount() const {
-    return _lastUsedCell;
+    return _mean.size();
+  }
+
+  inline void shrink_to_fit() {
+    _mean.shrink_to_fit();
+    _weight.shrink_to_fit();
   }
 
  private:
   inline double integratedLocation(double q) const {
-    return _compression * (asinApproximation(2 * q - 1) + M_PI / 2) / M_PI;
+    return TDIGEST_COMPRESSION * (asinApproximation(2 * q - 1) + M_PI / 2) / M_PI;
   }
 
   inline double integratedQ(double k) const {
-    return (std::sin(std::min(k, _compression) * M_PI / _compression - M_PI / 2) + 1) / 2;
+    return (std::sin(std::min(k, TDIGEST_COMPRESSION) * M_PI / TDIGEST_COMPRESSION - M_PI / 2) + 1) / 2;
   }
 
   static double asinApproximation(double x);
@@ -85,16 +91,22 @@ class MergingDigest {
     return idx;
   }
 
+  inline void allocateArrays(int32_t size) {
+    if (size == -1) {
+      size = (int32_t) (2 * std::ceil(TDIGEST_COMPRESSION));
+      if (useWeightLimit) {
+        // the weight limit approach generates smaller centroids than necessary
+        // that can result in using a bit more memory than expected
+        size += 10;
+      }
+    }
+
+    _weight.reserve(size);
+    _mean.reserve(size);
+  }
+
   double _min = std::numeric_limits<double>::max();
   double _max = std::numeric_limits<double>::min();
-
-  const double _compression;
-
-  // points to the first unused centroid
-  int32_t _lastUsedCell{0};
-
-  // sum_i weight[i]  See also unmergedWeight
-  double _totalWeight{0};
 
   // number of points that have been added to each merged centroid
   std::vector<double> _weight;

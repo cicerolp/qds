@@ -12,6 +12,9 @@
 #define _USE_MATH_DEFINES
 #define _CRT_SECURE_NO_WARNINGS
 
+// CMake Config File
+#include "config.h"
+
 // C includes
 #include <cassert>
 #include <cmath>
@@ -57,4 +60,3 @@
 
 #include "types.h"
 
-#include "tdigest/MergingDigest.h"
