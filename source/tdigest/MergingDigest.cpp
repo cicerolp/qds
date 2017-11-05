@@ -27,7 +27,7 @@ void MergingDigest::add(std::vector<double> inMean, std::vector<double> inWeight
   inWeight.insert(inWeight.end(), _weight.begin(), _weight.end());
 
   double unmergedWeight = 0;
-  for (const auto& w : inWeight) {
+  for (const auto &w : inWeight) {
     unmergedWeight += w;
   }
 
@@ -98,6 +98,58 @@ void MergingDigest::add(std::vector<double> inMean, std::vector<double> inWeight
     _max = std::max(_max, _mean[_lastUsedCell - 1]);
   }
 }
+
+void MergingDigest::merge(MergingDigest &other) {
+  //other.compress();
+
+  add(other._mean, other._weight);
+}
+
+double MergingDigest::quantile(double q) {
+  if (_lastUsedCell == 0 && _weight[_lastUsedCell] == 0) {
+    // no centroids means no data, no way to get a quantile
+    return std::numeric_limits<double>::quiet_NaN();
+
+  } else if (_lastUsedCell == 0) {
+    // with one data point, all quantiles lead to Rome
+    return _mean[0];
+  }
+
+  // we know that there are at least two centroids now
+  int32_t n = _lastUsedCell;
+
+  // if values were stored in a sorted array, index would be the offset we are interested in
+  const double index = q * _totalWeight;
+
+  // at the boundaries, we return min or max
+  if (index < _weight[0] / 2) {
+    return _min + 2 * index / _weight[0] * (_mean[0] - _min);
+  }
+
+  // in between we interpolate between centroids
+  double weightSoFar = _weight[0] / 2;
+
+  for (auto i = 0; i < n - 1; ++i) {
+    double dw = (_weight[i] + _weight[i + 1]) / 2;
+
+    if (weightSoFar + dw > index) {
+      // centroids i and i+1 bracket our current point
+      double z1 = index - weightSoFar;
+      double z2 = weightSoFar + dw - index;
+      return weightedAverage(_mean[i], z2, _mean[i + 1], z1);
+    }
+
+    weightSoFar += dw;
+  }
+
+  // weightSoFar = totalWeight - weight[n-1]/2 (very nearly)
+  // so we interpolate out to max value ever seen
+  double z1 = index - _totalWeight - _weight[n - 1] / 2.0;
+  double z2 = _weight[n - 1] / 2 - z1;
+
+  return weightedAverage(_mean[n - 1], z1, _max, z2);
+}
+
 double MergingDigest::asinApproximation(double x) {
   if (usePieceWiseApproximation) {
     if (x < 0) {
@@ -170,3 +222,5 @@ double MergingDigest::asinApproximation(double x) {
     return std::asin(x);
   }
 }
+
+

@@ -12,6 +12,18 @@ class MergingDigest {
 
   void add(std::vector<double> inMean, std::vector<double> inWeight);
 
+  void merge(MergingDigest &other);
+
+  inline size_t size() const {
+    return (size_t) _totalWeight;
+  }
+
+  double quantile(double q);
+
+  inline int32_t centroidCount() const {
+    return _lastUsedCell;
+  }
+
  private:
   inline double integratedLocation(double q) const {
     return _compression * (asinApproximation(2 * q - 1) + M_PI / 2) / M_PI;
@@ -41,6 +53,19 @@ class MergingDigest {
     }
   }
 
+  inline static double weightedAverage(double x1, double w1, double x2, double w2) {
+    if (x1 <= x2) {
+      return weightedAverageSorted(x1, w1, x2, w2);
+    } else {
+      return weightedAverageSorted(x2, w2, x1, w1);
+    }
+  }
+
+  inline static double weightedAverageSorted(double x1, double w1, double x2, double w2) {
+    const double x = (x1 * w1 + x2 * w2) / (w1 + w2);
+    return std::max(x1, std::min(x, x2));
+  }
+
   template<typename T>
   std::vector<size_t> sort_indexes(const std::vector<T> &v) {
 
@@ -50,7 +75,7 @@ class MergingDigest {
 
     // sort indexes based on comparing values in v
     std::sort(idx.begin(), idx.end(),
-         [&v](size_t i1, size_t i2) { return v[i1] < v[i2]; });
+              [&v](size_t i1, size_t i2) { return v[i1] < v[i2]; });
 
     return idx;
   }
@@ -70,23 +95,6 @@ class MergingDigest {
   std::vector<double> _weight;
   // mean of points added to each merged centroid
   std::vector<double> _mean;
-
-  // history of all data added to centroids (for testing purposes)
-  // std::vector<std::vector<double>> _data;
-
-  // sum_i tempWeight[i]
-  //double unmergedWeight = 0;
-
-  // this is the index of the next temporary centroid
-  // this is a more Java-like convention than lastUsedCell uses
-  //int32_t _tempUsed = 0;
-  //std::vector<double> _tempWeight;
-  //std::vector<double> _tempMean;
-  //std::vector<std::vector<double>> _tempData;
-
-  // array used for sorting the temp centroids.  This is a field
-  // to avoid allocations during operation
-  //std::vector<int32_t> _order;
 
   static const bool usePieceWiseApproximation = true;
   static const bool useWeightLimit = true;
