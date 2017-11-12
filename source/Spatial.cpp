@@ -20,10 +20,11 @@ uint32_t Spatial::build(const build_ctn& range, build_ctn& response,
 }
 
 bool Spatial::query(const Query& query, subset_container& subsets) const {
-  if (!query.eval(_key) || _tree == nullptr) return true;
+  const auto &restriction = query.eval<Query::spatial_query_t>(_key);
+
+  if (!restriction || _tree == nullptr) return true;
 
   subset_t subset;
-  auto restriction = query.get<Query::spatial_query_t>(_key);
 
   if (restriction->tile.size()) {
     _tree->query_tile(restriction->tile[0], restriction->resolution,
