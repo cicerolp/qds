@@ -2,7 +2,6 @@
 
 #include "stdafx.h"
 #include "types.h"
-#include "tdigest/MergingDigest.h"
 
 class BinnedPivot;
 
@@ -10,11 +9,20 @@ class Pivot {
  public:
   Pivot() = default;
 
-  Pivot(uint32_t first, uint32_t second)
-      : _first(first), _second(second), _tdigest(std::make_shared<MergingDigest>()) {};
+  Pivot(uint32_t first, uint32_t second, bool readPDigestData = true) : _first(first), _second(second) {
+    if (readPDigestData) {
+      // TODO get value from dataset
+      std::vector<double> inMean;
+      inMean.reserve(second - first);
 
-  Pivot(uint32_t first, uint32_t second, const std::shared_ptr<MergingDigest> &tdigest)
-      : _first(first), _second(second), _tdigest(tdigest) {};
+      for (auto p = first; p < second; ++p) {
+        inMean.emplace_back(rand() % 1001);
+      }
+      std::vector<double> inWeight(second - first, 1);
+
+      add(inMean, inWeight);
+    }
+  };
 
   Pivot(const Pivot &other) = default;
   Pivot(Pivot &&other) = default;
@@ -44,11 +52,6 @@ class Pivot {
     return front() >= other.back();
   }
 
-  // TODO tdigest
-  inline const MergingDigest &tdigest() const {
-    return *_tdigest;
-  }
-
   friend std::ostream &operator<<(std::ostream &stream, const Pivot &pivot) {
     stream << "[" << pivot.front() << "," << pivot.back() << "]";
     return stream;
@@ -64,9 +67,83 @@ class Pivot {
     return lhs.back() <= rhs.front();
   }
 
+  // quantiles
+  void merge(const Pivot &other);
+
+  double quantile(double q) const;
+
  protected:
   uint32_t _first, _second;
-  std::shared_ptr<MergingDigest> _tdigest{nullptr};
+
+  // quantiles
+  // points to the first unused centroid
+  uint32_t _lastUsedCell{0};
+
+  double _min = std::numeric_limits<double>::max();
+  double _max = std::numeric_limits<double>::min();
+
+  // number of points that have been added to each merged centroid
+  std::array<double, PDIGEST_ARRAY_SIZE> _weight;
+  // mean of points added to each merged centroid
+  std::array<double, PDIGEST_ARRAY_SIZE> _mean;
+
+ private:
+  void add(std::vector<double> inMean, std::vector<double> inWeight);
+
+  inline double integratedLocation(double q) const {
+    return PDIGEST_COMPRESSION * (asinApproximation(2 * q - 1) + M_PI / 2) / M_PI;
+  }
+
+  inline double integratedQ(double k) const {
+    return (std::sin(std::min(k, PDIGEST_COMPRESSION) * M_PI / PDIGEST_COMPRESSION - M_PI / 2) + 1) / 2;
+  }
+
+  static double asinApproximation(double x);
+
+  inline static double eval(double model[6], double vars[6]) {
+    double r = 0;
+    for (int i = 0; i < 6; i++) {
+      r += model[i] * vars[i];
+    }
+    return r;
+  }
+
+  inline static double bound(double v) {
+    if (v <= 0) {
+      return 0;
+    } else if (v >= 1) {
+      return 1;
+    } else {
+      return v;
+    }
+  }
+
+  inline static double weightedAverage(double x1, double w1, double x2, double w2) {
+    if (x1 <= x2) {
+      return weightedAverageSorted(x1, w1, x2, w2);
+    } else {
+      return weightedAverageSorted(x2, w2, x1, w1);
+    }
+  }
+
+  inline static double weightedAverageSorted(double x1, double w1, double x2, double w2) {
+    const double x = (x1 * w1 + x2 * w2) / (w1 + w2);
+    return std::max(x1, std::min(x, x2));
+  }
+
+  template<typename T>
+  std::vector<size_t> sort_indexes(const std::vector<T> &v) {
+
+    // initialize original index locations
+    std::vector<size_t> idx(v.size());
+    std::iota(idx.begin(), idx.end(), 0);
+
+    // sort indexes based on comparing values in v
+    std::sort(idx.begin(), idx.end(),
+              [&v](size_t i1, size_t i2) { return v[i1] < v[i2]; });
+
+    return idx;
+  }
 };
 
 using pivot_ctn = stde::dynarray<Pivot>;

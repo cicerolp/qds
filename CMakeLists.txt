@@ -1,9 +1,12 @@
 project(nds)
 cmake_minimum_required(VERSION 3.0)
 
-set(TDIGEST_COMPRESSION "100.0" CACHE STRING "TDigest Compression Ratio (double)")
+option(PDIGEST_WEIGHT_LIMIT "Enable pDigest Weight Limit" OFF)
+option(PDIGEST_PIECE_WISE_APPROXIMATION "Enable pDigest Piece Wise Approximation" ON)
 
-configure_file (source/config.h.in config.h)
+set(PDIGEST_COMPRESSION "100.0" CACHE STRING "Set pDigest Compression Ratio (double)")
+
+configure_file(source/config.h.in config.h)
 include_directories("${CMAKE_CURRENT_BINARY_DIR}") # To find the .h
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
@@ -33,9 +36,7 @@ add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
         source/SpatialElement.cpp
         source/string_util.cpp
         source/Temporal.cpp
-
-        source/tdigest/AVLTree.cpp
-        source/tdigest/MergingDigest.cpp
+        source/Pivot.cpp
         )
 
 find_package(Gperftools REQUIRED)

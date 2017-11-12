@@ -4,7 +4,6 @@
 #include "Data.h"
 #include "Pivot.h"
 #include "Query.h"
-#include "tdigest/MergingDigest.h"
 
 class NDS;
 
@@ -60,22 +59,12 @@ void Dimension::write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer,
                              range_container& range, const binned_ctn& subset) {
   std::vector<uint32_t> map(subset.size(), 0);
 
-  // TODO tdigest
-  MergingDigest tdigest;
-
   for (auto el = 0; el < subset.size(); ++el) {
     pivot_it it_lower = subset[el]->ptr().begin(), it_upper;
     range_iterator it_range = range.begin();
 
     while (search_iterators(it_range, range, it_lower, it_upper,
                             subset[el]->ptr())) {
-
-      // TODO tdigest
-      pivot_it it_tdigest = it_lower;
-      while (it_tdigest != it_upper) {
-        tdigest.merge((*it_tdigest++).tdigest());
-      }
-
       map[el] += count_and_increment(it_lower, it_upper);
       ++it_range;
     }
@@ -88,9 +77,6 @@ void Dimension::write_subset(rapidjson::Writer<rapidjson::StringBuffer>& writer,
     writer.Uint(map[el]);
     writer.EndArray();
   }
-
-  std::cout << "MEDIAN: "          << tdigest.quantile(0.5) << std::endl;
-  std::cout << "95-PERCENTILE "    << tdigest.quantile(0.95) << std::endl;
 }
 
 template <typename T, template <typename...> class Container>
@@ -98,21 +84,11 @@ void Dimension::write_range(rapidjson::Writer<rapidjson::StringBuffer>& writer,
                             range_container& range, const binned_ctn& subset) {
   Container<uint64_t, uint32_t> map;
 
-  // TODO tdigest
-  MergingDigest tdigest;
-
   for (const auto& el : subset) {
     pivot_it it_lower = el->ptr().begin(), it_upper;
     range_iterator it_range = range.begin();
 
     while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-
-      // TODO tdigest
-      pivot_it it_tdigest = it_lower;
-      while (it_tdigest != it_upper) {
-        tdigest.merge((*it_tdigest++).tdigest());
-      }
-
       map[(*it_range).value] += count_and_increment(it_lower, it_upper);
       ++it_range;
     }
@@ -125,9 +101,6 @@ void Dimension::write_range(rapidjson::Writer<rapidjson::StringBuffer>& writer,
     writer.Uint(pair.second);
     writer.EndArray();
   }
-
-  std::cout << "MEDIAN: "          << tdigest.quantile(0.5) << std::endl;
-  std::cout << "95-PERCENTILE "    << tdigest.quantile(0.95) << std::endl;
 }
 
 bool Dimension::search_iterators(range_iterator& it_range,
