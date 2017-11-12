@@ -67,8 +67,10 @@ class Pivot {
     return lhs.back() <= rhs.front();
   }
 
+  void merge_pivot(const Pivot &rhs);
+
   // quantiles
-  void merge(const Pivot &other);
+  void merge_pdigest(const Pivot &other);
 
   double quantile(double q) const;
 

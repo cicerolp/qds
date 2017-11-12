@@ -45,12 +45,6 @@ uint32_t Categorical::build(const build_ctn &range, build_ctn &response,
     nds.share(_container[index], tmp_ctn[index], links, share);
   }
 
-  for (auto &bin : _container) {
-    for (auto &ptr : bin.ptr()) {
-      std::cout << ptr.quantile(0.95) << std::endl;
-    }
-  }
-
   nds.data()->dispose();
 
   return pivots_count;

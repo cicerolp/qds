@@ -78,10 +78,17 @@ void Pivot::add(std::vector<double> inMean, std::vector<double> inWeight) {
     _max = std::max(_max, _mean[_lastUsedCell - 1]);
   }
 }
-void Pivot::merge(const Pivot &other) {
-  //other.compress();
-  // TODO pass std::array
 
+void Pivot::merge_pivot(const Pivot &rhs) {
+  // merge sequence
+  back(rhs.back());
+
+  // merge p-digest
+  merge_pdigest(rhs);
+}
+
+void Pivot::merge_pdigest(const Pivot &other) {
+  // TODO pass std::array
   std::vector<double> inMean;
   inMean.reserve(other._mean.size());
 
@@ -214,3 +221,4 @@ double Pivot::asinApproximation(double x) {
   return std::asin(x);
 #endif
 }
+
