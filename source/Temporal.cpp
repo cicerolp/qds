@@ -1,18 +1,18 @@
 #include "Temporal.h"
 #include "NDS.h"
 
-Temporal::Temporal(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
+Temporal::Temporal(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple)
     : Dimension(tuple) {}
 
-uint32_t Temporal::build(const build_ctn& range, build_ctn& response,
-                         const link_ctn& links, link_ctn& share, NDS& nds) {
+uint32_t Temporal::build(const build_ctn &range, build_ctn &response,
+                         const link_ctn &links, link_ctn &share, NDS &nds) {
   nds.data()->prepareOffset<temporal_t>(_offset);
 
   uint32_t pivots_count = 0;
 
   std::map<temporal_t, std::vector<Pivot>> tmp_ctn;
 
-  for (const auto& ptr : range) {
+  for (const auto &ptr : range) {
     std::map<temporal_t, uint32_t> used;
 
     for (auto i = ptr.front(); i < ptr.back(); ++i) {
@@ -24,7 +24,7 @@ uint32_t Temporal::build(const build_ctn& range, build_ctn& response,
     }
 
     uint32_t accum = ptr.front();
-    for (const auto& entry : used) {
+    for (const auto &entry : used) {
       uint32_t first = accum;
       accum += entry.second;
       uint32_t second = accum;
@@ -41,7 +41,7 @@ uint32_t Temporal::build(const build_ctn& range, build_ctn& response,
   _container = stde::dynarray<TemporalElement>(tmp_ctn.size());
 
   uint32_t index = 0;
-  for (auto& pair : tmp_ctn) {
+  for (auto &pair : tmp_ctn) {
     _container[index].el.value = pair.first;
     nds.share(_container[index].el, pair.second, links, share);
     ++index;
@@ -52,23 +52,22 @@ uint32_t Temporal::build(const build_ctn& range, build_ctn& response,
   return pivots_count;
 }
 
-bool Temporal::query(const Query& query, subset_container& subsets) const {
-  if (!query.eval(_key)) return true;
+bool Temporal::query(const Query &query, subset_container &subsets) const {
+  const auto &restriction = query.eval<Query::temporal_query_t>(_key);
 
-  const auto& interval = query.get<Query::temporal_query_t>(_key)->interval;
+  if (!restriction) return true;
+
+  const auto &interval = restriction->interval;
 
   if (query.type() != Query::TSERIES &&
-      interval.contain(_container.front().el.value,
-                       _container.back().el.value)) {
+      interval.contain(_container.front().el.value, _container.back().el.value)) {
     return true;
   }
 
   subset_t subset;
 
-  auto it_lower_data =
-      std::lower_bound(_container.begin(), _container.end(), interval.bound[0]);
-  auto it_upper_date =
-      std::lower_bound(it_lower_data, _container.end(), interval.bound[1]);
+  auto it_lower_data = std::lower_bound(_container.begin(), _container.end(), interval.bound[0]);
+  auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), interval.bound[1]);
 
   for (auto it = it_lower_data; it < it_upper_date; ++it) {
     subset.container.emplace_back(&(*it).el);

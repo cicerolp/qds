@@ -5,16 +5,7 @@
 
 class Query {
  public:
-  enum QueryType { TILE, GROUP, TSERIES, SCATTER, MYSQL, REGION };
-
-  Query(const std::string& url);
-  Query(const std::vector<std::string>& tokens);
-
-  inline const QueryType& type() const { return _type; }
-
-  inline const std::string& instance() const { return _instance; }
-
-  friend std::ostream& operator<<(std::ostream& os, const Query& query);
+  enum QueryType { TILE, GROUP, TSERIES, SCATTER, MYSQL, REGION, QUANTILE };
 
   struct query_t {
     enum type { spatial, categorical, temporal };
@@ -24,7 +15,7 @@ class Query {
   struct spatial_query_t : public query_t {
     spatial_query_t() : query_t(spatial) {}
 
-    // BUG fix multiple spatial dimenions
+    // TODO fix multiple spatial dimensions
     uint32_t resolution{0};
     std::vector<region_t> region;
     std::vector<spatial_t> tile;
@@ -41,23 +32,40 @@ class Query {
     interval_t interval;
   };
 
-  inline bool eval(uint32_t key) const { return restrictions[key] != nullptr; }
+  using restriction_t = std::map<uint32_t, std::unique_ptr<query_t>>;
 
-  template <typename T>
-  inline T* get(uint32_t key) const {
-    return (T*)restrictions[key].get();
-  }
+  Query(const std::string &url);
+  Query(const std::vector<std::string> &tokens);
 
-  template <typename T>
-  inline T* get(uint32_t key) {
-    return (T*)restrictions[key].get();
+  inline const QueryType &type() const { return _type; }
+
+  inline const std::string &instance() const { return _instance; }
+
+  friend std::ostream &operator<<(std::ostream &os, const Query &query);
+
+  template<typename T>
+  inline T *eval(uint32_t key) const {
+    auto pair = _restrictions.find(key);
+    return pair == _restrictions.end() ? nullptr : (T *) pair->second.get();
   }
 
  private:
-  Query(const std::string& instance, const std::string& type);
+  Query(const std::string &instance, const std::string &type);
+
+  template<typename T>
+  inline T *get(uint32_t key) {
+    auto pair = _restrictions.find(key);
+
+    if (pair == _restrictions.end()) {
+      _restrictions[key] = std::make_unique<T>();
+      pair = _restrictions.find(key);
+    }
+
+    return (T *) pair->second.get();
+  }
 
   QueryType _type;
   std::string _instance;
 
-  std::vector<std::unique_ptr<query_t>> restrictions;
+  restriction_t _restrictions;
 };
