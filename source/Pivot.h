@@ -12,13 +12,13 @@ class Pivot {
   Pivot(uint32_t first, uint32_t second, bool readPDigestData = true) : _first(first), _second(second) {
     if (readPDigestData) {
       // TODO get value from dataset
-      std::vector<double> inMean;
+      std::vector<float> inMean;
       inMean.reserve(second - first);
 
       for (auto p = first; p < second; ++p) {
         inMean.emplace_back(rand() % 1001);
       }
-      std::vector<double> inWeight(second - first, 1);
+      std::vector<float> inWeight(second - first, 1);
 
       add(inMean, inWeight);
     }
@@ -69,48 +69,46 @@ class Pivot {
 
   void merge_pivot(const Pivot &rhs);
 
-  // quantiles
   void merge_pdigest(const Pivot &other);
 
-  double quantile(double q) const;
+  float quantile(float q) const;
 
  protected:
   uint32_t _first, _second;
 
-  // quantiles
   // points to the first unused centroid
   uint32_t _lastUsedCell{0};
 
-  double _min = std::numeric_limits<double>::max();
-  double _max = std::numeric_limits<double>::min();
+  float _min = std::numeric_limits<float>::max();
+  float _max = std::numeric_limits<float>::min();
 
   // number of points that have been added to each merged centroid
-  std::array<double, PDIGEST_ARRAY_SIZE> _weight;
+  std::array<float, PDIGEST_ARRAY_SIZE> _weight;
   // mean of points added to each merged centroid
-  std::array<double, PDIGEST_ARRAY_SIZE> _mean;
+  std::array<float, PDIGEST_ARRAY_SIZE> _mean;
 
  private:
-  void add(std::vector<double> inMean, std::vector<double> inWeight);
+  void add(std::vector<float> inMean, std::vector<float> inWeight);
 
-  inline double integratedLocation(double q) const {
+  inline float integratedLocation(float q) const {
     return PDIGEST_COMPRESSION * (asinApproximation(2 * q - 1) + M_PI / 2) / M_PI;
   }
 
-  inline double integratedQ(double k) const {
+  inline float integratedQ(float k) const {
     return (std::sin(std::min(k, PDIGEST_COMPRESSION) * M_PI / PDIGEST_COMPRESSION - M_PI / 2) + 1) / 2;
   }
 
-  static double asinApproximation(double x);
+  static float asinApproximation(float x);
 
-  inline static double eval(double model[6], double vars[6]) {
-    double r = 0;
+  inline static float eval(float model[6], float vars[6]) {
+    float r = 0;
     for (int i = 0; i < 6; i++) {
       r += model[i] * vars[i];
     }
     return r;
   }
 
-  inline static double bound(double v) {
+  inline static float bound(float v) {
     if (v <= 0) {
       return 0;
     } else if (v >= 1) {
@@ -120,7 +118,7 @@ class Pivot {
     }
   }
 
-  inline static double weightedAverage(double x1, double w1, double x2, double w2) {
+  inline static float weightedAverage(float x1, float w1, float x2, float w2) {
     if (x1 <= x2) {
       return weightedAverageSorted(x1, w1, x2, w2);
     } else {
@@ -128,8 +126,8 @@ class Pivot {
     }
   }
 
-  inline static double weightedAverageSorted(double x1, double w1, double x2, double w2) {
-    const double x = (x1 * w1 + x2 * w2) / (w1 + w2);
+  inline static float weightedAverageSorted(float x1, float w1, float x2, float w2) {
+    const float x = (x1 * w1 + x2 * w2) / (w1 + w2);
     return std::max(x1, std::min(x, x2));
   }
 

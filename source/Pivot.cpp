@@ -5,7 +5,7 @@
 #include "stdafx.h"
 #include "Pivot.h"
 
-void Pivot::add(std::vector<double> inMean, std::vector<double> inWeight) {
+void Pivot::add(std::vector<float> inMean, std::vector<float> inWeight) {
   inMean.insert(inMean.end(), _mean.begin(), _mean.begin() + _lastUsedCell);
   inWeight.insert(inWeight.end(), _weight.begin(), _weight.begin() + _lastUsedCell);
 
@@ -13,34 +13,34 @@ void Pivot::add(std::vector<double> inMean, std::vector<double> inWeight) {
 
   auto inOrder = sort_indexes(inMean);
 
-  double totalWeight = std::accumulate(inWeight.begin(), inWeight.end(), 0.0);
+  float totalWeight = std::accumulate(inWeight.begin(), inWeight.end(), 0.0);
 
-  double normalizer = PDIGEST_COMPRESSION / (M_PI * totalWeight);
+  float normalizer = PDIGEST_COMPRESSION / (M_PI * totalWeight);
 
   _lastUsedCell = 0;
   _mean[_lastUsedCell] = inMean[inOrder[0]];
   _weight[_lastUsedCell] = inWeight[inOrder[0]];
 
-  double wSoFar = 0;
+  float wSoFar = 0;
 
-  double k1 = 0;
+  float k1 = 0;
 
   // weight will contain all zeros
-  double wLimit;
+  float wLimit;
   wLimit = totalWeight * integratedQ(k1 + 1);
 
-  for (int i = 1; i < incomingCount; i++) {
+  for (int i = 1; i < incomingCount; ++i) {
     int ix = inOrder[i];
-    double proposedWeight = _weight[_lastUsedCell] + inWeight[ix];
+    float proposedWeight = _weight[_lastUsedCell] + inWeight[ix];
 
-    double projectedW = wSoFar + proposedWeight;
+    float projectedW = wSoFar + proposedWeight;
 
     bool addThis = false;
 
 #ifdef PDIGEST_WEIGHT_LIMIT
-    double z = proposedWeight * normalizer;
-    double q0 = wSoFar / totalWeight;
-    double q2 = (wSoFar + proposedWeight) / totalWeight;
+    float z = proposedWeight * normalizer;
+    float q0 = wSoFar / totalWeight;
+    float q2 = (wSoFar + proposedWeight) / totalWeight;
     addThis = z * z <= q0 * (1 - q0) && z * z <= q2 * (1 - q2);
 #else
     addThis = projectedW <= wLimit;
@@ -89,22 +89,22 @@ void Pivot::merge_pivot(const Pivot &rhs) {
 
 void Pivot::merge_pdigest(const Pivot &other) {
   // TODO pass std::array
-  std::vector<double> inMean;
+  std::vector<float> inMean;
   inMean.reserve(other._mean.size());
 
   for (auto &x : other._mean) {
     inMean.emplace_back(x);
   }
 
-  std::vector<double> inWeight(other._weight.size(), 1);
+  std::vector<float> inWeight(other._weight.size(), 1);
 
   add(inMean, inWeight);
 }
 
-double Pivot::quantile(double q) const {
+float Pivot::quantile(float q) const {
   if (_lastUsedCell == 0 && _weight[_lastUsedCell] == 0) {
     // no centroids means no data, no way to get a quantile
-    return std::numeric_limits<double>::quiet_NaN();
+    return std::numeric_limits<float>::quiet_NaN();
 
   } else if (_lastUsedCell == 0) {
     // with one data point, all quantiles lead to Rome
@@ -114,10 +114,10 @@ double Pivot::quantile(double q) const {
   // we know that there are at least two centroids now
   int32_t n = _lastUsedCell;
 
-  double totalWeight = std::accumulate(_weight.begin(), _weight.end(), 0.0);
+  float totalWeight = std::accumulate(_weight.begin(), _weight.end(), 0.0);
 
   // if values were stored in a sorted array, index would be the offset we are interested in
-  const double index = q * totalWeight;
+  const float index = q * totalWeight;
 
   // at the boundaries, we return min or max
   if (index < _weight[0] / 2) {
@@ -125,15 +125,15 @@ double Pivot::quantile(double q) const {
   }
 
   // in between we interpolate between centroids
-  double weightSoFar = _weight[0] / 2;
+  float weightSoFar = _weight[0] / 2;
 
   for (auto i = 0; i < n - 1; ++i) {
-    double dw = (_weight[i] + _weight[i + 1]) / 2;
+    float dw = (_weight[i] + _weight[i + 1]) / 2;
 
     if (weightSoFar + dw > index) {
       // centroids i and i+1 bracket our current point
-      double z1 = index - weightSoFar;
-      double z2 = weightSoFar + dw - index;
+      float z1 = index - weightSoFar;
+      float z2 = weightSoFar + dw - index;
       return weightedAverage(_mean[i], z2, _mean[i + 1], z1);
     }
 
@@ -142,13 +142,13 @@ double Pivot::quantile(double q) const {
 
   // weightSoFar = totalWeight - weight[n-1]/2 (very nearly)
   // so we interpolate out to max value ever seen
-  double z1 = index - totalWeight - _weight[n - 1] / 2.0;
-  double z2 = _weight[n - 1] / 2 - z1;
+  float z1 = index - totalWeight - _weight[n - 1] / 2.0;
+  float z2 = _weight[n - 1] / 2 - z1;
 
   return weightedAverage(_mean[n - 1], z1, _max, z2);
 }
 
-double Pivot::asinApproximation(double x) {
+float Pivot::asinApproximation(float x) {
 
 #ifdef PDIGEST_PIECE_WISE_APPROXIMATION
   if (x < 0) {
@@ -162,42 +162,42 @@ double Pivot::asinApproximation(double x) {
 
     // cutoffs for models. Note that the ranges overlap. In the overlap we do
     // linear interpolation to guarantee the overall result is "nice"
-    double c0High = 0.1;
-    double c1High = 0.55;
-    double c2Low = 0.5;
-    double c2High = 0.8;
-    double c3Low = 0.75;
-    double c3High = 0.9;
-    double c4Low = 0.87;
+    float c0High = 0.1;
+    float c1High = 0.55;
+    float c2Low = 0.5;
+    float c2High = 0.8;
+    float c3Low = 0.75;
+    float c3High = 0.9;
+    float c4Low = 0.87;
     if (x > c3High) {
       return std::asin(x);
     } else {
       // the models
-      double m0[] = {0.2955302411, 1.2221903614, 0.1488583743, 0.2422015816, -0.3688700895, 0.0733398445};
-      double m1[] = {-0.0430991920, 0.9594035750, -0.0362312299, 0.1204623351, 0.0457029620, -0.0026025285};
-      double
+      float m0[] = {0.2955302411, 1.2221903614, 0.1488583743, 0.2422015816, -0.3688700895, 0.0733398445};
+      float m1[] = {-0.0430991920, 0.9594035750, -0.0362312299, 0.1204623351, 0.0457029620, -0.0026025285};
+      float
           m2[] = {-0.034873933724, 1.054796752703, -0.194127063385, 0.283963735636, 0.023800124916, -0.000872727381};
-      double m3[] = {-0.37588391875, 2.61991859025, -2.48835406886, 1.48605387425, 0.00857627492, -0.00015802871};
+      float m3[] = {-0.37588391875, 2.61991859025, -2.48835406886, 1.48605387425, 0.00857627492, -0.00015802871};
 
       // the parameters for all of the models
-      double vars[] = {1, x, x * x, x * x * x, 1 / (1 - x), 1 / (1 - x) / (1 - x)};
+      float vars[] = {1, x, x * x, x * x * x, 1 / (1 - x), 1 / (1 - x) / (1 - x)};
 
       // raw grist for interpolation coefficients
-      double x0 = bound((c0High - x) / c0High);
-      double x1 = bound((c1High - x) / (c1High - c2Low));
-      double x2 = bound((c2High - x) / (c2High - c3Low));
-      double x3 = bound((c3High - x) / (c3High - c4Low));
+      float x0 = bound((c0High - x) / c0High);
+      float x1 = bound((c1High - x) / (c1High - c2Low));
+      float x2 = bound((c2High - x) / (c2High - c3Low));
+      float x3 = bound((c3High - x) / (c3High - c4Low));
 
       // interpolation coefficients
       //noinspection UnnecessaryLocalVariable
-      double mix0 = x0;
-      double mix1 = (1 - x0) * x1;
-      double mix2 = (1 - x1) * x2;
-      double mix3 = (1 - x2) * x3;
-      double mix4 = 1 - x3;
+      float mix0 = x0;
+      float mix1 = (1 - x0) * x1;
+      float mix2 = (1 - x1) * x2;
+      float mix3 = (1 - x2) * x3;
+      float mix4 = 1 - x3;
 
       // now mix all the results together, avoiding extra evaluations
-      double r = 0;
+      float r = 0;
       if (mix0 > 0) {
         r += mix0 * eval(m0, vars);
       }

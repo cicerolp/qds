@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.0)
 option(PDIGEST_WEIGHT_LIMIT "Enable pDigest Weight Limit" OFF)
 option(PDIGEST_PIECE_WISE_APPROXIMATION "Enable pDigest Piece Wise Approximation" ON)
 
-set(PDIGEST_COMPRESSION "100.0" CACHE STRING "Set pDigest Compression Ratio (double)")
+set(PDIGEST_COMPRESSION "50.f" CACHE STRING "Set pDigest Compression (float)")
 
 configure_file(source/config.h.in config.h)
 include_directories("${CMAKE_CURRENT_BINARY_DIR}") # To find the .h
