@@ -89,14 +89,13 @@ void Pivot::merge_pivot(const Pivot &rhs) {
 
 void Pivot::merge_pdigest(const Pivot &other) {
   // TODO pass std::array
-  std::vector<float> inMean;
-  inMean.reserve(other._mean.size());
 
-  for (auto &x : other._mean) {
-    inMean.emplace_back(x);
+  std::vector<float> inMean, inWeight;
+
+  for (auto i = 0; i <other._lastUsedCell; ++i) {
+    inMean.emplace_back(other._mean[i]);
+    inWeight.emplace_back(other._weight[i]);
   }
-
-  std::vector<float> inWeight(other._weight.size(), 1);
 
   add(inMean, inWeight);
 }
@@ -114,7 +113,7 @@ float Pivot::quantile(float q) const {
   // we know that there are at least two centroids now
   int32_t n = _lastUsedCell;
 
-  float totalWeight = std::accumulate(_weight.begin(), _weight.end(), 0.0);
+  float totalWeight = std::accumulate(_weight.begin(), _weight.begin() + _lastUsedCell, 0.0);
 
   // if values were stored in a sorted array, index would be the offset we are interested in
   const float index = q * totalWeight;

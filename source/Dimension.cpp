@@ -1,6 +1,6 @@
 #include "Dimension.h"
 
-Dimension::Dimension(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
+Dimension::Dimension(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple)
     : _key(std::get<0>(tuple)),
       _bin(std::get<1>(tuple)),
       _offset(std::get<2>(tuple)) {
@@ -8,8 +8,8 @@ Dimension::Dimension(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
             << _offset << "]" << std::endl;
 }
 
-void Dimension::restrict(range_container& range, range_container& response,
-                         const subset_t& subset, CopyOption& option) {
+void Dimension::restrict(range_container &range, range_container &response,
+                         const subset_t &subset, CopyOption &option) {
   if (option == DefaultCopy) option = subset.option;
 
   // sort range only when necessary
@@ -20,11 +20,10 @@ void Dimension::restrict(range_container& range, range_container& response,
 
   switch (option) {
     case CopyValueFromRange:
-      for (const auto& el : subset.container) {
+      for (const auto &el : subset.container) {
         it_lower = el->ptr().begin();
         it_range = range.begin();
-        while (
-            search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+        while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
           while (it_lower != it_upper) {
             response.emplace_back((*it_lower++), (*it_range).value);
           }
@@ -33,11 +32,10 @@ void Dimension::restrict(range_container& range, range_container& response,
       }
       break;
     case CopyValueFromSubset:
-      for (const auto& el : subset.container) {
+      for (const auto &el : subset.container) {
         it_lower = el->ptr().begin();
         it_range = range.begin();
-        while (
-            search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+        while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
           while (it_lower != it_upper) {
             response.emplace_back((*it_lower++), el->value);
           }
@@ -46,11 +44,10 @@ void Dimension::restrict(range_container& range, range_container& response,
       }
       break;
     default:
-      for (const auto& el : subset.container) {
+      for (const auto &el : subset.container) {
         it_lower = el->ptr().begin();
         it_range = range.begin();
-        while (
-            search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+        while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
           response.insert(response.end(), it_lower, it_upper);
           it_lower = it_upper;
           ++it_range;
@@ -62,8 +59,8 @@ void Dimension::restrict(range_container& range, range_container& response,
   if (option == CopyValueFromSubset) option = CopyValueFromRange;
 }
 
-std::string Dimension::serialize(const Query& query, subset_container& subsets,
-                                 const BinnedPivot& root) {
+std::string Dimension::serialize(const Query &query, subset_container &subsets,
+                                 const BinnedPivot &root) {
   if (subsets.size() == 0) return std::string("[]");
 
   CopyOption option = DefaultCopy;
@@ -76,9 +73,6 @@ std::string Dimension::serialize(const Query& query, subset_container& subsets,
 
   if (option == DefaultCopy) option = subsets.back().option;
 
-  // sort range only when necessary
-  swap_and_sort(range, response, option);
-
   // serialization
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -87,36 +81,61 @@ std::string Dimension::serialize(const Query& query, subset_container& subsets,
   writer.StartArray();
 
   switch (query.type()) {
-    case Query::TILE:
-      if (option == CopyValueFromSubset)
+    case Query::TILE: {
+      // sort range only when necessary
+      swap_and_sort(range, response, option);
+
+      if (option == CopyValueFromSubset) {
         write_subset<spatial_t>(writer, range, subsets.back().container);
-      else
-        write_range<spatial_t, std::unordered_map>(writer, range,
-                                                   subsets.back().container);
+      } else {
+        write_range<spatial_t, std::unordered_map>(writer, range, subsets.back().container);
+      }
+    }
       break;
-    case Query::GROUP:
-      if (option == CopyValueFromSubset)
+    case Query::GROUP: {
+      // sort range only when necessary
+      swap_and_sort(range, response, option);
+
+      if (option == CopyValueFromSubset) {
         write_subset<categorical_t>(writer, range, subsets.back().container);
-      else
-        write_range<uint64_t, std::map>(writer, range,
-                                        subsets.back().container);
+      } else {
+        write_range<uint64_t, std::map>(writer, range, subsets.back().container);
+      }
+    }
       break;
-    case Query::TSERIES:
-      if (option == CopyValueFromSubset)
+    case Query::TSERIES: {
+      // sort range only when necessary
+      swap_and_sort(range, response, option);
+
+      if (option == CopyValueFromSubset) {
         write_subset<temporal_t>(writer, range, subsets.back().container);
-      else
-        write_range<uint64_t, std::map>(writer, range,
-                                        subsets.back().container);
+      } else {
+        write_range<uint64_t, std::map>(writer, range, subsets.back().container);
+      }
+    }
       break;
-    case Query::SCATTER:
+    case Query::SCATTER: {
+      // todo implement
+    }
       break;
-    case Query::MYSQL:
+    case Query::MYSQL: {
+      // TODO implement
+    }
       break;
-    case Query::REGION:
+    case Query::REGION: {
+      // sort range only when necessary
+      swap_and_sort(range, response, option);
+
       write_count(writer, range, subsets.back().container);
+    }
       break;
-    default:
-      break;
+    case Query::QUANTILE : {
+      // sort range only when necessary
+      swap_and_sort(range, response, option);
+
+      write_quantile(query, writer, range, subsets.back().container);
+    }
+    default: break;
   }
 
   // end json
@@ -124,11 +143,11 @@ std::string Dimension::serialize(const Query& query, subset_container& subsets,
   return buffer.GetString();
 }
 
-void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer,
-                            range_container& range, const binned_ctn& subset) {
+void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                            range_container &range, const binned_ctn &subset) {
   uint32_t count = 0;
 
-  for (const auto& el : subset) {
+  for (const auto &el : subset) {
     pivot_it it_lower = el->ptr().begin(), it_upper;
     range_iterator it_range = range.begin();
 
@@ -143,9 +162,32 @@ void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer>& writer,
   writer.EndArray();
 }
 
-void Dimension::write_pivtos(rapidjson::Writer<rapidjson::StringBuffer>& writer,
-                             range_container& range, const binned_ctn& subset) {
-  for (const auto& el : subset) {
+void Dimension::write_quantile(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                               range_container &range, const binned_ctn &subset) {
+  Pivot pdigest;
+
+  for (const auto &el : subset) {
+    pivot_it it_lower = el->ptr().begin(), it_upper;
+    range_iterator it_range = range.begin();
+
+    while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+      while (it_lower != it_upper) {
+        pdigest.merge_pdigest((*it_lower++));
+      }
+      ++it_range;
+    }
+  }
+
+  writer.StartArray();
+  for (auto& q : query.quantiles()) {
+    writer.Double(pdigest.quantile(q));
+  }
+  writer.EndArray();
+}
+
+void Dimension::write_pivtos(rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                             range_container &range, const binned_ctn &subset) {
+  for (const auto &el : subset) {
     pivot_it it_lower = el->ptr().begin(), it_upper;
     range_iterator it_range = range.begin();
 
@@ -160,3 +202,5 @@ void Dimension::write_pivtos(rapidjson::Writer<rapidjson::StringBuffer>& writer,
     }
   }
 }
+
+

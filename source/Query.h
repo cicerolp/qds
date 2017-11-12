@@ -49,6 +49,10 @@ class Query {
     return pair == _restrictions.end() ? nullptr : (T *) pair->second.get();
   }
 
+  const std::vector<float>& quantiles() const {
+    return _quantiles;
+  }
+
  private:
   Query(const std::string &instance, const std::string &type);
 
@@ -67,5 +71,6 @@ class Query {
   QueryType _type;
   std::string _instance;
 
+  std::vector<float> _quantiles;
   restriction_t _restrictions;
 };

@@ -5,7 +5,23 @@ Query::Query(const std::string &url) : Query(string_util::split(url, "[/]+")) {}
 Query::Query(const std::vector<std::string> &tokens) : Query(tokens[3], tokens[4]) {
 
   for (auto it = tokens.begin() + 5; it != tokens.end(); ++it) {
-    if ((*it) == "tile") {
+    if ((*it) == "quantile") {
+      _quantiles.emplace_back(std::stof(string_util::next_token(it)));
+
+    } else if ((*it) == "region") {
+      auto key = std::stoul(string_util::next_token(it));
+
+      auto r = get<spatial_query_t>(key);
+
+      auto z = std::stoi(string_util::next_token(it));
+      auto x0 = std::stoi(string_util::next_token(it));
+      auto y0 = std::stoi(string_util::next_token(it));
+      auto x1 = std::stoi(string_util::next_token(it));
+      auto y1 = std::stoi(string_util::next_token(it));
+
+      r->region.emplace_back(x0, y0, x1, y1, z);
+
+    } else if ((*it) == "tile") {
       auto key = std::stoul(string_util::next_token(it));
 
       auto r = get<spatial_query_t>(key);
