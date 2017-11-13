@@ -30,9 +30,9 @@ uint32_t Categorical::build(const build_ctn& range, build_ctn& response,
       accum += used[i];
       uint32_t second = accum;
 
-      tmp_ctn[i].emplace_back(first, second);
-
       response.emplace_back(first, second);
+      tmp_ctn[i].emplace_back(response.back());
+
       ++pivots_count;
     }
 
