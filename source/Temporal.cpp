@@ -29,9 +29,9 @@ uint32_t Temporal::build(const build_ctn &range, build_ctn &response,
       accum += entry.second;
       uint32_t second = accum;
 
-      tmp_ctn[entry.first].emplace_back(first, second);
-
       response.emplace_back(first, second);
+      tmp_ctn[entry.first].emplace_back(response.back());
+
       pivots_count++;
     }
 
