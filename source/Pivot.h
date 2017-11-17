@@ -3,6 +3,17 @@
 #include "stdafx.h"
 #include "types.h"
 
+class Pivot;
+
+using pivot_ctn = stde::dynarray<Pivot>;
+using pivot_it = pivot_ctn::const_iterator;
+
+using link_ctn = std::vector<pivot_ctn *>;
+using link_it = link_ctn::const_iterator;
+
+using build_ctn = std::vector<Pivot>;
+using build_it = build_ctn::const_iterator;
+
 class BinnedPivot;
 
 class Pivot {
@@ -69,7 +80,13 @@ class Pivot {
 
   void merge_pivot(const Pivot &rhs);
 
-  void merge_pdigest(const Pivot &other);
+  void merge_pdigest(const Pivot &rhs);
+
+  void merge_pdigest(pivot_it &it_lower, pivot_it &it_upper);
+
+  inline bool empty_pdigest() const {
+    return _lastUsedCell == 0;
+  }
 
   float quantile(float q) const;
 
@@ -145,15 +162,6 @@ class Pivot {
     return idx;
   }
 };
-
-using pivot_ctn = stde::dynarray<Pivot>;
-using pivot_it = pivot_ctn::const_iterator;
-
-using link_ctn = std::vector<pivot_ctn *>;
-using link_it = link_ctn::const_iterator;
-
-using build_ctn = std::vector<Pivot>;
-using build_it = build_ctn::const_iterator;
 
 struct binned_t {
  public:

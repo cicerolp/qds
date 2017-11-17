@@ -6,7 +6,7 @@
 class Query {
  public:
   enum QueryOutput { COUNT, QUANTILE };
-  enum QueryAggregation { TILE, REGION, GROUP, TSERIES, SCATTER };
+  enum QueryAggregation { NONE, TILE, GROUP, TSERIES, SCATTER };
 
   struct restriction_t {
     virtual inline void print(uint32_t id, std::ostream &os) const {

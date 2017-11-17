@@ -12,7 +12,7 @@ struct spatial_t {
   spatial_t() : spatial_t(0, 0, 0) {}
 
   spatial_t(uint32_t _x, uint32_t _y, uint8_t _z, uint8_t _l = 1)
-      : x(_x), y(_y), z(_z), leaf(_l) {}
+      : type(1), x(_x), y(_y), z(_z), leaf(_l) {}
 
   inline bool operator==(const spatial_t& other) const {
     return (z == other.z && x == other.x && y == other.y);
@@ -44,6 +44,8 @@ struct spatial_t {
 
   union {
     struct {
+      // TODO remove type hack
+      uint64_t type : 2;
       uint64_t x : 25;
       uint64_t y : 25;
       uint64_t z : 5;

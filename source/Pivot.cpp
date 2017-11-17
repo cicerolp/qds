@@ -100,6 +100,24 @@ void Pivot::merge_pdigest(const Pivot &other) {
   add(inMean, inWeight);
 }
 
+void Pivot::merge_pdigest(pivot_it &it_lower, pivot_it &it_upper) {
+  std::vector<float> inMean, inWeight;
+
+  while (it_lower != it_upper) {
+    inMean.reserve(inMean.size() + (*it_lower)._lastUsedCell);
+    inWeight.reserve(inWeight.size() + (*it_lower)._lastUsedCell);
+
+    for (auto i = 0; i < (*it_lower)._lastUsedCell; ++i) {
+      inMean.emplace_back((*it_lower)._mean[i]);
+      inWeight.emplace_back((*it_lower)._weight[i]);
+    }
+
+    ++it_lower;
+  }
+
+  add(inMean, inWeight);
+}
+
 float Pivot::quantile(float q) const {
   if (_lastUsedCell == 0 && _weight[_lastUsedCell] == 0) {
     // no centroids means no data, no way to get a quantile

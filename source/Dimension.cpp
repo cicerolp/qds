@@ -80,63 +80,90 @@ std::string Dimension::serialize(const Query &query, subset_container &subsets,
   // start json
   writer.StartArray();
 
-  switch (query.aggregation()) {
-    case Query::TILE: {
-      // sort range only when necessary
-      swap_and_sort(range, response, option);
+  // sort range only when necessary
+  swap_and_sort(range, response, option);
 
+  if (option == CopyValueFromSubset) {
+    switch (query.output()) {
+      case Query::QueryOutput::COUNT: {
+        if (query.aggregation() == Query::QueryAggregation::NONE) {
+          write_none(query, writer, range, subsets.back().container);
+        } else {
+          write_subset<CountSubsetAggr>(query, writer, range, subsets.back().container);
+        }
+      }
+        break;
+      case Query::QueryOutput::QUANTILE: {
+        if (query.aggregation() == Query::QueryAggregation::NONE) {
+          write_none(query, writer, range, subsets.back().container);
+        } else {
+          write_subset<QuantileSubsetAggr>(query, writer, range, subsets.back().container);
+        }
+      }
+        break;
+    }
+  } else { //CopyValueFromRange
+    switch (query.output()) {
+      case Query::QueryOutput::COUNT: {
+        if (query.aggregation() == Query::QueryAggregation::NONE) {
+          write_none(query, writer, range, subsets.back().container);
+        } else {
+          write_range<CountRangeAggr>(query, writer, range, subsets.back().container);
+        }
+      }
+        break;
+      case Query::QueryOutput::QUANTILE: {
+        if (query.aggregation() == Query::QueryAggregation::NONE) {
+          write_none(query, writer, range, subsets.back().container);
+        } else {
+          write_range<QuantileRangeAggr>(query, writer, range, subsets.back().container);
+        }
+      }
+        break;
+    }
+  }
+
+  /*switch (query.aggregation()) {
+    case Query::TILE: {
       if (option == CopyValueFromSubset) {
-        write_subset<spatial_t>(writer, range, subsets.back().container);
+        write_subset<spatial_t>(query, writer, range, subsets.back().container);
       } else {
-        write_range<spatial_t, std::unordered_map>(writer, range, subsets.back().container);
+        write_range<spatial_t, std::unordered_map>(query, writer, range, subsets.back().container);
       }
     }
       break;
     case Query::GROUP: {
-      // sort range only when necessary
-      swap_and_sort(range, response, option);
-
       if (option == CopyValueFromSubset) {
-        write_subset<categorical_t>(writer, range, subsets.back().container);
+        write_subset<categorical_t>(query, writer, range, subsets.back().container);
       } else {
-        write_range<uint64_t, std::map>(writer, range, subsets.back().container);
+        write_range<uint64_t, std::map>(query, writer, range, subsets.back().container);
       }
     }
       break;
     case Query::TSERIES: {
-      // sort range only when necessary
-      swap_and_sort(range, response, option);
-
       if (option == CopyValueFromSubset) {
-        write_subset<temporal_t>(writer, range, subsets.back().container);
+        write_subset<temporal_t>(query, writer, range, subsets.back().container);
       } else {
-        write_range<uint64_t, std::map>(writer, range, subsets.back().container);
+        write_range<uint64_t, std::map>(query, writer, range, subsets.back().container);
       }
     }
       break;
-    case Query::REGION: {
-      // sort range only when necessary
-      swap_and_sort(range, response, option);
-
-      write_count(writer, range, subsets.back().container);
+    case Query::DEFAULT:
+    default: {
+      write_default(query, writer, range, subsets.back().container);
     }
       break;
-    /*case Query::QUANTILE : {
-      // sort range only when necessary
-      swap_and_sort(range, response, option);
-
-      write_quantile(query, writer, range, subsets.back().container);
-    }*/
-    default: break;
-  }
+  }*/
 
   // end json
   writer.EndArray();
   return buffer.GetString();
 }
 
-void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                            range_container &range, const binned_ctn &subset) {
+void Dimension::write_none(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                           range_container &range, const binned_ctn &subset) {
+
+  Pivot pdigest;
   uint32_t count = 0;
 
   for (const auto &el : subset) {
@@ -144,55 +171,23 @@ void Dimension::write_count(rapidjson::Writer<rapidjson::StringBuffer> &writer,
     range_iterator it_range = range.begin();
 
     while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-      count += count_and_increment(it_lower, it_upper);
-      ++it_range;
-    }
-  }
-
-  writer.StartArray();
-  writer.Uint(count);
-  writer.EndArray();
-}
-
-void Dimension::write_quantile(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                               range_container &range, const binned_ctn &subset) {
-  Pivot pdigest;
-
-  for (const auto &el : subset) {
-    pivot_it it_lower = el->ptr().begin(), it_upper;
-    range_iterator it_range = range.begin();
-
-    while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-      while (it_lower != it_upper) {
-        pdigest.merge_pdigest((*it_lower++));
+      if (query.output() == Query::QueryOutput::COUNT) {
+        count += aggregate_count(it_lower, it_upper);
+      } else {
+        pdigest.merge_pdigest(it_lower, it_upper);
       }
       ++it_range;
     }
   }
 
-  writer.StartArray();
-  for (auto& q : query.quantiles()) {
-    writer.Double(pdigest.quantile(q));
-  }
-  writer.EndArray();
-}
-
-void Dimension::write_pivtos(rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                             range_container &range, const binned_ctn &subset) {
-  for (const auto &el : subset) {
-    pivot_it it_lower = el->ptr().begin(), it_upper;
-    range_iterator it_range = range.begin();
-
-    while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-      while (it_lower != it_upper) {
-        writer.StartArray();
-        writer.Uint((*it_lower).front());
-        writer.Uint((*it_lower++).back());
-        writer.EndArray();
-      }
-      ++it_range;
+  if (query.output() == Query::QueryOutput::COUNT) {
+    writer.Uint(count);
+  } else {
+    for (auto &q : query.quantiles()) {
+      writer.StartArray();
+      writer.Double(q);
+      writer.Double(pdigest.quantile(q));
+      writer.EndArray();
     }
   }
 }
-
-

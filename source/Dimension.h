@@ -4,6 +4,7 @@
 #include "Data.h"
 #include "Pivot.h"
 #include "Query.h"
+#include "Aggr.h"
 
 class NDS;
 
@@ -26,22 +27,16 @@ class Dimension {
   static void restrict(range_container &range, range_container &response,
                        const subset_t &subset, CopyOption &option);
 
-  template<typename T>
-  static void write_subset(rapidjson::Writer<rapidjson::StringBuffer> &writer,
+  template<typename _Aggr>
+  static void write_subset(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                            range_container &range, const binned_ctn &subset);
 
-  template<typename T, template<typename...> typename Container>
-  static void write_range(rapidjson::Writer<rapidjson::StringBuffer> &writer,
+  template<typename _Aggr>
+  static void write_range(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                           range_container &range, const binned_ctn &subset);
 
-  static void write_count(rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                          range_container &range, const binned_ctn &subset);
-
-  static void write_quantile(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                          range_container &range, const binned_ctn &subset);
-
-  static void write_pivtos(rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                           range_container &range, const binned_ctn &subset);
+  static void write_none(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                         range_container &range, const binned_ctn &subset);
 
   static inline bool search_iterators(range_iterator &it_range, const range_container &range,
                                       pivot_it &it_lower, pivot_it &it_upper, const pivot_ctn &subset);
@@ -50,60 +45,47 @@ class Dimension {
 
   static inline void swap_and_sort(range_container &range, range_container &response, CopyOption option);
 
-  static inline void swap_and_sort_pdigest(range_container &range, range_container &response, CopyOption option);
-
-  static inline uint32_t count_and_increment(pivot_it &it_lower, pivot_it &it_upper);
+  static inline uint32_t aggregate_count(pivot_it &it_lower, pivot_it &it_upper);
 
   const uint32_t _key, _bin, _offset;
 };
 
-template<typename T>
-void Dimension::write_subset(rapidjson::Writer<rapidjson::StringBuffer> &writer,
+template<typename _Aggr>
+void Dimension::write_subset(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                              range_container &range, const binned_ctn &subset) {
-  std::vector<uint32_t> map(subset.size(), 0);
+
+  _Aggr aggregator(subset.size());
 
   for (auto el = 0; el < subset.size(); ++el) {
     pivot_it it_lower = subset[el]->ptr().begin(), it_upper;
     range_iterator it_range = range.begin();
 
-    while (search_iterators(it_range, range, it_lower, it_upper,
-                            subset[el]->ptr())) {
-      map[el] += count_and_increment(it_lower, it_upper);
+    while (search_iterators(it_range, range, it_lower, it_upper, subset[el]->ptr())) {
+      aggregator.merge(el, it_lower, it_upper);
       ++it_range;
     }
 
-    if (map[el] == 0) continue;
-
-    // serialization
-    writer.StartArray();
-    toJSON(writer, (*(T *) &subset[el]->value));
-    writer.Uint(map[el]);
-    writer.EndArray();
+    aggregator.output(el, subset[el]->value, query, writer);
   }
 }
 
-template<typename T, template<typename...> class Container>
-void Dimension::write_range(rapidjson::Writer<rapidjson::StringBuffer> &writer,
+template<typename _Aggr>
+void Dimension::write_range(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                             range_container &range, const binned_ctn &subset) {
-  Container<uint64_t, uint32_t> map;
+
+  _Aggr aggregator;
 
   for (const auto &el : subset) {
     pivot_it it_lower = el->ptr().begin(), it_upper;
     range_iterator it_range = range.begin();
 
     while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-      map[(*it_range).value] += count_and_increment(it_lower, it_upper);
+      aggregator.merge((*it_range).value, it_lower, it_upper);
       ++it_range;
     }
   }
 
-  // serialization
-  for (const auto &pair : map) {
-    writer.StartArray();
-    toJSON(writer, (*(T *) &pair.first));
-    writer.Uint(pair.second);
-    writer.EndArray();
-  }
+  aggregator.output(query, writer);
 }
 
 bool Dimension::search_iterators(range_iterator &it_range, const range_container &range,
@@ -166,20 +148,7 @@ void Dimension::swap_and_sort(range_container &range, range_container &response,
   response.clear();
 }
 
-void Dimension::swap_and_sort_pdigest(range_container &range, range_container &response, CopyOption option) {
-  // according to benchmark, this is a bit slower than std::sort() on randomized
-  // sequences,  but much faster on partially - sorted sequences
-  gfx::timsort(response.begin(), response.end());
-
-  range.clear();
-
-  // compaction (and swap) phase
-  compactation(response, range, option);
-
-  response.clear();
-}
-
-uint32_t Dimension::count_and_increment(pivot_it &it_lower, pivot_it &it_upper) {
+uint32_t Dimension::aggregate_count(pivot_it &it_lower, pivot_it &it_upper) {
   uint32_t count = 0;
   while (it_lower != it_upper) {
     count += (*it_lower++).size();

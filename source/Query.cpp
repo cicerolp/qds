@@ -22,8 +22,8 @@ void Query::initialize(const std::string &instance, const std::string &output, c
     _aggregation = TSERIES;
   } else if (aggregation == "scatter") {
     _aggregation = SCATTER;
-  } else if (aggregation == "region") {
-    _aggregation = REGION;
+  } else if (aggregation == "none") {
+    _aggregation = NONE;
   }
 }
 
