@@ -38,7 +38,7 @@ find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 
-target_link_libraries (${PROJECT_NAME} LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${GPERFTOOLS_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC -static-libgcc -static-libstdc++ ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${GPERFTOOLS_LIBRARIES})
 
 set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "source/stdafx.h")
 
