@@ -84,7 +84,9 @@ $(window).resize(function () {
 });
 
 function setProgressBar(count) {
-    if (curr_count != count) {
+    if (count.length == 0) {
+        curr_count = total_count;
+    } else if (curr_count != count) {
         curr_count = count;
     } else {
         return;
@@ -208,7 +210,7 @@ function a_getQuery() {
     if (update_tile) callbacks.fire(heatmap_resolution + where + tseries);
 
     if (update) {
-        var query = "/count/region" + region + tseries + where;
+        var query = "/count/none" + region + tseries + where;
         $.ajax({
             type: 'GET',
             url: _queryURL + query,
