@@ -79,27 +79,12 @@ void Pivot::add(std::vector<float> inMean, std::vector<float> inWeight) {
   }
 }
 
-void Pivot::merge_pivot(const Pivot &rhs) {
-  // merge sequence
+void Pivot::append(const Pivot &rhs) {
+  // append sequence
   back(rhs.back());
-
-  // merge p-digest
-  merge_pdigest(rhs);
 }
 
-void Pivot::merge_pdigest(const Pivot &other) {
-  // TODO pass std::array
-
-  std::vector<float> inMean, inWeight;
-
-  for (auto i = 0; i <other._lastUsedCell; ++i) {
-    inMean.emplace_back(other._mean[i]);
-    inWeight.emplace_back(other._weight[i]);
-  }
-
-  add(inMean, inWeight);
-}
-
+// TODO pass std::array
 void Pivot::merge_pdigest(pivot_it &it_lower, pivot_it &it_upper) {
   std::vector<float> inMean, inWeight;
 

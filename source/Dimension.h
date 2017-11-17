@@ -119,7 +119,7 @@ void Dimension::compactation(range_container &input, range_container &output, Co
   if (option == DefaultCopy || option == CopyValueFromSubset) {
     for (size_t i = 1; i < input.size(); ++i) {
       if (Pivot::is_sequence(output.back().pivot, input[i].pivot)) {
-        output.back().pivot.merge_pivot(input[i].pivot);
+        output.back().pivot.append(input[i].pivot);
       } else {
         output.emplace_back(input[i]);
       }
@@ -127,7 +127,7 @@ void Dimension::compactation(range_container &input, range_container &output, Co
   } else {
     for (size_t i = 1; i < input.size(); ++i) {
       if (BinnedPivot::is_sequence(output.back(), input[i])) {
-        output.back().pivot.merge_pivot(input[i].pivot);
+        output.back().pivot.append(input[i].pivot);
       } else {
         output.emplace_back(input[i]);
       }

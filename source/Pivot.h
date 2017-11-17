@@ -78,9 +78,7 @@ class Pivot {
     return lhs.back() <= rhs.front();
   }
 
-  void merge_pivot(const Pivot &rhs);
-
-  void merge_pdigest(const Pivot &rhs);
+  void append(const Pivot &rhs);
 
   void merge_pdigest(pivot_it &it_lower, pivot_it &it_upper);
 
