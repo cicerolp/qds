@@ -51,7 +51,7 @@ uint32_t Categorical::build(const build_ctn &range, build_ctn &response,
 }
 
 bool Categorical::query(const Query &query, subset_container &subsets) const {
-  const auto &restriction = query.eval<Query::categorical_query_t>(_key);
+  const auto &restriction = query.eval<Query::categorical_restriction_t>(_key);
 
   if (!restriction) return true;
 

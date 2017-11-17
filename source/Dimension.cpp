@@ -80,7 +80,7 @@ std::string Dimension::serialize(const Query &query, subset_container &subsets,
   // start json
   writer.StartArray();
 
-  switch (query.type()) {
+  switch (query.aggregation()) {
     case Query::TILE: {
       // sort range only when necessary
       swap_and_sort(range, response, option);
@@ -114,14 +114,6 @@ std::string Dimension::serialize(const Query &query, subset_container &subsets,
       }
     }
       break;
-    case Query::SCATTER: {
-      // todo implement
-    }
-      break;
-    case Query::MYSQL: {
-      // TODO implement
-    }
-      break;
     case Query::REGION: {
       // sort range only when necessary
       swap_and_sort(range, response, option);
@@ -129,12 +121,12 @@ std::string Dimension::serialize(const Query &query, subset_container &subsets,
       write_count(writer, range, subsets.back().container);
     }
       break;
-    case Query::QUANTILE : {
+    /*case Query::QUANTILE : {
       // sort range only when necessary
       swap_and_sort(range, response, option);
 
       write_quantile(query, writer, range, subsets.back().container);
-    }
+    }*/
     default: break;
   }
 

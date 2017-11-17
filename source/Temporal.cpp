@@ -53,13 +53,13 @@ uint32_t Temporal::build(const build_ctn &range, build_ctn &response,
 }
 
 bool Temporal::query(const Query &query, subset_container &subsets) const {
-  const auto &restriction = query.eval<Query::temporal_query_t>(_key);
+  const auto &restriction = query.eval<Query::temporal_restriction_t>(_key);
 
   if (!restriction) return true;
 
   const auto &interval = restriction->interval;
 
-  if (query.type() != Query::TSERIES &&
+  if (query.aggregation() != Query::TSERIES &&
       interval.contain(_container.front().el.value, _container.back().el.value)) {
     return true;
   }
@@ -73,7 +73,7 @@ bool Temporal::query(const Query &query, subset_container &subsets) const {
     subset.container.emplace_back(&(*it).el);
   }
 
-  if (query.type() == Query::TSERIES) subset.option = CopyValueFromSubset;
+  if (query.aggregation() == Query::TSERIES) subset.option = CopyValueFromSubset;
 
   if (subset.container.size() != 0) {
     subsets.emplace_back(subset);
