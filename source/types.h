@@ -56,18 +56,6 @@ struct spatial_t {
   };
 };
 
-inline void toJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer,
-                   const uint64_t& data) {
-  writer.Uint(data);
-}
-
-inline void toJSON(rapidjson::Writer<rapidjson::StringBuffer>& writer,
-                   const spatial_t& data) {
-  writer.Uint(data.x);
-  writer.Uint(data.y);
-  writer.Uint(data.z);
-}
-
 struct region_t {
   region_t() = default;
 

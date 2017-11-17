@@ -34,7 +34,7 @@ function setHistogramData(data, entry) {
     div = div.append("svg").attr("width", w + margin.left + margin.right).attr("height", h + margin.top + margin.bottom).append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")").call(tip);
 
     
-    var colors = ['#007399', 'Gray']
+    var colors = ['#007399', 'Gray'];
 
     div.selectAll("rect").data(data).enter().append("rect")
     .attr("x", function(d, i) {

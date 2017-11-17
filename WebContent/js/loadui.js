@@ -2,7 +2,7 @@ function loadMap() {
     var layers = {
          black : 'http://{s}.tiles.mapbox.com/v4/cicerolp.mgdebfa9/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiY2ljZXJvbHAiLCJhIjoia1IxYmtfMCJ9.3EMmwKCCFN-hmsrQY4_wUQ',
          white : 'http://{s}.tiles.mapbox.com/v4/cicerolp.pdni2p2n/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoiY2ljZXJvbHAiLCJhIjoia1IxYmtfMCJ9.3EMmwKCCFN-hmsrQY4_wUQ'
-    }
+    };
 
     var baseLayer = L.tileLayer(layers[view_schemas[_schema].PLOTTING], {
         subdomains: "abcd",
@@ -44,8 +44,7 @@ function loadMap() {
     map.on('mouseout',  onMapMouseUp);
     map.on('mousemove', onMapMouseOver);
 
-};
-
+}
 $(document).bind("contextmenu", function(event) {
     event.preventDefault();    
 });
@@ -119,15 +118,15 @@ function loadUi() {
         d3.select("#container")
             .style("width", 75 + "vw");
         d3.select("#right-section")
-           .style("width", 25 + "vw")
+           .style("width", 25 + "vw");
         d3.select("#section")
-           .style("width", 75 + "vw")
+           .style("width", 75 + "vw");
         d3.select("#top-section")
            .style("width", 75 + "vw")
     }
 
     if (sections["#top-section"] == 0)
-        d3.select("#top-section").style("width", 0 + "vw")
+        d3.select("#top-section").style("width", 0 + "vw");
 
     $("ul.tabs-ul").append($("<li><a href=" + '"#tabs-settings"' + ">" + "Settings" + "</a></li>"));
     $("#tabs").append($('<div id="tabs-settings"></div>'));    

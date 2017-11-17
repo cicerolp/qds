@@ -123,38 +123,6 @@ std::string Dimension::serialize(const Query &query, subset_container &subsets,
     }
   }
 
-  /*switch (query.aggregation()) {
-    case Query::TILE: {
-      if (option == CopyValueFromSubset) {
-        write_subset<spatial_t>(query, writer, range, subsets.back().container);
-      } else {
-        write_range<spatial_t, std::unordered_map>(query, writer, range, subsets.back().container);
-      }
-    }
-      break;
-    case Query::GROUP: {
-      if (option == CopyValueFromSubset) {
-        write_subset<categorical_t>(query, writer, range, subsets.back().container);
-      } else {
-        write_range<uint64_t, std::map>(query, writer, range, subsets.back().container);
-      }
-    }
-      break;
-    case Query::TSERIES: {
-      if (option == CopyValueFromSubset) {
-        write_subset<temporal_t>(query, writer, range, subsets.back().container);
-      } else {
-        write_range<uint64_t, std::map>(query, writer, range, subsets.back().container);
-      }
-    }
-      break;
-    case Query::DEFAULT:
-    default: {
-      write_default(query, writer, range, subsets.back().container);
-    }
-      break;
-  }*/
-
   // end json
   writer.EndArray();
   return buffer.GetString();

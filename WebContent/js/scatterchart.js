@@ -58,8 +58,7 @@ function setSctterChart(data, entry) {
     main.append('svg:g')
     .attr('transform', 'translate(' + (margin.left + (scatter_width / 48)) + ',' + (height - margin.bottom) + ')')
     .attr('class', 'main axis a')
-    .call(xAxis).attr("font-family", "sans-serif").attr("font-size", "11px").attr("fill", "white").attr("text-anchor", "middle");;
-
+        .call(xAxis).attr("font-family", "sans-serif").attr("font-size", "11px").attr("fill", "white").attr("text-anchor", "middle");
     // draw the y axis
     var yAxis = d3.svg.axis()
     .scale(y)
@@ -69,8 +68,7 @@ function setSctterChart(data, entry) {
     main.append('svg:g')
     .attr('transform', 'translate(' + (margin.left) + ',' + (margin.top + (scatter_height / 14)) + ')')
     .attr('class', 'main axis b')
-    .call(yAxis).attr("font-family", "sans-serif").attr("font-size", "11px").attr("fill", "white").attr("text-anchor", "middle");;
-        
+        .call(yAxis).attr("font-family", "sans-serif").attr("font-size", "11px").attr("fill", "white").attr("text-anchor", "middle");
     var color = d3.scale.linear()
     .domain([0.3, 1])
     .range(["black", "steelblue"]);

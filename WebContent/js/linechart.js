@@ -90,8 +90,7 @@ function loadLineChart(data, entry) {
     svg.append("g")
         .attr("class", "x axis")
         .attr("transform", "translate(0," + height + ")")
-        .attr("font-family", "sans-serif").attr("font-size", "10px").attr("fill", "white").attr("text-anchor", "middle");;
-
+        .attr("font-family", "sans-serif").attr("font-size", "10px").attr("fill", "white").attr("text-anchor", "middle");
     svg.append("path")
         .attr("class", "area")
         .attr("clip-path", "url(#clip)")
