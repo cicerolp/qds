@@ -10,7 +10,7 @@ class Spatial : public Dimension {
 
   uint32_t build(const build_ctn& range, build_ctn& response,
                  const link_ctn& links, link_ctn& share, NDS& nds) override;
-  bool query(const Query& query, subset_container& subsets) const override;
+  bool query(const Query& query, subset_ctn& subsets) const override;
 
  private:
   std::unique_ptr<SpatialElement> _tree;

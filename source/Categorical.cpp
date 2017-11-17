@@ -50,7 +50,7 @@ uint32_t Categorical::build(const build_ctn &range, build_ctn &response,
   return pivots_count;
 }
 
-bool Categorical::query(const Query &query, subset_container &subsets) const {
+bool Categorical::query(const Query &query, subset_ctn &subsets) const {
   const auto &restriction = query.eval<Query::categorical_restriction_t>(_key);
 
   if (!restriction) return true;

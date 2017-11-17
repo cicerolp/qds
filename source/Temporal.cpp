@@ -52,7 +52,7 @@ uint32_t Temporal::build(const build_ctn &range, build_ctn &response,
   return pivots_count;
 }
 
-bool Temporal::query(const Query &query, subset_container &subsets) const {
+bool Temporal::query(const Query &query, subset_ctn &subsets) const {
   const auto &restriction = query.eval<Query::temporal_restriction_t>(_key);
 
   if (!restriction) return true;

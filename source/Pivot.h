@@ -14,7 +14,7 @@ using link_it = link_ctn::const_iterator;
 using build_ctn = std::vector<Pivot>;
 using build_it = build_ctn::const_iterator;
 
-class BinnedPivot;
+class RangePivot;
 
 class Pivot {
  public:
@@ -161,7 +161,7 @@ class Pivot {
   }
 };
 
-struct binned_t {
+struct bined_pivot_t {
  public:
   // shared (false) or proper (true) content
   bool proper{false};
@@ -169,19 +169,17 @@ struct binned_t {
   uint64_t value;
   pivot_ctn *pivots;
 
-  ~binned_t() {
+  ~bined_pivot_t() {
     if (proper) delete pivots;
   }
   inline pivot_ctn &ptr() const { return *pivots; }
 };
 
-using binned_ctn = std::vector<const binned_t *>;
-using binned_it = binned_ctn::const_iterator;
+using subset_pivot_ctn = std::vector<const bined_pivot_t *>;
 
 struct subset_t {
-  subset_t() : option(DefaultCopy) {}
-  CopyOption option;
-  binned_ctn container;
+  CopyOption option{DefaultCopy};
+  subset_pivot_ctn container;
 };
 
-using subset_container = std::vector<subset_t>;
+using subset_ctn = std::vector<subset_t>;

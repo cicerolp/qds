@@ -9,6 +9,7 @@ class Query {
   enum QueryAggregation { NONE, TILE, GROUP, TSERIES, SCATTER };
 
   struct restriction_t {
+    virtual ~restriction_t() = default;
     virtual inline void print(uint32_t id, std::ostream &os) const {
       // empty
     };

@@ -81,7 +81,7 @@ NDS::NDS(const Schema& schema) {
 std::string NDS::query(const Query& query, std::ofstream* telemetry) {
   std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
 
-  subset_container subsets;
+  subset_ctn subsets;
 
   start = std::chrono::high_resolution_clock::now();
 
@@ -93,7 +93,7 @@ std::string NDS::query(const Query& query, std::ofstream* telemetry) {
   }
 
   std::string buffer =
-      Dimension::serialize(query, subsets, BinnedPivot(_root[0]));
+      Dimension::serialize(query, subsets, RangePivot(_root[0]));
 
   end = std::chrono::high_resolution_clock::now();
 

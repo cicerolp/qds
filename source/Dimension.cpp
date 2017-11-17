@@ -8,7 +8,7 @@ Dimension::Dimension(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple)
             << _offset << "]" << std::endl;
 }
 
-void Dimension::restrict(range_container &range, range_container &response,
+void Dimension::restrict(range_ctn &range, range_ctn &response,
                          const subset_t &subset, CopyOption &option) {
   if (option == DefaultCopy) option = subset.option;
 
@@ -16,7 +16,7 @@ void Dimension::restrict(range_container &range, range_container &response,
   swap_and_sort(range, response, option);
 
   pivot_it it_lower, it_upper;
-  range_iterator it_range;
+  range_it it_range;
 
   switch (option) {
     case CopyValueFromRange:
@@ -59,12 +59,11 @@ void Dimension::restrict(range_container &range, range_container &response,
   if (option == CopyValueFromSubset) option = CopyValueFromRange;
 }
 
-std::string Dimension::serialize(const Query &query, subset_container &subsets,
-                                 const BinnedPivot &root) {
+std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const RangePivot &root) {
   if (subsets.size() == 0) return std::string("[]");
 
   CopyOption option = DefaultCopy;
-  range_container range, response;
+  range_ctn range, response;
 
   response.emplace_back(root);
 
@@ -129,14 +128,14 @@ std::string Dimension::serialize(const Query &query, subset_container &subsets,
 }
 
 void Dimension::write_none(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                           range_container &range, const binned_ctn &subset) {
+                           range_ctn &range, const subset_pivot_ctn &subset) {
 
   Pivot pdigest;
   uint32_t count = 0;
 
   for (const auto &el : subset) {
     pivot_it it_lower = el->ptr().begin(), it_upper;
-    range_iterator it_range = range.begin();
+    range_it it_range = range.begin();
 
     while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
       if (query.output() == Query::QueryOutput::COUNT) {

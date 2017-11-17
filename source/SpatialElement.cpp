@@ -93,7 +93,7 @@ uint32_t SpatialElement::expand(build_ctn& response, uint32_t bin,
 }
 
 void SpatialElement::query_tile(const spatial_t& tile, uint64_t resolution,
-                                binned_ctn& subset, uint64_t zoom) const {
+                                subset_pivot_ctn& subset, uint64_t zoom) const {
   const spatial_t& value = (*reinterpret_cast<const spatial_t*>(&el.value));
 
   if (value.contains(tile)) {
@@ -112,7 +112,7 @@ void SpatialElement::query_tile(const spatial_t& tile, uint64_t resolution,
   }
 }
 
-void SpatialElement::query_region(const region_t& region, binned_ctn& subset,
+void SpatialElement::query_region(const region_t& region, subset_pivot_ctn& subset,
                                   uint64_t zoom) const {
   const spatial_t& value = (*reinterpret_cast<const spatial_t*>(&el.value));
 
@@ -134,7 +134,7 @@ void SpatialElement::query_region(const region_t& region, binned_ctn& subset,
   }
 }
 
-void SpatialElement::aggregate_tile(uint64_t resolution, binned_ctn& subset,
+void SpatialElement::aggregate_tile(uint64_t resolution, subset_pivot_ctn& subset,
                                     uint64_t zoom) const {
   const spatial_t& value = (*reinterpret_cast<const spatial_t*>(&el.value));
 
