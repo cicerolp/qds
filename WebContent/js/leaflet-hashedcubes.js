@@ -20,7 +20,7 @@ function heatmap_layer(value) {
 
         $.ajax({
             type: 'GET',
-            url: _queryURL + "/tile" + query_map,
+            url: _queryURL + "/count/tile" + query_map,
             dataType: "json",
             success: function (data) {
                var entry = {
