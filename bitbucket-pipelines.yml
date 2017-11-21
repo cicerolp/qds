@@ -1,0 +1,12 @@
+image: cicerolp/ubuntu
+pipelines:
+  default:
+    - step:
+        script:
+          - uname -a
+          - gcc --version
+          - cmake --version
+          - mkdir build
+          - cd build
+          - cmake .. -DCMAKE_BUILD_TYPE=Release
+          - make -j4
