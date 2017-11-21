@@ -1,23 +1,12 @@
 image: cicerolp/ubuntu
 pipelines:
-  custom:
-    master:
-      - step:
-          script:
-            - uname -a
-            - gcc --version
-            - cmake --version
-            - mkdir build
-            - cd build
-            - cmake .. -DCMAKE_BUILD_TYPE=Release
-            - make -j4
-    tdigest:
-      - step:
-          script:
-            - uname -a
-            - gcc --version
-            - cmake --version
-            - mkdir build
-            - cd build
-            - cmake .. -DCMAKE_BUILD_TYPE=Release
-            - make -j4
+  default:
+    - step:
+        script:
+          - uname -a
+          - gcc --version
+          - cmake --version
+          - mkdir build
+          - cd build
+          - cmake .. -DCMAKE_BUILD_TYPE=Release
+          - make -j4
