@@ -57,30 +57,6 @@ class CountSubsetAggr : public SubsetAggr {
   std::vector<uint32_t> _map;
 };
 
-class QuantileSubsetAggr : public SubsetAggr {
- public:
-  QuantileSubsetAggr(size_t size) : _map(size) {}
-
-  virtual void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) override {
-    _map[el].merge_pdigest(it_lower, it_upper);
-  }
-
-  virtual void output(size_t el, uint64_t value, const Query &query, json &writer) override {
-    if (_map[el].empty_pdigest()) return;
-
-    for (auto &q : query.quantiles()) {
-      writer.StartArray();
-      write_value(value, writer);
-      writer.Double(q);
-      writer.Double(_map[el].quantile(q));
-      writer.EndArray();
-    }
-  }
-
- protected:
-  std::vector<Pivot> _map;
-};
-
 /////////////////////////////////////////////////////////////////////////////////////////
 // Range
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -110,26 +86,4 @@ class CountRangeAggr : public RangeAggr {
 
  protected:
   std::map<uint64_t, uint32_t> _map;
-};
-
-class QuantileRangeAggr : public RangeAggr {
- public:
-  virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
-    _map[value].merge_pdigest(it_lower, it_upper);
-  }
-
-  virtual void output(const Query &query, json &writer) override {
-    for (const auto &pair : _map) {
-      for (auto &q : query.quantiles()) {
-        writer.StartArray();
-        write_value(pair.first, writer);
-        writer.Double(q);
-        writer.Double(pair.second.quantile(q));
-        writer.EndArray();
-      }
-    }
-  }
-
- protected:
-  std::map<uint64_t, Pivot> _map;
 };

@@ -95,8 +95,6 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
       case Query::QueryOutput::QUANTILE: {
         if (query.aggregation() == Query::QueryAggregation::NONE) {
           write_none(query, writer, range, subsets.back().container);
-        } else {
-          write_subset<QuantileSubsetAggr>(query, writer, range, subsets.back().container);
         }
       }
         break;
@@ -114,8 +112,6 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
       case Query::QueryOutput::QUANTILE: {
         if (query.aggregation() == Query::QueryAggregation::NONE) {
           write_none(query, writer, range, subsets.back().container);
-        } else {
-          write_range<QuantileRangeAggr>(query, writer, range, subsets.back().container);
         }
       }
         break;
@@ -140,8 +136,6 @@ void Dimension::write_none(const Query &query, rapidjson::Writer<rapidjson::Stri
     while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
       if (query.output() == Query::QueryOutput::COUNT) {
         count += aggregate_count(it_lower, it_upper);
-      } else {
-        pdigest.merge_pdigest(it_lower, it_upper);
       }
       ++it_range;
     }
@@ -149,12 +143,5 @@ void Dimension::write_none(const Query &query, rapidjson::Writer<rapidjson::Stri
 
   if (query.output() == Query::QueryOutput::COUNT) {
     writer.Uint(count);
-  } else {
-    for (auto &q : query.quantiles()) {
-      writer.StartArray();
-      writer.Double(q);
-      writer.Double(pdigest.quantile(q));
-      writer.EndArray();
-    }
   }
 }

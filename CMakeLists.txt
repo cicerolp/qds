@@ -36,7 +36,6 @@ add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
         source/SpatialElement.cpp
         source/string_util.cpp
         source/Temporal.cpp
-        source/Pivot.cpp
         )
 
 find_package(Gperftools REQUIRED)
