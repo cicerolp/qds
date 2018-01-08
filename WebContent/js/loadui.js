@@ -67,9 +67,9 @@ function loadUi() {
 		marker[i] = null;
 	}
 	tiles = new Array(_view.tile.length);
-	for(var i = 0; i < tiles.length; i++) {
+	for(var i = 0; i < 16; i++) {
 		tiles[i] = new LatLngPoint();
-		tiles[i].color = _view.tile[i].color;
+		tiles[i].color = '#ffffff';
 	}
 	
 
