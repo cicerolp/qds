@@ -1,6 +1,5 @@
 var view_schemas = {
-
-    "file2.nds": {
+    "file.nds": {
         PLOTTING: "black",
         PLOTTING_MODE: "rect",
         PLOTTING_COLOR_SCALE: "ryw",
@@ -14,8 +13,8 @@ var view_schemas = {
                 type: "histogram",
                 title: "Gender",
                 on_menu: true,
-                div: "#section",
-                size: 20,
+                div: "#top-section",
+                size: 12.5,
                 field: {
                     name: "c_0",
                     values: ["Male", "Female"]
@@ -23,10 +22,10 @@ var view_schemas = {
             },
             {
                 type: "histogram",
-                title: "Permission Status",
+                title: "Permission",
                 on_menu: true,
-                div: "#section",
-                size: 20,
+                div: "#top-section",
+                size: 12.5,
                 field: {
                     name: "c_3",
                     values: ["On", "Off"]
@@ -34,10 +33,10 @@ var view_schemas = {
             },
             {
                 type: "histogram",
-                title: "Deliverability Status",
+                title: "Deliverability",
                 on_menu: true,
-                div: "#section",
-                size: 20,
+                div: "#top-section",
+                size: 12.5,
                 field: {
                     name: "c_4",
                     values: ["On", "Off"]
@@ -47,8 +46,8 @@ var view_schemas = {
                 type: "histogram",
                 title: "Phone",
                 on_menu: true,
-                div: "#section",
-                size: 20,
+                div: "#top-section",
+                size: 12.5,
                 field: {
                     name: "c_7",
                     values: ["On", "Off"]
@@ -58,8 +57,8 @@ var view_schemas = {
                 type: "histogram",
                 title: "Address",
                 on_menu: true,
-                div: "#section",
-                size: 20,
+                div: "#top-section",
+                size: 12.5,
                 field: {
                     name: "c_9",
                     values: ["On", "Off"]
@@ -70,7 +69,7 @@ var view_schemas = {
                 title: "Age",
                 on_menu: true,
                 div: "#top-section",
-                size: 15,
+                size: 12.5,
                 field: {
                     name: "c_12",
                     values: ["0-20", "21-30", "31-40", "41-50", "51-60", "61+"]
@@ -81,7 +80,7 @@ var view_schemas = {
                 title: "Mobile",
                 on_menu: true,
                 div: "#top-section",
-                size: 15,
+                size: 12.5,
                 field: {
                     name: "c_10",
                     values: ["On", "Off"]
@@ -92,7 +91,7 @@ var view_schemas = {
                 title: "CPF",
                 on_menu: true,
                 div: "#top-section",
-                size: 15,
+                size: 12.5,
                 field: {
                     name: "c_11",
                     values: ["On", "Off"]
@@ -103,14 +102,14 @@ var view_schemas = {
                 type: "time-series",
                 title: "Timeline",
                 on_menu: true,
-                div: "#top-section",
-                size: 35,
+                div: "#section",
+                size: 100,
                 field: {
                     name: "t_14",
                 }
             }
         ]
-    },"file.nds": {
+    },"file2.nds": {
         PLOTTING: "black",
         PLOTTING_MODE: "rect",
         PLOTTING_COLOR_SCALE: "ryw",
@@ -124,8 +123,8 @@ var view_schemas = {
                 type: "histogram",
                 title: "Gender",
                 on_menu: true,
-                div: "#section",
-                size: 20,
+                div: "#top-section",
+                size: 12.5,
                 field: {
                     name: "c_0",
                     values: ["Male", "Female"]
@@ -133,10 +132,10 @@ var view_schemas = {
             },
             {
                 type: "histogram",
-                title: "Permission Status",
+                title: "Permission",
                 on_menu: true,
-                div: "#section",
-                size: 20,
+                div: "#top-section",
+                size: 12.5,
                 field: {
                     name: "c_3",
                     values: ["On", "Off"]
@@ -144,10 +143,10 @@ var view_schemas = {
             },
             {
                 type: "histogram",
-                title: "Deliverability Status",
+                title: "Deliverability",
                 on_menu: true,
-                div: "#section",
-                size: 20,
+                div: "#top-section",
+                size: 12.5,
                 field: {
                     name: "c_4",
                     values: ["On", "Off"]
@@ -157,8 +156,8 @@ var view_schemas = {
                 type: "histogram",
                 title: "Phone",
                 on_menu: true,
-                div: "#section",
-                size: 20,
+                div: "#top-section",
+                size: 12.5,
                 field: {
                     name: "c_7",
                     values: ["On", "Off"]
@@ -168,8 +167,8 @@ var view_schemas = {
                 type: "histogram",
                 title: "Address",
                 on_menu: true,
-                div: "#section",
-                size: 20,
+                div: "#top-section",
+                size: 12.5,
                 field: {
                     name: "c_9",
                     values: ["On", "Off"]
@@ -180,7 +179,7 @@ var view_schemas = {
                 title: "Age",
                 on_menu: true,
                 div: "#top-section",
-                size: 15,
+                size: 12.5,
                 field: {
                     name: "c_12",
                     values: ["0-20", "21-30", "31-40", "41-50", "51-60", "61+"]
@@ -191,7 +190,7 @@ var view_schemas = {
                 title: "Mobile",
                 on_menu: true,
                 div: "#top-section",
-                size: 15,
+                size: 12.5,
                 field: {
                     name: "c_10",
                     values: ["On", "Off"]
@@ -202,7 +201,7 @@ var view_schemas = {
                 title: "CPF",
                 on_menu: true,
                 div: "#top-section",
-                size: 15,
+                size: 12.5,
                 field: {
                     name: "c_11",
                     values: ["On", "Off"]
@@ -213,8 +212,8 @@ var view_schemas = {
                 type: "time-series",
                 title: "Timeline",
                 on_menu: true,
-                div: "#top-section",
-                size: 35,
+                div: "#section",
+                size: 100,
                 field: {
                     name: "t_14",
                 }
