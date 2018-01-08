@@ -1,18 +1,18 @@
 #include "Categorical.h"
 #include "NDS.h"
 
-Categorical::Categorical(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple)
+Categorical::Categorical(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple)
     : Dimension(tuple), _container(_bin) {}
 
-uint32_t Categorical::build(const build_ctn& range, build_ctn& response,
-                            const link_ctn& links, link_ctn& share, NDS& nds) {
+uint32_t Categorical::build(const build_ctn &range, build_ctn &response,
+                            const link_ctn &links, link_ctn &share, NDS &nds) {
   nds.data()->prepareOffset<categorical_t>(_offset);
 
   uint32_t pivots_count = 0;
 
   std::vector<build_ctn> tmp_ctn(_bin);
 
-  for (const auto& ptr : range) {
+  for (const auto &ptr : range) {
     std::vector<uint32_t> used(_bin, 0);
 
     for (auto i = ptr.front(); i < ptr.back(); ++i) {
@@ -21,6 +21,9 @@ uint32_t Categorical::build(const build_ctn& range, build_ctn& response,
       nds.data()->setHash(i, value);
       ++used[value];
     }
+
+    // sort before tdigesting...
+    nds.data()->sort(ptr.front(), ptr.back());
 
     uint32_t accum = ptr.front();
     for (uint32_t i = 0; i < _bin; ++i) {
@@ -35,8 +38,6 @@ uint32_t Categorical::build(const build_ctn& range, build_ctn& response,
 
       ++pivots_count;
     }
-
-    nds.data()->sort(ptr.front(), ptr.back());
   }
 
   for (uint32_t index = 0; index < _bin; ++index) {
@@ -49,8 +50,8 @@ uint32_t Categorical::build(const build_ctn& range, build_ctn& response,
   return pivots_count;
 }
 
-bool Categorical::query(const Query &query, subset_container &subsets) const {
-  const auto &restriction = query.eval<Query::categorical_query_t>(_key);
+bool Categorical::query(const Query &query, subset_ctn &subsets) const {
+  const auto &restriction = query.eval<Query::categorical_restriction_t>(_key);
 
   if (!restriction) return true;
 
@@ -59,14 +60,14 @@ bool Categorical::query(const Query &query, subset_container &subsets) const {
   if (restriction->where.size()) {
     if (restriction->where.size() == _bin && !restriction->field) return true;
 
-    for (const auto& value : restriction->where) {
+    for (const auto &value : restriction->where) {
       subset.container.emplace_back(&_container[value]);
     }
 
     if (restriction->field) subset.option = CopyValueFromSubset;
 
   } else if (restriction->field) {
-    for (const auto& el : _container) {
+    for (const auto &el : _container) {
       subset.container.emplace_back(&el);
     }
 

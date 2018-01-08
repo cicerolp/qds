@@ -1,5 +1,13 @@
-project (nds)
-cmake_minimum_required (VERSION 3.0)
+project(nds)
+cmake_minimum_required(VERSION 3.0)
+
+option(PDIGEST_WEIGHT_LIMIT "Enable pDigest Weight Limit" OFF)
+option(PDIGEST_PIECE_WISE_APPROXIMATION "Enable pDigest Piece Wise Approximation" ON)
+
+set(PDIGEST_COMPRESSION "50.f" CACHE STRING "Set pDigest Compression (float)")
+
+configure_file(source/config.h.in config.h)
+include_directories("${CMAKE_CURRENT_BINARY_DIR}") # To find the .h
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMake")
 
@@ -11,21 +19,24 @@ include_directories(AFTER ./)
 include_directories(AFTER source)
 include_directories(AFTER include)
 
-add_executable (${PROJECT_NAME} ${SRC_LIST}
-   source/mongoose.c
-   source/Categorical.cpp
-   source/Data.cpp
-   source/Dimension.cpp
-   source/main.cpp
-   source/NDS.cpp
-   source/NDSInstances.cpp
-   source/Query.cpp
-   source/Server.cpp
-   source/Spatial.cpp
-   source/SpatialElement.cpp
-   source/string_util.cpp
-   source/Temporal.cpp
-)
+file(GLOB HEADERS "source/*.h")
+source_group("Header Files" FILES ${HEADERS})
+
+add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
+        source/mongoose.c
+        source/Categorical.cpp
+        source/Data.cpp
+        source/Dimension.cpp
+        source/main.cpp
+        source/NDS.cpp
+        source/NDSInstances.cpp
+        source/Query.cpp
+        source/Server.cpp
+        source/Spatial.cpp
+        source/SpatialElement.cpp
+        source/string_util.cpp
+        source/Temporal.cpp
+        )
 
 find_package(Gperftools REQUIRED)
 find_package(Threads REQUIRED)

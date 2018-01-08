@@ -17,10 +17,10 @@ function onReady(callback) {
     function checkReady() {
         if (ready == false) {
             $.ajax({
-                type : 'GET',
-                url : root + "schema/" + _schema,
-                dataType : "json",
-                success : function(target) {
+                type: 'GET',
+                url: root + "schema/" + _schema,
+                dataType: "json",
+                success: function (target) {
                     if (!jQuery.isEmptyObject(target)) {
                         ready = true;
 
@@ -33,10 +33,10 @@ function onReady(callback) {
                         curr_upper_bound = upper_bound.getTime();
 
                         window.clearInterval(intervalID);
-                        callback.call(this);                        
+                        callback.call(this);
                     }
                 },
-                error : function(jqXHR, textStatus, errorThrown) {
+                error: function (jqXHR, textStatus, errorThrown) {
                     console.log(errorThrown);
                 }
             });
@@ -54,44 +54,50 @@ onReady(function () {
 
     show('container', true);
     show('loading', false);
-    
+
     loadUi();
     loadMap();
 
-    a_getQuery();    
+    a_getQuery();
 });
 
 var waitForFinalEvent = (function () {
-  var timers = {};
-  return function (callback, ms, uniqueId) {
-    if (!uniqueId) {
-      uniqueId = "Don't call this twice without a uniqueId";
-    }
-    if (timers[uniqueId]) {
-      clearTimeout (timers[uniqueId]);
-    }
-    timers[uniqueId] = setTimeout(callback, ms);
-  };
+    var timers = {};
+    return function (callback, ms, uniqueId) {
+        if (!uniqueId) {
+            uniqueId = "Don't call this twice without a uniqueId";
+        }
+        if (timers[uniqueId]) {
+            clearTimeout(timers[uniqueId]);
+        }
+        timers[uniqueId] = setTimeout(callback, ms);
+    };
 })();
 
 var window_resize = false;
 
 $(window).resize(function () {
-    waitForFinalEvent(function() {
-      window_resize = true;
-    a_getQuery();
+    waitForFinalEvent(function () {
+        window_resize = true;
+        a_getQuery();
     }, 500, "WinResizeEvent");
 });
 
 function setProgressBar(count) {
-    if (curr_count != count) { curr_count = count; } else { return; }
+    if (count.length == 0) {
+        curr_count = total_count;
+    } else if (curr_count != count) {
+        curr_count = count;
+    } else {
+        return;
+    }
 
     $("#progressbar .ui-progressbar-value").animate({
         width: (((curr_count) / total_count) * 100) + "%"
     }, {
-        queue : false
+        queue: false
     }, {
-        duration : 1000
+        duration: 1000
     });
 
     $("#label").text("Total Count: " + curr_count + " of " + total_count);
@@ -106,30 +112,30 @@ function updateDataRestrictions() {
         update_tile = true;
     }
     heatmap_resolution = curr_heatmap_resolution;
-    
+
     curr_region = "";
     for (var i = 0; i < marker.length; i++) {
-    	if (marker[i] == null) continue;
-    	
-    	var b = L.latLngBounds(tiles[i].p0, tiles[i].p1);
-    	
-    	var lat0 = b._northEast.lat;
-    	var lon0 = b._southWest.lng;
-    	var lat1 = b._southWest.lat;
-    	var lon1 = b._northEast.lng;
+        if (marker[i] == null) continue;
 
-    	var z = map.getZoom() + 8;
-        
-    	var x0 = roundtile(lon2tilex(lon0, z), z);
-    	var x1 = roundtile(lon2tilex(lon1, z), z);
+        var b = L.latLngBounds(tiles[i].p0, tiles[i].p1);
 
-    	if (x0 > x1) {
-    	    x0 = 0;
-    	    x1 = Math.pow(2, z);
-    	}
+        var lat0 = b._northEast.lat;
+        var lon0 = b._southWest.lng;
+        var lat1 = b._southWest.lat;
+        var lon1 = b._northEast.lng;
+
+        var z = map.getZoom() + 8;
+
+        var x0 = roundtile(lon2tilex(lon0, z), z);
+        var x1 = roundtile(lon2tilex(lon1, z), z);
+
+        if (x0 > x1) {
+            x0 = 0;
+            x1 = Math.pow(2, z);
+        }
 
         // /x0/y0/x1/y1/
-    	curr_region += "/region/" + i + "/" + z
+        curr_region += "/region/" + i + "/" + z
             + "/" + x0
             + "/" + roundtile(lat2tiley(lat0, z), z)
             + "/" + x1
@@ -143,27 +149,27 @@ function updateDataRestrictions() {
 
     var query_where = false;
     curr_where = "/where/";
-    
+
     _view.views.forEach(function (entry) {
-    	if (entry.on_menu) {
-    	   var restriction = get_id(entry.field.name) + "=";
-    		
-    		$("#tabs-" + entry.field.name + "-checkboxes" + " :checked").each(function() {
-    			restriction += parseInt($(this).val()) + ":";
-    	        query_where = true;
-    	    });
-    		restriction = restriction.substring(0, restriction.length - 1) + "&";
-    		
-    		curr_where += restriction; 
+        if (entry.on_menu) {
+            var restriction = get_id(entry.field.name) + "=";
+
+            $("#tabs-" + entry.field.name + "-checkboxes" + " :checked").each(function () {
+                restriction += parseInt($(this).val()) + ":";
+                query_where = true;
+            });
+            restriction = restriction.substring(0, restriction.length - 1) + "&";
+
+            curr_where += restriction;
         }
     });
 
     if (query_where) {
-    	curr_where = curr_where.substring(0, curr_where.length - 1);
+        curr_where = curr_where.substring(0, curr_where.length - 1);
     } else {
         curr_where = "";
     }
-    
+
     if (curr_where != where) {
         update = true;
         update_tile = true;
@@ -173,7 +179,7 @@ function updateDataRestrictions() {
     curr_tseries = "";
 
     _view.views.forEach(function (entry) {
-        if (entry.type == "time-series") {            
+        if (entry.type == "time-series") {
 
             var tseries_from = "/" + Math.floor(Math.max(lower_bound.getTime(), curr_lower_bound) / 1000);
             var tseries_to = "/" + Math.ceil(Math.min(upper_bound.getTime(), curr_upper_bound) / 1000);
@@ -181,13 +187,13 @@ function updateDataRestrictions() {
             curr_tseries += "/tseries/" + get_id(entry.field.name) + tseries_from + tseries_to;
         }
     });
-    
+
     if (curr_tseries != tseries) {
         update = true;
         update_tile = true;
     }
     tseries = curr_tseries;
-    
+
     if (window_resize) {
         update = true;
     }
@@ -204,7 +210,7 @@ function a_getQuery() {
     if (update_tile) callbacks.fire(heatmap_resolution + where + tseries);
 
     if (update) {
-        var query = "/region" + region + tseries + where;
+        var query = "/count/none" + region + tseries + where;
         $.ajax({
             type: 'GET',
             url: _queryURL + query,
@@ -217,73 +223,73 @@ function a_getQuery() {
             }
         });
 
-    	_view.views.forEach(function(entry) {
-    	    switch (entry.type) {
-    	        case "mysql":
-    	        {
-    	            var query = "/mysql" + tseries + region + where;
-    	            $.ajax({
-    	                type: 'GET',
-    	                url: _queryURL + query,
-    	                dataType: "json",
-    	                success: function (data) {
-    	                    loadMySQLPanel(data, entry);
-    	                },
-    	                error: function (jqXHR, textStatus, errorThrown) {
-    	                    console.log(errorThrown);
-    	                }
-    	            });
-    	        } break;
+        _view.views.forEach(function (entry) {
+            switch (entry.type) {
+                case "mysql": {
+                    var query = "/count/mysql" + tseries + region + where;
+                    $.ajax({
+                        type: 'GET',
+                        url: _queryURL + query,
+                        dataType: "json",
+                        success: function (data) {
+                            loadMySQLPanel(data, entry);
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.log(errorThrown);
+                        }
+                    });
+                }
+                    break;
 
-        		case "histogram": 
-        		{
-        		   var query = "/group/field/" + get_id(entry.field.name) + region + where + tseries;
-        	        $.ajax({
-        	            type : 'GET',
-        	            url : _queryURL + query,
-        	            dataType : "json",
-        	            success : function(data) {
-        	                setHistogramData(data, entry);
-        	            },
-        	            error : function(jqXHR, textStatus, errorThrown) {
-        	                console.log(errorThrown);
-        	            }
-        	        });	
-        		} break;
-        		
-        		case "time-series": 
-        		{
-        			var query = "/tseries" + tseries + region + where;
-        	        $.ajax({
-        	            type : 'GET',
-        	            url : _queryURL + query,
-        	            dataType : "json",
-        	            success : function(data) {
-        	                loadLineChart(data, entry);
-        	            },
-        	            error : function(jqXHR, textStatus, errorThrown) {
-        	                console.log(errorThrown);
-        	            }
-        	        });
-        		} break;
-        		
-        		case "binned-scatterplot": 
-        		{
-        		   var query = "/scatter/field/" + get_id(entry.field_x.name) + "/field/" + get_id(entry.field_y.name) + region;
-    				
-    		        $.ajax({
-    		            type : 'GET',
-    		            url : _queryURL + query,
-    		            dataType : "json",
-    		            success : function(data) {
-    		                setSctterChart(data, entry);
-    		            },
-    		            error : function(jqXHR, textStatus, errorThrown) {
-    		                console.log(errorThrown);
-    		            }
-    		        });
-        		} break;
-    		}    		
+                case "histogram": {
+                    var query = "/count/group/field/" + get_id(entry.field.name) + region + where + tseries;
+                    $.ajax({
+                        type: 'GET',
+                        url: _queryURL + query,
+                        dataType: "json",
+                        success: function (data) {
+                            setHistogramData(data, entry);
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.log(errorThrown);
+                        }
+                    });
+                }
+                    break;
+
+                case "time-series": {
+                    var query = "/count/tseries" + tseries + region + where;
+                    $.ajax({
+                        type: 'GET',
+                        url: _queryURL + query,
+                        dataType: "json",
+                        success: function (data) {
+                            loadLineChart(data, entry);
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.log(errorThrown);
+                        }
+                    });
+                }
+                    break;
+
+                case "binned-scatterplot": {
+                    var query = "/count/scatter/field/" + get_id(entry.field_x.name) + "/field/" + get_id(entry.field_y.name) + region;
+
+                    $.ajax({
+                        type: 'GET',
+                        url: _queryURL + query,
+                        dataType: "json",
+                        success: function (data) {
+                            setSctterChart(data, entry);
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.log(errorThrown);
+                        }
+                    });
+                }
+                    break;
+            }
         });
     }
 }

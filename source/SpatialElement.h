@@ -17,12 +17,12 @@ class SpatialElement {
   uint32_t expand(build_ctn& response, uint32_t bin, link_ctn& share, NDS& nds);
 
   void query_tile(const spatial_t& tile, uint64_t resolution,
-                  binned_ctn& subset, uint64_t zoom) const;
-  void query_region(const region_t& region, binned_ctn& subset,
+                  subset_pivot_ctn& subset, uint64_t zoom) const;
+  void query_region(const region_t& region, subset_pivot_ctn& subset,
                     uint64_t zoom) const;
 
  private:
-  void aggregate_tile(uint64_t resolution, binned_ctn& subset,
+  void aggregate_tile(uint64_t resolution, subset_pivot_ctn& subset,
                       uint64_t zoom) const;
   inline bool count_expand(uint32_t bin) const;
 
@@ -39,7 +39,7 @@ class SpatialElement {
     return {x, y};
   }
 
-  binned_t el;
+  bined_pivot_t el;
   std::array<std::unique_ptr<SpatialElement>, 4> _container;
 };
 

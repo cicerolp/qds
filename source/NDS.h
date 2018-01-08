@@ -27,7 +27,7 @@ class NDS {
     rhs.clear();
   }
 
-  inline pivot_ctn* create_link(binned_t& binned, const build_ctn& container) {
+  inline pivot_ctn* create_link(bined_pivot_t& binned, const build_ctn& container) {
     pivot_ctn* link = new pivot_ctn(container.size());
     std::memcpy(&(*link)[0], &container[0], container.size() * sizeof(Pivot));
 
@@ -36,7 +36,7 @@ class NDS {
     return link;
   }
 
-  inline pivot_ctn* get_link(binned_t& binned, const build_ctn& container,
+  inline pivot_ctn* get_link(bined_pivot_t& binned, const build_ctn& container,
                              const link_ctn& links) {
     pivot_ctn* link = nullptr;
 
@@ -54,7 +54,7 @@ class NDS {
       return link;
   }
 
-  inline void share(binned_t& binned, const build_ctn& container,
+  inline void share(bined_pivot_t& binned, const build_ctn& container,
                     const link_ctn& links, link_ctn& share) {
     pivot_ctn* link = get_link(binned, container, links);
 

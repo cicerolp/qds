@@ -1,26 +1,46 @@
 #include "Query.h"
 
+void Query::initialize(const std::string &instance, const std::string &output, const std::string &aggregation) {
+  // dataset instance
+  _instance = instance;
+
+  // output_type
+  _output_str = output;
+  if (output == "count") {
+    _output = COUNT;
+  } else if (output == "quantile") {
+    _output = QUANTILE;
+  }
+
+  // query_aggregation
+  _aggregation_str = aggregation;
+  if (aggregation == "tile") {
+    _aggregation = TILE;
+  } else if (aggregation == "group") {
+    _aggregation = GROUP;
+  } else if (aggregation == "tseries") {
+    _aggregation = TSERIES;
+  } else if (aggregation == "scatter") {
+    _aggregation = SCATTER;
+  } else if (aggregation == "none") {
+    _aggregation = NONE;
+  }
+}
+
 Query::Query(const std::string &url) : Query(string_util::split(url, "[/]+")) {}
 
-Query::Query(const std::vector<std::string> &tokens) : Query(tokens[3], tokens[4]) {
+Query::Query(const std::vector<std::string> &tokens) {
+  // initialize query parameters
+  initialize(tokens[3], tokens[4], tokens[5]);
 
-  for (auto it = tokens.begin() + 5; it != tokens.end(); ++it) {
-    if ((*it) == "tile") {
-      auto key = std::stoul(string_util::next_token(it));
-
-      auto r = get<spatial_query_t>(key);
-
-      auto x = std::stoi(string_util::next_token(it));
-      auto y = std::stoi(string_util::next_token(it));
-      auto z = std::stoi(string_util::next_token(it));
-
-      r->tile.emplace_back(x, y, z);
-      r->resolution = std::stoi(string_util::next_token(it));
+  for (auto it = tokens.begin() + 6; it != tokens.end(); ++it) {
+    if ((*it) == "quantile") {
+      _quantiles.emplace_back(std::stof(string_util::next_token(it)));
 
     } else if ((*it) == "region") {
       auto key = std::stoul(string_util::next_token(it));
 
-      auto r = get<spatial_query_t>(key);
+      auto r = get<spatial_restriction_t>(key);
 
       auto z = std::stoi(string_util::next_token(it));
       auto x0 = std::stoi(string_util::next_token(it));
@@ -28,12 +48,26 @@ Query::Query(const std::vector<std::string> &tokens) : Query(tokens[3], tokens[4
       auto x1 = std::stoi(string_util::next_token(it));
       auto y1 = std::stoi(string_util::next_token(it));
 
-      r->region.emplace_back(x0, y0, x1, y1, z);
+      r->region = std::make_unique<region_t>(x0, y0, x1, y1, z);
+
+    } else if ((*it) == "tile") {
+      auto key = std::stoul(string_util::next_token(it));
+
+      auto r = get<spatial_restriction_t>(key);
+
+      auto x = std::stoi(string_util::next_token(it));
+      auto y = std::stoi(string_util::next_token(it));
+      auto z = std::stoi(string_util::next_token(it));
+
+      r->tile = std::make_unique<spatial_t>(x, y, z);
+
+      // TODO fix resolution
+      //r->resolution = std::stoi(string_util::next_token(it));
 
     } else if ((*it) == "field") {
       auto key = std::stoul(string_util::next_token(it));
 
-      auto r = get<categorical_query_t>(key);
+      auto r = get<categorical_restriction_t>(key);
 
       r->field = true;
 
@@ -56,14 +90,15 @@ Query::Query(const std::vector<std::string> &tokens) : Query(tokens[3], tokens[4
         std::sort(where.begin(), where.end());
 
         if (where.size() != 0) {
-          auto r = get<categorical_query_t>(key);
+          auto r = get<categorical_restriction_t>(key);
           r->where.assign(where.begin(), where.end());
         }
       }
+
     } else if ((*it) == "tseries") {
       auto key = std::stoul(string_util::next_token(it));
 
-      auto r = get<temporal_query_t>(key);
+      auto r = get<temporal_restriction_t>(key);
 
       temporal_t lower = std::stoul(string_util::next_token(it));
       temporal_t upper = std::stoul(string_util::next_token(it));
@@ -73,88 +108,16 @@ Query::Query(const std::vector<std::string> &tokens) : Query(tokens[3], tokens[4
   }
 }
 
-Query::Query(const std::string &instance, const std::string &type)
-    : _instance(instance) {
-  if (type == "tile") {
-    _type = TILE;
-  } else if (type == "group") {
-    _type = GROUP;
-  } else if (type == "tseries") {
-    _type = TSERIES;
-  } else if (type == "scatter") {
-    _type = SCATTER;
-  } else if (type == "region") {
-    _type = REGION;
-  } else if (type == "mysql") {
-    _type = MYSQL;
-  } else if (type == "quantile") {
-    _type = QUANTILE;
+void Query::print(std::ostream &os) const {
+  os << "/" + _instance;
+
+  os << "/" + _output_str;
+
+  os << "/" + _aggregation_str;
+
+  for (auto &pair : _restrictions) {
+    uint32_t id = pair.first;
+    pair.second->print(id, os);
   }
 }
 
-std::ostream &operator<<(std::ostream &os, const Query &query) {
-  os << "/" + query.instance();
-
-  switch (query.type()) {
-    case Query::TILE:os << "/tile";
-      break;
-    case Query::GROUP:os << "/group";
-      break;
-    case Query::TSERIES:os << "/tseries";
-      break;
-    case Query::SCATTER:os << "/scatter";
-      break;
-    case Query::REGION:os << "/region";
-      break;
-    case Query::MYSQL:os << "/mysql";
-      break;
-  }
-
-  for (auto &pair : query._restrictions) {
-    auto &r = pair.second;
-
-    uint32_t index = pair.first;
-
-    switch (r->id) {
-      case Query::query_t::spatial: {
-        auto spatial = static_cast<Query::spatial_query_t &>(*r.get());
-        // /region/key/z/x0/y0/x1/y1
-        for (auto &region : spatial.region) {
-          os << "/region/" << index << "/" << region;
-        }
-        // /tile/key/x/y/z/r
-        for (auto &tile : spatial.tile) {
-          os << "/tile/" << index << "/" << tile << "/" << spatial.resolution;
-        }
-      }
-        break;
-      case Query::query_t::categorical: {
-        auto categorical = static_cast<Query::categorical_query_t &>(*r.get());
-        // /field/<key>
-        if (categorical.field) {
-          os << "/field/" << index;
-        }
-
-        // /where/<category>=<[value]:[value]...:[value]>&<category>=<[value]:[value]...:[value]>
-        if (categorical.where.size()) os << "/where/" << index << "=";
-        std::string where_stream;
-        for (auto &value : categorical.where) {
-          where_stream += std::to_string(value) + ":";
-        }
-        where_stream = where_stream.substr(0, where_stream.size() - 1);
-        if (categorical.where.size()) os << where_stream;
-      }
-        break;
-
-      case Query::query_t::temporal: {
-        auto temporal = static_cast<Query::temporal_query_t &>(*r.get());
-        // /tseries/key/from_date/to_date
-        os << "/tseries/" << index << "/" << temporal.interval;
-      }
-        break;
-      default:break;
-    }
-  }
-
-  return os;
-}

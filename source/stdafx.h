@@ -12,6 +12,9 @@
 #define _USE_MATH_DEFINES
 #define _CRT_SECURE_NO_WARNINGS
 
+// CMake Config File
+#include "config.h"
+
 // C includes
 #include <cassert>
 #include <cmath>
@@ -32,6 +35,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
+#include <numeric>
 
 // boost library
 #include <boost/program_options.hpp>
@@ -55,3 +59,9 @@
 #include <gfx/timsort.hpp>
 
 #include "types.h"
+
+template<class T>
+auto operator<<(std::ostream &os, const T &t) -> decltype(t.print(os), os) {
+  t.print(os);
+  return os;
+}

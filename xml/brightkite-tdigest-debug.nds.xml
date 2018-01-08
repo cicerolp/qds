@@ -2,7 +2,7 @@
 <config>
 	<name>brightkite</name>
 	<bytes>14</bytes>
-	<file>brightkite.nds</file>
+	<file>brightkite-example.nds</file>
 	<schema>
 		<categorical>
 			<index>1</index>

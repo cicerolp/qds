@@ -19,21 +19,22 @@ uint32_t Spatial::build(const build_ctn& range, build_ctn& response,
   return pivots_count;
 }
 
-bool Spatial::query(const Query& query, subset_container& subsets) const {
-  const auto &restriction = query.eval<Query::spatial_query_t>(_key);
+bool Spatial::query(const Query& query, subset_ctn& subsets) const {
+  const auto &restriction = query.eval<Query::spatial_restriction_t>(_key);
 
   if (!restriction || _tree == nullptr) return true;
 
   subset_t subset;
 
-  if (restriction->tile.size()) {
-    _tree->query_tile(restriction->tile[0], restriction->resolution,
-                      subset.container, 0);
-  } else if (restriction->region.size()) {
-    _tree->query_region(restriction->region[0], subset.container, 0);
+  //TODO fix resolution
+  if (restriction->tile != nullptr) {
+    _tree->query_tile((*restriction->tile), 8, subset.container, 0);
+
+  } else if (restriction->region != nullptr) {
+    _tree->query_region((*restriction->region), subset.container, 0);
   }
 
-  if (query.type() == Query::TILE) subset.option = CopyValueFromSubset;
+  if (query.aggregation() == Query::TILE) subset.option = CopyValueFromSubset;
 
   if (subset.container.size() != 0) {
     subsets.emplace_back(subset);

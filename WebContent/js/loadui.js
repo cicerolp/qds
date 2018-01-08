@@ -44,8 +44,7 @@ function loadMap() {
     map.on('mouseout',  onMapMouseUp);
     map.on('mousemove', onMapMouseOver);
 
-};
-
+}
 $(document).bind("contextmenu", function(event) {
     event.preventDefault();    
 });
@@ -68,9 +67,9 @@ function loadUi() {
 		marker[i] = null;
 	}
 	tiles = new Array(_view.tile.length);
-	for(var i = 0; i < tiles.length; i++) {
+	for(var i = 0; i < 16; i++) {
 		tiles[i] = new LatLngPoint();
-		tiles[i].color = _view.tile[i].color;
+		tiles[i].color = '#ffffff';
 	}
 	
 
@@ -119,15 +118,15 @@ function loadUi() {
         d3.select("#container")
             .style("width", 75 + "vw");
         d3.select("#right-section")
-           .style("width", 25 + "vw")
+           .style("width", 25 + "vw");
         d3.select("#section")
-           .style("width", 75 + "vw")
+           .style("width", 75 + "vw");
         d3.select("#top-section")
            .style("width", 75 + "vw")
     }
 
     if (sections["#top-section"] == 0)
-        d3.select("#top-section").style("width", 0 + "vw")
+        d3.select("#top-section").style("width", 0 + "vw");
 
     $("ul.tabs-ul").append($("<li><a href=" + '"#tabs-settings"' + ">" + "Settings" + "</a></li>"));
     $("#tabs").append($('<div id="tabs-settings"></div>'));    
