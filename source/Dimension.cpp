@@ -83,7 +83,7 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
   swap_and_sort(range, response, option);
 
   if (option == CopyValueFromSubset) {
-    switch (query.output()) { 
+    switch (query.output()) {
       case Query::QueryOutput::COUNT: {
         if (!query.has_group()) {
           write_none(query, writer, range, subsets.back().container);

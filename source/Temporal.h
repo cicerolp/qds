@@ -5,33 +5,36 @@
 
 class Temporal : public Dimension {
   struct TemporalElement {
-    bool operator!=(const TemporalElement& rhs) const {
+    bool operator!=(const TemporalElement &rhs) const {
       return el.value != rhs.el.value;
     }
-    bool operator==(const TemporalElement& rhs) const {
+    bool operator==(const TemporalElement &rhs) const {
       return el.value == rhs.el.value;
     }
-    bool operator<(const temporal_t& rhs) const {
-      return (temporal_t)(el.value) < rhs;
+    bool operator<(const temporal_t &rhs) const {
+      return (temporal_t) (el.value) < rhs;
     }
-    bool operator<(const TemporalElement& rhs) const {
+    bool operator<(const TemporalElement &rhs) const {
       return el.value < rhs.el.value;
     }
     bined_pivot_t el;
   };
 
  public:
-  Temporal(const std::tuple<uint32_t, uint32_t, uint32_t>& tuple);
+  Temporal(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple);
   ~Temporal() = default;
 
-  uint32_t build(const build_ctn& range, build_ctn& response,
-                 const link_ctn& links, link_ctn& share, NDS& nds) override;
-  bool query(const Query& query, subset_ctn& subsets) const override;
+  uint32_t build(const build_ctn &range, build_ctn &response,
+                 const link_ctn &links, link_ctn &share, NDS &nds) override;
+  bool query(const Query &query, subset_ctn &subsets) const override;
 
   inline interval_t get_interval() const {
     return interval_t(_container.front().el.value, _container.back().el.value);
   }
 
  private:
+  interval_t parse_interval(const std::string &str) const;
+  sequence_t parse_sequence(const std::string &str) const;
+
   stde::dynarray<TemporalElement> _container;
 };

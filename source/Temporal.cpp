@@ -53,31 +53,95 @@ uint32_t Temporal::build(const build_ctn &range, build_ctn &response,
 }
 
 bool Temporal::query(const Query &query, subset_ctn &subsets) const {
-  const auto &restriction = query.eval<Query::temporal_restriction_t>(_key);
+  auto clausule = query.get_const(std::to_string(_key));
 
-  if (!restriction) return true;
+  if (clausule != nullptr) {
+    if (clausule->first == "interval") {
+      auto interval = parse_interval(clausule->second);
 
-  const auto &interval = restriction->interval;
+      subset_t subset;
 
-  if (query.aggregation() != Query::TSERIES &&
-      interval.contain(_container.front().el.value, _container.back().el.value)) {
+      if (query.get_group(std::to_string(_key))) {
+        subset.option = CopyValueFromSubset;
+
+        if (interval.contain(_container.front().el.value, _container.back().el.value)) {
+          // all values selected
+          for (const auto &it : _container) {
+            subset.container.emplace_back(&it.el);
+          }
+        } else {
+          auto it_lower_data = std::lower_bound(_container.begin(), _container.end(), interval.bound[0]);
+          auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), interval.bound[1]);
+
+          for (auto it = it_lower_data; it < it_upper_date; ++it) {
+            subset.container.emplace_back(&(*it).el);
+          }
+        }
+
+      } else {
+        if (interval.contain(_container.front().el.value, _container.back().el.value)) {
+          // all values selected
+          return true;
+        } else {
+          auto it_lower_data = std::lower_bound(_container.begin(), _container.end(), interval.bound[0]);
+          auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), interval.bound[1]);
+
+          for (auto it = it_lower_data; it < it_upper_date; ++it) {
+            subset.container.emplace_back(&(*it).el);
+          }
+        }
+      }
+
+      subsets.emplace_back(subset);
+      return true;
+
+    } else if (clausule->first == "sequence") {
+
+      auto sequence = parse_sequence(clausule->second);
+
+      subset_t subset;
+
+      if (query.get_group(std::to_string(_key))) {
+        subset.option = CopyValueFromSubset;
+      }
+
+      auto it_lower = _container.begin();
+      auto it_upper = _container.begin();
+
+      for (auto& interval : sequence.bounds) {
+
+        it_lower = std::lower_bound(it_upper, _container.end(), interval.bound[0]);
+        it_upper  = std::lower_bound(it_lower, _container.end(), interval.bound[1]);
+
+        for (auto it = it_lower; it < it_upper; ++it) {
+          subset.container.emplace_back(&(*it).el);
+        }
+      }
+
+      subsets.emplace_back(subset);
+      return true;
+    }
+  } else {
     return true;
   }
+}
+interval_t Temporal::parse_interval(const std::string &str) const {
+  auto clausule = boost::trim_copy_if(str, boost::is_any_of("()"));
 
-  subset_t subset;
+  if (clausule == "all") {
+    return interval_t(_container.front().el.value, _container.back().el.value);
+  } else {
+    std::vector<std::string> tokens;
+    boost::split(tokens, clausule, boost::is_any_of(":"));
 
-  auto it_lower_data = std::lower_bound(_container.begin(), _container.end(), interval.bound[0]);
-  auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), interval.bound[1]);
-
-  for (auto it = it_lower_data; it < it_upper_date; ++it) {
-    subset.container.emplace_back(&(*it).el);
+    return interval_t(std::stoi(tokens[0]), std::stoi(tokens[1]));
   }
+}
+sequence_t Temporal::parse_sequence(const std::string &str) const {
+  auto clausule = boost::trim_copy_if(str, boost::is_any_of("()"));
 
-  if (query.aggregation() == Query::TSERIES) subset.option = CopyValueFromSubset;
+  std::vector<std::string> tokens;
+  boost::split(tokens, clausule, boost::is_any_of(":"));
 
-  if (subset.container.size() != 0) {
-    subsets.emplace_back(subset);
-    return true;
-  } else
-    return false;
+  return sequence_t(std::stoi(tokens[0]), std::stoi(tokens[1]), std::stoi(tokens[2]), std::stoi(tokens[3]));
 }

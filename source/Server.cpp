@@ -40,7 +40,7 @@ void Server::handler(mg_connection* conn, int ev, void* p) {
       if (tokens[2] == "schema") {
         printJson(conn, NDSInstances::getInstance().schema(tokens[3]));
       } else if (tokens.size() >= 5 && tokens[2] == "query") {
-        printJson(conn, NDSInstances::getInstance().query(Query(tokens)));
+        //printJson(conn, NDSInstances::getInstance().query(Query(tokens)));
       } else {
         printJson(conn, "[]");
       }

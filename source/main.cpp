@@ -4,6 +4,27 @@
 uint32_t g_Quadtree_Depth{25};
 
 int main(int argc, char* argv[]) {
+  // categorical //
+  // [dimension_name].values.([value_0]:[value_1]:...:[value_N])
+  // http://localhost:7000/query/dataset=brightkite/aggr=count/const=1.values.(0:1:2)/const=2.values.(all)/group=1
+
+  // temporal //
+  // [dimension_name].interval.([lower_bound]:[upper_bound])
+  // http://localhost:7000/query/dataset=brightkite/aggr=count/const=3.interval.(1205971200:1287014400)/group=3
+
+  // [dimension_name].sequence.([lower_bound]:[interval_width]:[num_intervals]:[stride])
+  // http://localhost:7000/query/dataset=brightkite/aggr=count/const=3.sequence.(1205971200:8104320:10:8104321)/group=3
+
+  // spatial //
+  // [dimension_name].tile.([x]:[y]:[z]:[resolution])
+  // http://localhost:7000/query/dataset=brightkite/aggr=count/const=0.tile.(0:0:0:8)/group=0
+
+  // [dimension_name].region.([x0]:[y0]:[x1]:[y1]:[z])
+  // localhost:7000/query/dataset=brightkite/aggr=count/const=0.region.(0:0:1:1:0)/group=0
+
+
+
+
   //QueryParser parser0("/query/dataset=brightkite/aggr=count/const=hour_of_day.(0:1:2:3)");
   //QueryParser parser1("/query/dataset=brightkite/aggr=quantile.(0:0,25:0,5:0,75:1,0)");
   //QueryParser parser2("/query/dataset=brightkite/group=hour_of_day");

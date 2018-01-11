@@ -51,7 +51,6 @@ uint32_t Categorical::build(const build_ctn &range, build_ctn &response,
 }
 
 bool Categorical::query(const Query &query, subset_ctn &subsets) const {
-
   auto clausule = query.get_const(std::to_string(_key));
 
   if (clausule != nullptr) {

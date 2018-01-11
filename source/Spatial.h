@@ -13,5 +13,9 @@ class Spatial : public Dimension {
   bool query(const Query& query, subset_ctn& subsets) const override;
 
  private:
+ private:
+  tile_t parse_tile(const std::string &str) const;
+  region_t parse_region(const std::string &str) const;
+
   std::unique_ptr<SpatialElement> _tree;
 };

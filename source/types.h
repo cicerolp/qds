@@ -14,13 +14,13 @@ struct spatial_t {
   spatial_t(uint32_t _x, uint32_t _y, uint8_t _z, uint8_t _l = 1)
       : type(1), x(_x), y(_y), z(_z), leaf(_l) {}
 
-  inline bool operator==(const spatial_t& other) const {
+  inline bool operator==(const spatial_t &other) const {
     return (z == other.z && x == other.x && y == other.y);
   }
 
-  inline bool contains(const spatial_t& other) const {
+  inline bool contains(const spatial_t &other) const {
     if (other.z > z) {
-      uint64_t n = (uint64_t)1 << (other.z - z);
+      uint64_t n = (uint64_t) 1 << (other.z - z);
 
       uint64_t x_min = x * n;
       uint64_t x_max = x_min + n;
@@ -29,7 +29,7 @@ struct spatial_t {
       uint64_t y_max = y_min + n;
 
       return x_min <= other.x && x_max >= other.x && y_min <= other.y &&
-             y_max >= other.y;
+          y_max >= other.y;
     } else if (other.z == z) {
       return x == other.x && y == other.y;
     } else {
@@ -37,7 +37,7 @@ struct spatial_t {
     }
   }
 
-  friend std::ostream& operator<<(std::ostream& stream, const spatial_t& tile) {
+  friend std::ostream &operator<<(std::ostream &stream, const spatial_t &tile) {
     stream << tile.x << "/" << tile.y << "/" << tile.z;
     return stream;
   }
@@ -56,15 +56,24 @@ struct spatial_t {
   };
 };
 
+struct tile_t {
+  tile_t() = default;
+
+  tile_t(uint32_t x, uint32_t y, uint8_t z, uint32_t r) : tile(x, y, z), resolution(r) {}
+
+  spatial_t tile;
+  uint32_t resolution;
+};
+
 struct region_t {
   region_t() = default;
 
   region_t(uint32_t _x0, uint32_t _y0, uint32_t _x1, uint32_t _y1, uint8_t _z)
       : x0(_x0), y0(_y0), x1(_x1), y1(_y1), z(_z) {}
 
-  inline bool cover(const spatial_t& tile) const {
+  inline bool cover(const spatial_t &tile) const {
     if (z > tile.z) {
-      uint64_t n = (uint64_t)1 << (z - tile.z);
+      uint64_t n = (uint64_t) 1 << (z - tile.z);
 
       uint64_t x_min = tile.x * n;
       uint64_t x_max = x_min + n;
@@ -77,9 +86,9 @@ struct region_t {
       return false;
   }
 
-  inline bool intersect(const spatial_t& tile) const {
+  inline bool intersect(const spatial_t &tile) const {
     if (z > tile.z) {
-      uint64_t n = (uint64_t)1 << (z - tile.z);
+      uint64_t n = (uint64_t) 1 << (z - tile.z);
 
       uint64_t x_min = tile.x * n;
       uint64_t x_max = x_min + n;
@@ -95,7 +104,7 @@ struct region_t {
     }
   }
 
-  friend std::ostream& operator<<(std::ostream& os, const region_t& obj) {
+  friend std::ostream &operator<<(std::ostream &os, const region_t &obj) {
     return os << obj.z << "/" << obj.x0 << "/" << obj.y0 << "/" << obj.x1 << "/"
               << obj.y1;
   }
@@ -117,13 +126,64 @@ struct interval_t {
 
   interval_t(temporal_t lower, temporal_t upper) : bound{lower, upper} {};
 
-  inline bool contain(const temporal_t& lower, const temporal_t& upper) const {
+  inline bool contain(const temporal_t &time) const {
+    return bound[0] <= time && bound[1] >= time;
+  }
+
+  inline bool contain(const temporal_t &lower, const temporal_t &upper) const {
     return bound[0] <= lower && bound[1] >= upper;
   }
 
-  friend std::ostream& operator<<(std::ostream& os, const interval_t& obj) {
+  friend std::ostream &operator<<(std::ostream &os, const interval_t &obj) {
     return os << obj.bound[0] << "/" << obj.bound[1];
   }
 
   std::array<temporal_t, 2> bound;
+};
+
+struct sequence_t {
+  sequence_t() = default;
+
+  sequence_t(temporal_t lower, temporal_t width, uint32_t num_intervals, uint32_t stride) {
+
+    for (int i = 0; i < num_intervals; ++i) {
+      bounds.emplace_back(lower, lower + width);
+      lower += stride;
+    }
+  }
+
+  inline bool contain(const temporal_t &time) const {
+    auto bound = std::lower_bound(bounds.begin(), bounds.end(), time,
+                                  [](const interval_t &lhs, const temporal_t &rhs) {
+                                    return lhs.bound[0] < rhs;
+                                  });
+
+    if (bound != bounds.end()) {
+      return bound->contain(time);
+    }
+
+    return false;
+  }
+
+  inline bool contain(const temporal_t &lower, const temporal_t &upper) const {
+    auto bound = std::lower_bound(bounds.begin(), bounds.end(), lower,
+                                  [](const interval_t &lhs, const temporal_t &rhs) {
+                                    return lhs.bound[0] < rhs;
+                                  });
+
+    if (bound != bounds.end()) {
+      return bound->contain(lower, upper);
+    }
+
+    return false;
+  }
+
+  friend std::ostream &operator<<(std::ostream &os, const sequence_t &obj) {
+    for (const auto &interval : obj.bounds) {
+      os << interval;
+    }
+    return os;
+  }
+
+  std::vector<interval_t> bounds;
 };
