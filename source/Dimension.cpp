@@ -83,9 +83,9 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
   swap_and_sort(range, response, option);
 
   if (option == CopyValueFromSubset) {
-    switch (query.output()) {
+    switch (query.output()) { 
       case Query::QueryOutput::COUNT: {
-        if (query.aggregation() == Query::QueryAggregation::NONE) {
+        if (!query.has_group()) {
           write_none(query, writer, range, subsets.back().container);
         } else {
           write_subset<CountSubsetAggr>(query, writer, range, subsets.back().container);
@@ -93,7 +93,7 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
       }
         break;
       case Query::QueryOutput::QUANTILE: {
-        if (query.aggregation() == Query::QueryAggregation::NONE) {
+        if (!query.has_group()) {
           write_none(query, writer, range, subsets.back().container);
         }
       }
@@ -102,7 +102,7 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
   } else { //CopyValueFromRange
     switch (query.output()) {
       case Query::QueryOutput::COUNT: {
-        if (query.aggregation() == Query::QueryAggregation::NONE) {
+        if (!query.has_group()) {
           write_none(query, writer, range, subsets.back().container);
         } else {
           write_range<CountRangeAggr>(query, writer, range, subsets.back().container);
@@ -110,7 +110,7 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
       }
         break;
       case Query::QueryOutput::QUANTILE: {
-        if (query.aggregation() == Query::QueryAggregation::NONE) {
+        if (!query.has_group()) {
           write_none(query, writer, range, subsets.back().container);
         }
       }

@@ -36,7 +36,7 @@ add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
         source/SpatialElement.cpp
         source/string_util.cpp
         source/Temporal.cpp
-        )
+        source/QueryParser.cpp source/QueryParser.h)
 
 find_package(Gperftools REQUIRED)
 find_package(Threads REQUIRED)

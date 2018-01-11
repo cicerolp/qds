@@ -51,32 +51,62 @@ uint32_t Categorical::build(const build_ctn &range, build_ctn &response,
 }
 
 bool Categorical::query(const Query &query, subset_ctn &subsets) const {
-  const auto &restriction = query.eval<Query::categorical_restriction_t>(_key);
 
-  if (!restriction) return true;
+  auto clausule = query.get_const(std::to_string(_key));
 
-  subset_t subset;
+  if (clausule != nullptr) {
+    auto values = parse(clausule->second);
 
-  if (restriction->where.size()) {
-    if (restriction->where.size() == _bin && !restriction->field) return true;
+    subset_t subset;
 
-    for (const auto &value : restriction->where) {
-      subset.container.emplace_back(&_container[value]);
+    if (query.get_group(std::to_string(_key))) {
+      subset.option = CopyValueFromSubset;
+
+      if (values.size() == _bin) {
+        // all values selected
+        for (const auto &el : _container) {
+          subset.container.emplace_back(&el);
+        }
+      } else {
+        for (auto &value : values) {
+          subset.container.emplace_back(&_container[value]);
+        }
+      }
+
+    } else {
+      if (values.size() == _bin) {
+        // all values selected
+        return true;
+      } else {
+        for (auto &value : values) {
+          subset.container.emplace_back(&_container[value]);
+        }
+      }
     }
 
-    if (restriction->field) subset.option = CopyValueFromSubset;
-
-  } else if (restriction->field) {
-    for (const auto &el : _container) {
-      subset.container.emplace_back(&el);
-    }
-
-    subset.option = CopyValueFromSubset;
-  }
-
-  if (subset.container.size() != 0) {
     subsets.emplace_back(subset);
     return true;
-  } else
-    return false;
+
+  } else {
+    return true;
+  }
+}
+std::vector<categorical_t> Categorical::parse(const std::string &str) const {
+  auto clausule = boost::trim_copy_if(str, boost::is_any_of("()"));
+
+  if (clausule == "all") {
+    std::vector<categorical_t> values(_bin);
+    std::iota(values.begin(), values.end(), 0);
+    return values;
+
+  } else {
+    boost::char_separator<char> sep(":");
+    boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
+
+    std::vector<categorical_t> values;
+    for (auto &v : tokens) {
+      values.emplace_back(std::stoi(v));
+    }
+    return values;
+  }
 }

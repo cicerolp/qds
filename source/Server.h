@@ -4,6 +4,7 @@
 #include "Singleton.h"
 
 #include "Query.h"
+#include "QueryParser.h"
 
 class Server : public Singleton<Server> {
   friend class Singleton<Server>;

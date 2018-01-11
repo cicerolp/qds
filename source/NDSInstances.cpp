@@ -37,12 +37,12 @@ void NDSInstances::run(const std::vector<Schema>& args, bool telemetry) {
 }
 
 std::string NDSInstances::query(const Query& query) {
-  auto cube = get_instance(query.instance());
+  auto cube = get_instance(query.get_instance());
 
   if (!cube) {
     return ("[]");
   } else {
-    return cube->query(query, _telemetry_files[query.instance()].get());
+    return cube->query(query, _telemetry_files[query.get_instance()].get());
   }
 }
 

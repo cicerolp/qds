@@ -4,6 +4,14 @@
 uint32_t g_Quadtree_Depth{25};
 
 int main(int argc, char* argv[]) {
+  //QueryParser parser0("/query/dataset=brightkite/aggr=count/const=hour_of_day.(0:1:2:3)");
+  //QueryParser parser1("/query/dataset=brightkite/aggr=quantile.(0:0,25:0,5:0,75:1,0)");
+  //QueryParser parser2("/query/dataset=brightkite/group=hour_of_day");
+
+  //QueryParser parser3("/query/dataset=brightkite/group=hour_of_day/const=geolocation.region.(x0:y0:x1:y1)");
+
+  //exit(0);
+
   if (std::getenv("NDS_DATA") == nullptr) {
     std::cerr << "error: invalid environment path %NDS_DATA%" << std::endl;
     exit(-1);

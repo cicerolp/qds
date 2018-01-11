@@ -31,6 +31,8 @@ void Server::handler(mg_connection* conn, int ev, void* p) {
   try {
     std::vector<std::string> tokens = string_util::split(uri, "[/]+");
 
+    printJson(conn, NDSInstances::getInstance().query(Query(uri)));
+
     if (tokens.size() <= 1) {
       mg_serve_http(conn, hm, Server::getInstance().http_server_opts);
 
