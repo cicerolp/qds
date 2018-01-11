@@ -37,8 +37,11 @@ add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
         source/string_util.cpp
         source/Temporal.cpp
         )
+     
+if(UNIX)
+        find_package(Gperftools REQUIRED)
+endif()
 
-find_package(Gperftools REQUIRED)
 find_package(Threads REQUIRED)
 
 set(Boost_USE_MULTITHREAD ON)
@@ -49,7 +52,12 @@ find_package(Boost COMPONENTS program_options REQUIRED)
 include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
 
-target_link_libraries(${PROJECT_NAME} LINK_PUBLIC -static-libgcc -static-libstdc++ ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${GPERFTOOLS_LIBRARIES})
+
+if(WIN32)
+        target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+elseif(UNIX)
+        target_link_libraries(${PROJECT_NAME} LINK_PUBLIC -static-libgcc -static-libstdc++ ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${GPERFTOOLS_LIBRARIES})
+endif()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "source/stdafx.h")
 

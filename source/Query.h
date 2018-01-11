@@ -58,7 +58,7 @@ class Query {
     };
   };
 
-  using restriction_map = std::map<uint32_t, std::unique_ptr<restriction_t>>;
+  using restriction_map = std::map<uint32_t, std::shared_ptr<restriction_t>>;
 
   Query(const std::string &url);
   Query(const std::vector<std::string> &tokens);
