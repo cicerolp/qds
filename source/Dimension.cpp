@@ -82,13 +82,31 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
   // sort range only when necessary
   swap_and_sort(range, response, option);
 
-  /*if (option == CopyValueFromSubset) {
+  auto &aggr = query.get_aggr();
+  if (aggr.first == "count") {
+
+    if (query.group_by()) {
+      if (option == CopyValueFromSubset) {
+        // group_by_subset
+        write_subset<CountSubsetAggr>(query, writer, range, subsets.back().container);
+      } else {
+        // group_by_range
+        write_range<CountRangeAggr>(query, writer, range, subsets.back().container);
+      }
+    } else {
+      // group_by_none
+      write_none(query, writer, range, subsets.back().container);
+    }
+  }
+
+  /*
+  if (option == CopyValueFromSubset) {
     switch (query.output()) {
       case Query::QueryOutput::COUNT: {
         if (!query.has_group()) {
-          write_none(query, writer, range, subsets.back().container);
+
         } else {
-          write_subset<CountSubsetAggr>(query, writer, range, subsets.back().container);
+
         }
       }
         break;
@@ -105,7 +123,7 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
         if (!query.has_group()) {
           write_none(query, writer, range, subsets.back().container);
         } else {
-          write_range<CountRangeAggr>(query, writer, range, subsets.back().container);
+
         }
       }
         break;
@@ -116,7 +134,8 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
       }
         break;
     }
-  }*/
+  }
+  /**/
 
   // end json
   writer.EndArray();
@@ -126,7 +145,7 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
 void Dimension::write_none(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                            range_ctn &range, const subset_pivot_ctn &subset) {
 
-  /*Pivot pdigest;
+  Pivot pdigest;
   uint32_t count = 0;
 
   for (const auto &el : subset) {
@@ -134,14 +153,10 @@ void Dimension::write_none(const Query &query, rapidjson::Writer<rapidjson::Stri
     range_it it_range = range.begin();
 
     while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-      if (query.output() == Query::QueryOutput::COUNT) {
-        count += aggregate_count(it_lower, it_upper);
-      }
+      count += aggregate_count(it_lower, it_upper);
       ++it_range;
     }
   }
 
-  if (query.output() == Query::QueryOutput::COUNT) {
-    writer.Uint(count);
-  }*/
+  writer.Uint(count);
 }

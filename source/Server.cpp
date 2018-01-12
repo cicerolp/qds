@@ -31,16 +31,14 @@ void Server::handler(mg_connection* conn, int ev, void* p) {
   try {
     std::vector<std::string> tokens = string_util::split(uri, "[/]+");
 
-    printJson(conn, NDSInstances::getInstance().query(Query(uri)));
-
     if (tokens.size() <= 1) {
       mg_serve_http(conn, hm, Server::getInstance().http_server_opts);
 
-    } else if (tokens[1] == "rest" && tokens.size() >= 4) {
+    } else if (tokens[1] == "api" && tokens.size() >= 4) {
       if (tokens[2] == "schema") {
         printJson(conn, NDSInstances::getInstance().schema(tokens[3]));
-      } else if (tokens.size() >= 5 && tokens[2] == "query") {
-        //printJson(conn, NDSInstances::getInstance().query(Query(tokens)));
+      } else if (tokens[2] == "query") {
+        printJson(conn, NDSInstances::getInstance().query(Query(uri)));
       } else {
         printJson(conn, "[]");
       }

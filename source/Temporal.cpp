@@ -61,7 +61,7 @@ bool Temporal::query(const Query &query, subset_ctn &subsets) const {
 
       subset_t subset;
 
-      if (query.get_group(std::to_string(_key))) {
+      if (query.group_by(std::to_string(_key))) {
         subset.option = CopyValueFromSubset;
 
         if (interval.contain(_container.front().el.value, _container.back().el.value)) {
@@ -101,7 +101,7 @@ bool Temporal::query(const Query &query, subset_ctn &subsets) const {
 
       subset_t subset;
 
-      if (query.get_group(std::to_string(_key))) {
+      if (query.group_by(std::to_string(_key))) {
         subset.option = CopyValueFromSubset;
       }
 

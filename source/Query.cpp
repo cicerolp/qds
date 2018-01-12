@@ -1,9 +1,10 @@
 #include "Query.h"
 
-Query::Query(const std::string &url) {
+Query::Query(const std::string &url) : _url(url) {
   try {
     parse(url);
   } catch (...) {
+    std::cerr << "error: invalid query" << std::endl;
   }
 }
 
@@ -48,9 +49,7 @@ void Query::parse(const std::string &url) {
   }
 }
 std::ostream &operator<<(std::ostream &os, const Query &query) {
-  // TODO output stream
-  /*os << "_url: " << query._url << " _dataset: " << query._dataset << " _constraints: " << query._constraints
-     << " _group_by: " << query._group_by << " _aggr: " << query._aggr;*/
+  os << query._url;
   return os;
 }
 
