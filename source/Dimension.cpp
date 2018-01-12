@@ -82,7 +82,7 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
   // sort range only when necessary
   swap_and_sort(range, response, option);
 
-  if (option == CopyValueFromSubset) {
+  /*if (option == CopyValueFromSubset) {
     switch (query.output()) {
       case Query::QueryOutput::COUNT: {
         if (!query.has_group()) {
@@ -116,7 +116,7 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
       }
         break;
     }
-  }
+  }*/
 
   // end json
   writer.EndArray();
@@ -126,7 +126,7 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
 void Dimension::write_none(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                            range_ctn &range, const subset_pivot_ctn &subset) {
 
-  Pivot pdigest;
+  /*Pivot pdigest;
   uint32_t count = 0;
 
   for (const auto &el : subset) {
@@ -143,5 +143,5 @@ void Dimension::write_none(const Query &query, rapidjson::Writer<rapidjson::Stri
 
   if (query.output() == Query::QueryOutput::COUNT) {
     writer.Uint(count);
-  }
+  }*/
 }
