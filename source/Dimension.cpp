@@ -78,7 +78,11 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
   if (subsets.size() == 0) {
     if (aggr.first == "count") {
       group_by_none<AggrCountNone>(query, writer, response);
+
+    } else if (aggr.first == "quantile") {
+      group_by_none<AggrQuantileNone>(query, writer, response);
     }
+
   } else {
     for (auto i = 0; i < subsets.size() - 1; ++i)
       restrict(range, response, subsets[i], option);
@@ -89,7 +93,6 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
     swap_and_sort(range, response, option);
 
     if (aggr.first == "count") {
-
       if (query.group_by()) {
         if (option == CopyValueFromSubset) {
           // group_by_subset
@@ -101,6 +104,20 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
       } else {
         // group_by_none
         group_by_none<AggrCountNone>(query, writer, range, subsets.back().container);
+      }
+
+    } else if (aggr.first == "quantile") {
+      if (query.group_by()) {
+        if (option == CopyValueFromSubset) {
+          // group_by_subset
+          group_by_subset<AggrQuantileSubset>(query, writer, range, subsets.back().container);
+        } else {
+          // group_by_range
+          group_by_range<AggrQuantileRange>(query, writer, range, subsets.back().container);
+        }
+      } else {
+        // group_by_none
+        group_by_none<AggrQuantileNone>(query, writer, range, subsets.back().container);
       }
     }
   }

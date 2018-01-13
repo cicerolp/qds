@@ -26,13 +26,14 @@ void Query::parse(const std::string &url) {
 
       } else if (key == "aggr") {
 
-        std::vector<std::string> aggr_str;
-        boost::split(aggr_str, value, boost::is_any_of("."));
 
-        _aggr.first = aggr_str[0];
+        const auto equals_idx = value.find_first_of(".");
 
-        if (aggr_str.size() == 2) {
-          _aggr.second = aggr_str[1];
+        if (std::string::npos != equals_idx) {
+          _aggr.first = value.substr(0, equals_idx);
+          _aggr.second = value.substr(equals_idx + 1);
+        } else {
+          _aggr.first = value;
         }
 
       } else if (key == "group") {

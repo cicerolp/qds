@@ -38,6 +38,7 @@
 #include <numeric>
 
 // boost library
+#include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
 #include <boost/program_options.hpp>
