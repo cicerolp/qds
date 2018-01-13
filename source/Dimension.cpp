@@ -60,17 +60,13 @@ void Dimension::restrict(range_ctn &range, range_ctn &response,
 }
 
 std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const RangePivot &root) {
-  if (subsets.size() == 0) return std::string("[]");
+  // get aggregation clausule
+  auto &aggr = query.get_aggr();
 
   CopyOption option = DefaultCopy;
   range_ctn range, response;
 
   response.emplace_back(root);
-
-  for (auto i = 0; i < subsets.size() - 1; ++i)
-    restrict(range, response, subsets[i], option);
-
-  if (option == DefaultCopy) option = subsets.back().option;
 
   // serialization
   rapidjson::StringBuffer buffer;
@@ -79,84 +75,38 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
   // start json
   writer.StartArray();
 
-  // sort range only when necessary
-  swap_and_sort(range, response, option);
+  if (subsets.size() == 0) {
+    if (aggr.first == "count") {
+      group_by_none<AggrCountNone>(query, writer, response);
+    }
+  } else {
+    for (auto i = 0; i < subsets.size() - 1; ++i)
+      restrict(range, response, subsets[i], option);
 
-  auto &aggr = query.get_aggr();
-  if (aggr.first == "count") {
+    if (option == DefaultCopy) option = subsets.back().option;
 
-    if (query.group_by()) {
-      if (option == CopyValueFromSubset) {
-        // group_by_subset
-        write_subset<CountSubsetAggr>(query, writer, range, subsets.back().container);
+    // sort range only when necessary
+    swap_and_sort(range, response, option);
+
+    if (aggr.first == "count") {
+
+      if (query.group_by()) {
+        if (option == CopyValueFromSubset) {
+          // group_by_subset
+          group_by_subset<AggrCountSubset>(query, writer, range, subsets.back().container);
+        } else {
+          // group_by_range
+          group_by_range<AggrCountRange>(query, writer, range, subsets.back().container);
+        }
       } else {
-        // group_by_range
-        write_range<CountRangeAggr>(query, writer, range, subsets.back().container);
+        // group_by_none
+        group_by_none<AggrCountNone>(query, writer, range, subsets.back().container);
       }
-    } else {
-      // group_by_none
-      write_none(query, writer, range, subsets.back().container);
     }
   }
-
-  /*
-  if (option == CopyValueFromSubset) {
-    switch (query.output()) {
-      case Query::QueryOutput::COUNT: {
-        if (!query.has_group()) {
-
-        } else {
-
-        }
-      }
-        break;
-      case Query::QueryOutput::QUANTILE: {
-        if (!query.has_group()) {
-          write_none(query, writer, range, subsets.back().container);
-        }
-      }
-        break;
-    }
-  } else { //CopyValueFromRange
-    switch (query.output()) {
-      case Query::QueryOutput::COUNT: {
-        if (!query.has_group()) {
-          write_none(query, writer, range, subsets.back().container);
-        } else {
-
-        }
-      }
-        break;
-      case Query::QueryOutput::QUANTILE: {
-        if (!query.has_group()) {
-          write_none(query, writer, range, subsets.back().container);
-        }
-      }
-        break;
-    }
-  }
-  /**/
 
   // end json
   writer.EndArray();
   return buffer.GetString();
-}
 
-void Dimension::write_none(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                           range_ctn &range, const subset_pivot_ctn &subset) {
-
-  Pivot pdigest;
-  uint32_t count = 0;
-
-  for (const auto &el : subset) {
-    pivot_it it_lower = el->ptr().begin(), it_upper;
-    range_it it_range = range.begin();
-
-    while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-      count += aggregate_count(it_lower, it_upper);
-      ++it_range;
-    }
-  }
-
-  writer.Uint(count);
 }

@@ -28,15 +28,15 @@ class Aggr {
 // Subset
 /////////////////////////////////////////////////////////////////////////////////////////
 
-class SubsetAggr : public Aggr {
+class AggrSubset : public Aggr {
  public:
   virtual void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) = 0;
   virtual void output(size_t el, uint64_t value, const Query &query, json &writer) = 0;
 };
 
-class CountSubsetAggr : public SubsetAggr {
+class AggrCountSubset : public AggrSubset {
  public:
-  CountSubsetAggr(size_t size) : _map(size, 0) {}
+  AggrCountSubset(size_t size) : _map(size, 0) {}
 
   virtual void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) override {
     while (it_lower != it_upper) {
@@ -61,13 +61,13 @@ class CountSubsetAggr : public SubsetAggr {
 // Range
 /////////////////////////////////////////////////////////////////////////////////////////
 
-class RangeAggr : public Aggr {
+class AggrRange : public Aggr {
  public:
   virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) = 0;
   virtual void output(const Query &query, json &writer) = 0;
 };
 
-class CountRangeAggr : public RangeAggr {
+class AggrCountRange : public AggrRange {
  public:
   virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
     while (it_lower != it_upper) {
@@ -86,4 +86,36 @@ class CountRangeAggr : public RangeAggr {
 
  protected:
   std::map<uint64_t, uint32_t> _map;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// None
+/////////////////////////////////////////////////////////////////////////////////////////
+
+class AggrNone : public Aggr {
+ public:
+  virtual void merge(pivot_it &it_lower, pivot_it &it_upper) = 0;
+  virtual void merge(const range_it &it_lower, const range_it &it_upper) = 0;
+  virtual void output(const Query &query, json &writer) = 0;
+};
+
+class AggrCountNone : public AggrNone {
+ public:
+  void merge(pivot_it &it_lower, pivot_it &it_upper) override {
+    while (it_lower != it_upper) {
+      _count += (*it_lower++).size();
+    }
+  }
+  void merge(const range_it &it_lower, const range_it &it_upper) override {
+    auto it = it_lower;
+
+    while (it != it_upper) {
+      _count += (*it++).pivot.size();
+    }
+  }
+  void output(const Query &query, json &writer) override {
+    writer.Uint(_count);
+  }
+ protected:
+  uint32_t _count{0};
 };

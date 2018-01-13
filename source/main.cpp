@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
   // temporal //
   // [dimension_name].interval.([lower_bound]:[upper_bound])
   // OK - http://localhost:7000/api/query/dataset=brightkite/aggr=count/const=3.interval.(1205971200:1287014400)/group=3
-  // TODO - http://localhost:7000/api/query/dataset=brightkite/aggr=count/const=3.interval.(1205971200:1287014400)
+  // OK - http://localhost:7000/api/query/dataset=brightkite/aggr=count/const=3.interval.(1205971200:1287014400)
 
   // [dimension_name].sequence.([lower_bound]:[interval_width]:[num_intervals]:[stride])
   // OK - http://localhost:7000/api/query/dataset=brightkite/aggr=count/const=3.sequence.(1205971200:8104320:10:8104321)/group=3

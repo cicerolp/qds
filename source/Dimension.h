@@ -27,15 +27,20 @@ class Dimension {
                        const subset_t &subset, CopyOption &option);
 
   template<typename _Aggr>
-  static void write_subset(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                           range_ctn &range, const subset_pivot_ctn &subset);
+  static void group_by_subset(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                              range_ctn &range, const subset_pivot_ctn &subset);
 
   template<typename _Aggr>
-  static void write_range(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                          range_ctn &range, const subset_pivot_ctn &subset);
+  static void group_by_range(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                             range_ctn &range, const subset_pivot_ctn &subset);
 
-  static void write_none(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                         range_ctn &range, const subset_pivot_ctn &subset);
+  template<typename _Aggr>
+  static void group_by_none(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                            range_ctn &range, const subset_pivot_ctn &subset);
+
+  template<typename _Aggr>
+  static void group_by_none(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                            range_ctn &range);
 
   static inline bool search_iterators(range_it &it_range, const range_ctn &range,
                                       pivot_it &it_lower, pivot_it &it_upper, const pivot_ctn &subset);
@@ -44,14 +49,12 @@ class Dimension {
 
   static inline void swap_and_sort(range_ctn &range, range_ctn &response, CopyOption option);
 
-  static inline uint32_t aggregate_count(pivot_it &it_lower, pivot_it &it_upper);
-
   const uint32_t _key, _bin, _offset;
 };
 
 template<typename _Aggr>
-void Dimension::write_subset(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                             range_ctn &range, const subset_pivot_ctn &subset) {
+void Dimension::group_by_subset(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                                range_ctn &range, const subset_pivot_ctn &subset) {
 
   _Aggr aggregator(subset.size());
 
@@ -69,8 +72,8 @@ void Dimension::write_subset(const Query &query, rapidjson::Writer<rapidjson::St
 }
 
 template<typename _Aggr>
-void Dimension::write_range(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                            range_ctn &range, const subset_pivot_ctn &subset) {
+void Dimension::group_by_range(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                               range_ctn &range, const subset_pivot_ctn &subset) {
 
   _Aggr aggregator;
 
@@ -83,6 +86,36 @@ void Dimension::write_range(const Query &query, rapidjson::Writer<rapidjson::Str
       ++it_range;
     }
   }
+
+  aggregator.output(query, writer);
+}
+
+template<typename _Aggr>
+void Dimension::group_by_none(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                              range_ctn &range, const subset_pivot_ctn &subset) {
+
+  _Aggr aggregator;
+
+  for (const auto &el : subset) {
+    pivot_it it_lower = el->ptr().begin(), it_upper;
+    range_it it_range = range.begin();
+
+    while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+      aggregator.merge(it_lower, it_upper);
+      ++it_range;
+    }
+  }
+
+  aggregator.output(query, writer);
+}
+
+template<typename _Aggr>
+void Dimension::group_by_none(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                              range_ctn &range) {
+
+  _Aggr aggregator;
+
+  aggregator.merge(range.begin(), range.end());
 
   aggregator.output(query, writer);
 }
@@ -145,12 +178,4 @@ void Dimension::swap_and_sort(range_ctn &range, range_ctn &response, CopyOption 
   compactation(response, range, option);
 
   response.clear();
-}
-
-uint32_t Dimension::aggregate_count(pivot_it &it_lower, pivot_it &it_upper) {
-  uint32_t count = 0;
-  while (it_lower != it_upper) {
-    count += (*it_lower++).size();
-  }
-  return count;
 }
