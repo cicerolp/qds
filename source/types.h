@@ -3,6 +3,17 @@
 #include "mercator_util.h"
 #include "stdafx.h"
 
+class Pivot;
+
+using pivot_ctn = stde::dynarray<Pivot>;
+using pivot_it = pivot_ctn::const_iterator;
+
+using link_ctn = std::vector<pivot_ctn *>;
+using link_it = link_ctn::const_iterator;
+
+using build_ctn = std::vector<Pivot>;
+using build_it = build_ctn::const_iterator;
+
 enum CopyOption { CopyValueFromRange, CopyValueFromSubset, DefaultCopy };
 
 typedef uint32_t temporal_t;

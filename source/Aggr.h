@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Pivot.h"
+#include "PDigest.h"
 
 using json = rapidjson::Writer<rapidjson::StringBuffer>;
 
@@ -62,11 +63,12 @@ class AggrQuantileSubset : public AggrSubset {
   AggrQuantileSubset(size_t size) : _map(size) {}
 
   virtual void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) override {
-    _map[el].merge_pdigest(it_lower, it_upper);
+    _map[el].merge(it_lower, it_upper);
   }
 
   virtual void output(size_t el, uint64_t value, const Query &query, json &writer) override {
-    if (_map[el].empty_pdigest()) return;
+    // TODO fix empty p-digest
+    //if (_map[el].empty_pdigest()) return;
 
     auto clausule = boost::trim_copy_if(query.get_aggr().second, boost::is_any_of("()"));
 
@@ -85,7 +87,7 @@ class AggrQuantileSubset : public AggrSubset {
   }
 
  protected:
-  std::vector<Pivot> _map;
+  std::vector<PDigest> _map;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -122,7 +124,7 @@ class AggrCountRange : public AggrRange {
 class AggrQuantileRange : public AggrRange {
  public:
   virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
-    _map[value].merge_pdigest(it_lower, it_upper);
+    _map[value].merge(it_lower, it_upper);
   }
 
   virtual void output(const Query &query, json &writer) override {
@@ -145,7 +147,7 @@ class AggrQuantileRange : public AggrRange {
   }
 
  protected:
-  std::map<uint64_t, Pivot> _map;
+  std::map<uint64_t, PDigest> _map;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -184,14 +186,14 @@ class AggrQuantileNone : public AggrNone {
  public:
   void merge(pivot_it &it_lower, pivot_it &it_upper) override {
     while (it_lower != it_upper) {
-      _pdigest.merge_pdigest(it_lower, it_upper);
+      _pdigest.merge(it_lower, it_upper);
     }
   }
   void merge(const range_it &it_lower, const range_it &it_upper) override {
     auto it = it_lower;
 
     while (it != it_upper) {
-      _pdigest.merge_pdigest((*it++).pivot);
+      _pdigest.merge((*it++).pivot);
     }
   }
   void output(const Query &query, json &writer) override {
@@ -210,5 +212,5 @@ class AggrQuantileNone : public AggrNone {
     }
   }
  protected:
-  Pivot _pdigest;
+  PDigest _pdigest;
 };
