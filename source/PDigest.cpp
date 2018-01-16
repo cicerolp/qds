@@ -122,10 +122,10 @@ float PDigest::inverse_quantile(float value) const {
     weightSoFar += (_weight[i] + _weight[i + 1]) / 2;
   }
 
-  // centroids i and i+1 bracket our current point
-  float z1 = _mean[index] - value;
-  float z2 = value - _mean[index - 1];
-  weightSoFar += weightedAverage(_weight[index - 1], z2, _weight[index], z1);
+  float dw = (_weight[index - 1] + _weight[index]) / 2;
+
+  // dw * q + weightSoFar
+  weightSoFar += dw * (value - _mean[index - 1]) / (_mean[index] - _mean[index - 1]);
 
   auto totalWeight = std::accumulate(_weight.begin(), _weight.begin() + _lastUsedCell, 0.0);
 
