@@ -68,7 +68,7 @@ float PDigest::quantile(float q) const {
 
   // at the boundaries, we return min or max
   if (index < _weight[0] / 2) {
-    return _mean[0] + 2 * index / _weight[0] * (_mean[0] - _mean[0]);
+    return _min + 2 * index / _weight[0] * (_mean[0] - _min);
   }
 
   // in between we interpolate between centroids
@@ -92,7 +92,7 @@ float PDigest::quantile(float q) const {
   float z1 = index - totalWeight - _weight[n - 1] / 2.0;
   float z2 = _weight[n - 1] / 2 - z1;
 
-  return weightedAverage(_mean[n - 1], z1, _mean[_lastUsedCell - 1], z2);
+  return weightedAverage(_mean[n - 1], z1, _max, z2);
 }
 
 stde::dynarray<float> *PDigest::get_payload(uint32_t first, uint32_t second) {
