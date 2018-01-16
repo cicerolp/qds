@@ -95,6 +95,43 @@ float PDigest::quantile(float q) const {
   return weightedAverage(_mean[n - 1], z1, _max, z2);
 }
 
+float PDigest::inverse_quantile(float value) const {
+  if (_lastUsedCell == 0 && _weight[_lastUsedCell] == 0) {
+    // no centroids means no data, no way to get a quantile
+    return std::numeric_limits<float>::quiet_NaN();
+  }
+
+  auto it = std::lower_bound(_mean.begin(), _mean.begin() + _lastUsedCell, value);
+
+  // it == end of data
+  if (it == (_mean.begin() + _lastUsedCell)) {
+    return 1.0f;
+  }
+
+  // it == begin of data
+  if (it == _mean.begin()) {
+    return 0.f;
+  }
+
+  auto index = it - _mean.begin();
+
+  // in between we interpolate between centroids
+  float weightSoFar = _weight[0] / 2;
+
+  for (auto i = 0; i < index - 1; ++i) {
+    weightSoFar += (_weight[i] + _weight[i + 1]) / 2;
+  }
+
+  // centroids i and i+1 bracket our current point
+  float z1 = _mean[index] - value;
+  float z2 = value - _mean[index - 1];
+  weightSoFar += weightedAverage(_weight[index - 1], z2, _weight[index], z1);
+
+  auto totalWeight = std::accumulate(_weight.begin(), _weight.begin() + _lastUsedCell, 0.0);
+
+  return weightSoFar / totalWeight;
+}
+
 stde::dynarray<float> *PDigest::get_payload(uint32_t first, uint32_t second) {
   // TODO get value from dataset
   std::vector<float> inMean;
@@ -337,5 +374,3 @@ float PDigest::asinApproximation(float x) {
   return std::asin(x);
 #endif
 }
-
-

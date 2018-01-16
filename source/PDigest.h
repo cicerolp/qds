@@ -12,6 +12,7 @@ class PDigest {
   void merge(const Pivot &pivot);
 
   float quantile(float q) const;
+  float inverse_quantile(float value) const;
 
   static stde::dynarray<float> *get_payload(uint32_t first, uint32_t second);
 

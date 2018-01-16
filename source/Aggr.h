@@ -35,6 +35,9 @@ class AggrSubset : public Aggr {
   virtual void output(size_t el, uint64_t value, const Query &query, json &writer) = 0;
 };
 
+// count
+/////////////////////////////////////////////////////////////////////////////////////////
+
 class AggrCountSubset : public AggrSubset {
  public:
   AggrCountSubset(size_t size) : _map(size, 0) {}
@@ -58,6 +61,8 @@ class AggrCountSubset : public AggrSubset {
   std::vector<uint32_t> _map;
 };
 
+// quantile
+/////////////////////////////////////////////////////////////////////////////////////////
 class AggrQuantileSubset : public AggrSubset {
  public:
   AggrQuantileSubset(size_t size) : _map(size) {}
@@ -90,6 +95,40 @@ class AggrQuantileSubset : public AggrSubset {
   std::vector<PDigest> _map;
 };
 
+// inverse
+/////////////////////////////////////////////////////////////////////////////////////////
+class AggrInverseSubset : public AggrSubset {
+ public:
+  AggrInverseSubset(size_t size) : _map(size) {}
+
+  virtual void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) override {
+    _map[el].merge(it_lower, it_upper);
+  }
+
+  virtual void output(size_t el, uint64_t value, const Query &query, json &writer) override {
+    // TODO fix empty p-digest
+    //if (_map[el].empty_pdigest()) return;
+
+    auto clausule = boost::trim_copy_if(query.get_aggr().second, boost::is_any_of("()"));
+
+    boost::char_separator<char> sep(":");
+    boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
+
+    for (auto &q : tokens) {
+      auto quantile = std::stof(q);
+
+      writer.StartArray();
+      write_value(value, writer);
+      writer.Double(quantile);
+      writer.Double(_map[el].inverse_quantile(quantile));
+      writer.EndArray();
+    }
+  }
+
+ protected:
+  std::vector<PDigest> _map;
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////
 // Range
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -100,6 +139,8 @@ class AggrRange : public Aggr {
   virtual void output(const Query &query, json &writer) = 0;
 };
 
+// count
+/////////////////////////////////////////////////////////////////////////////////////////
 class AggrCountRange : public AggrRange {
  public:
   virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
@@ -121,6 +162,8 @@ class AggrCountRange : public AggrRange {
   std::map<uint64_t, uint32_t> _map;
 };
 
+// quantile
+/////////////////////////////////////////////////////////////////////////////////////////
 class AggrQuantileRange : public AggrRange {
  public:
   virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
@@ -150,6 +193,37 @@ class AggrQuantileRange : public AggrRange {
   std::map<uint64_t, PDigest> _map;
 };
 
+// inverse
+/////////////////////////////////////////////////////////////////////////////////////////
+class AggrInverseRange : public AggrRange {
+ public:
+  virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
+    _map[value].merge(it_lower, it_upper);
+  }
+
+  virtual void output(const Query &query, json &writer) override {
+    auto clausule = boost::trim_copy_if(query.get_aggr().second, boost::is_any_of("()"));
+
+    boost::char_separator<char> sep(":");
+    boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
+
+    for (const auto &pair : _map) {
+      for (auto &q : tokens) {
+        auto quantile = std::stof(q);
+
+        writer.StartArray();
+        write_value(pair.first, writer);
+        writer.Double(quantile);
+        writer.Double(pair.second.inverse_quantile(quantile));
+        writer.EndArray();
+      }
+    }
+  }
+
+ protected:
+  std::map<uint64_t, PDigest> _map;
+};
+
 /////////////////////////////////////////////////////////////////////////////////////////
 // None
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -161,6 +235,8 @@ class AggrNone : public Aggr {
   virtual void output(const Query &query, json &writer) = 0;
 };
 
+// count
+/////////////////////////////////////////////////////////////////////////////////////////
 class AggrCountNone : public AggrNone {
  public:
   void merge(pivot_it &it_lower, pivot_it &it_upper) override {
@@ -182,6 +258,8 @@ class AggrCountNone : public AggrNone {
   uint32_t _count{0};
 };
 
+// quantile
+/////////////////////////////////////////////////////////////////////////////////////////
 class AggrQuantileNone : public AggrNone {
  public:
   void merge(pivot_it &it_lower, pivot_it &it_upper) override {
@@ -208,6 +286,41 @@ class AggrQuantileNone : public AggrNone {
       writer.StartArray();
       writer.Double(quantile);
       writer.Double(_pdigest.quantile(quantile));
+      writer.EndArray();
+    }
+  }
+ protected:
+  PDigest _pdigest;
+};
+
+// inverse
+/////////////////////////////////////////////////////////////////////////////////////////
+class AggrInverseNone : public AggrNone {
+ public:
+  void merge(pivot_it &it_lower, pivot_it &it_upper) override {
+    while (it_lower != it_upper) {
+      _pdigest.merge(it_lower, it_upper);
+    }
+  }
+  void merge(const range_it &it_lower, const range_it &it_upper) override {
+    auto it = it_lower;
+
+    while (it != it_upper) {
+      _pdigest.merge((*it++).pivot);
+    }
+  }
+  void output(const Query &query, json &writer) override {
+    auto clausule = boost::trim_copy_if(query.get_aggr().second, boost::is_any_of("()"));
+
+    boost::char_separator<char> sep(":");
+    boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
+
+    for (auto &q : tokens) {
+      auto quantile = std::stof(q);
+
+      writer.StartArray();
+      writer.Double(quantile);
+      writer.Double(_pdigest.inverse_quantile(quantile));
       writer.EndArray();
     }
   }

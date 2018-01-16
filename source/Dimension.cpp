@@ -81,6 +81,9 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
 
     } else if (aggr.first == "quantile") {
       group_by_none<AggrQuantileNone>(query, writer, response);
+
+    } else if (aggr.first == "inverse") {
+      group_by_none<AggrInverseNone>(query, writer, response);
     }
 
   } else {
@@ -118,6 +121,20 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
       } else {
         // group_by_none
         group_by_none<AggrQuantileNone>(query, writer, range, subsets.back().container);
+      }
+
+    } else if (aggr.first == "inverse") {
+      if (query.group_by()) {
+        if (option == CopyValueFromSubset) {
+          // group_by_subset
+          group_by_subset<AggrInverseSubset>(query, writer, range, subsets.back().container);
+        } else {
+          // group_by_range
+          group_by_range<AggrInverseRange>(query, writer, range, subsets.back().container);
+        }
+      } else {
+        // group_by_none
+        group_by_none<AggrInverseNone>(query, writer, range, subsets.back().container);
       }
     }
   }
