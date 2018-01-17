@@ -7,45 +7,58 @@
 
 #include "Pivot.h"
 
-// TODO pass std::array
-void PDigest::merge(pivot_it &it_lower, pivot_it &it_upper) {
-  std::vector<float> inMean, inWeight;
+void PDigest::merge(const Pivot &pivot) {
+  _buffer_mean.clear();
+  _buffer_weight.clear();
 
+  auto &payload = pivot.get_payload();
+  uint32_t payload_size = payload.size() / 2;
+
+  _buffer_mean.reserve(_lastUsedCell + payload_size);
+  _buffer_weight.reserve(_lastUsedCell + payload_size);
+
+  // insert payload data
+  _buffer_mean.insert(_buffer_mean.end(), payload.begin(), payload.begin() + payload_size);    // mean
+  _buffer_weight.insert(_buffer_weight.end(), payload.begin() + payload_size, payload.end());  // weight
+
+  // insert p-digest data
+  _buffer_mean.insert(_buffer_mean.end(), _mean.begin(), _mean.begin() + _lastUsedCell);
+  _buffer_weight.insert(_buffer_weight.end(), _weight.begin(), _weight.begin() + _lastUsedCell);
+
+  merge_buffer_data();
+}
+
+void PDigest::merge(pivot_it &it_lower, pivot_it &it_upper) {
+  _buffer_mean.clear();
+  _buffer_weight.clear();
+
+  uint32_t sum_payload_size_size = 0;
+  for (auto it = it_lower; it != it_upper; ++it) {
+    sum_payload_size_size += (*it).get_payload().size();
+  }
+
+  sum_payload_size_size = sum_payload_size_size / 2;
+
+  // reserve memory
+  _buffer_mean.reserve(_lastUsedCell + sum_payload_size_size);
+  _buffer_weight.reserve(_lastUsedCell + sum_payload_size_size);
+
+  // insert payload data
   while (it_lower != it_upper) {
     auto &payload = (*it_lower).get_payload();
-    uint32_t lastUsedCell = payload.size() / 2;
+    uint32_t payload_size = payload.size() / 2;
 
-    inMean.reserve(inMean.size() + lastUsedCell);
-    inWeight.reserve(inWeight.size() + lastUsedCell);
-
-    for (auto i = 0; i < lastUsedCell; ++i) {
-      inMean.emplace_back(payload[i]); // mean
-      inWeight.emplace_back(payload[i + lastUsedCell]); // weight
-    }
+    _buffer_mean.insert(_buffer_mean.end(), payload.begin(), payload.begin() + payload_size);    // mean
+    _buffer_weight.insert(_buffer_weight.end(), payload.begin() + payload_size, payload.end());  // weight
 
     ++it_lower;
   }
 
-  add(inMean, inWeight);
-}
+  // insert p-digest data
+  _buffer_mean.insert(_buffer_mean.end(), _mean.begin(), _mean.begin() + _lastUsedCell);
+  _buffer_weight.insert(_buffer_weight.end(), _weight.begin(), _weight.begin() + _lastUsedCell);
 
-// TODO pass std::array
-void PDigest::merge(const Pivot &pivot) {
-  std::vector<float> mean;
-  std::vector<float> weight;
-
-  auto &payload = pivot.get_payload();
-  uint32_t lastUsedCell = payload.size() / 2;
-
-  mean.reserve(mean.size() + lastUsedCell);
-  weight.reserve(weight.size() + lastUsedCell);
-
-  for (auto i = 0; i < lastUsedCell; ++i) {
-    mean.emplace_back(payload[i]); // mean
-    weight.emplace_back(payload[i + lastUsedCell]); // weight
-  }
-
-  add(mean, weight);
+  merge_buffer_data();
 }
 
 float PDigest::quantile(float q) const {
@@ -132,7 +145,7 @@ float PDigest::inverse(float value) const {
   return weightSoFar / totalWeight;
 }
 
-stde::dynarray<float> *PDigest::get_payload(uint32_t first, uint32_t second) {
+payload_t *PDigest::get_payload(uint32_t first, uint32_t second) {
   // TODO get value from dataset
   std::vector<float> inMean;
   inMean.reserve(second - first);
@@ -227,21 +240,18 @@ stde::dynarray<float> *PDigest::get_payload(uint32_t first, uint32_t second) {
   return payload;
 }
 
-void PDigest::add(std::vector<float> inMean, std::vector<float> inWeight) {
-  inMean.insert(inMean.end(), _mean.begin(), _mean.begin() + _lastUsedCell);
-  inWeight.insert(inWeight.end(), _weight.begin(), _weight.begin() + _lastUsedCell);
+void PDigest::merge_buffer_data() {
+  int32_t incomingCount = _buffer_mean.size();
 
-  int32_t incomingCount = inMean.size();
+  auto inOrder = sort_indexes(_buffer_mean);
 
-  auto inOrder = sort_indexes(inMean);
-
-  float totalWeight = std::accumulate(inWeight.begin(), inWeight.end(), 0.0);
+  float totalWeight = std::accumulate(_buffer_weight.begin(), _buffer_weight.end(), 0.0);
 
   float normalizer = PDIGEST_COMPRESSION / (M_PI * totalWeight);
 
   _lastUsedCell = 0;
-  _mean[_lastUsedCell] = inMean[inOrder[0]];
-  _weight[_lastUsedCell] = inWeight[inOrder[0]];
+  _mean[_lastUsedCell] = _buffer_mean[inOrder[0]];
+  _weight[_lastUsedCell] = _buffer_weight[inOrder[0]];
 
   float wSoFar = 0;
 
@@ -253,7 +263,7 @@ void PDigest::add(std::vector<float> inMean, std::vector<float> inWeight) {
 
   for (int i = 1; i < incomingCount; ++i) {
     int ix = inOrder[i];
-    float proposedWeight = _weight[_lastUsedCell] + inWeight[ix];
+    float proposedWeight = _weight[_lastUsedCell] + _buffer_weight[ix];
 
     float projectedW = wSoFar + proposedWeight;
 
@@ -271,11 +281,11 @@ void PDigest::add(std::vector<float> inMean, std::vector<float> inWeight) {
     if (addThis) {
       // next point will fit
       // so merge into existing centroid
-      _weight[_lastUsedCell] += inWeight[ix];
+      _weight[_lastUsedCell] += _buffer_weight[ix];
       _mean[_lastUsedCell] = _mean[_lastUsedCell]
-          + (inMean[ix] - _mean[_lastUsedCell]) * inWeight[ix] / _weight[_lastUsedCell];
+          + (_buffer_mean[ix] - _mean[_lastUsedCell]) * _buffer_weight[ix] / _weight[_lastUsedCell];
 
-      inWeight[ix] = 0;
+      _buffer_weight[ix] = 0;
 
     } else {
       // didn't fit ... move to next output, copy out first centroid
@@ -287,9 +297,9 @@ void PDigest::add(std::vector<float> inMean, std::vector<float> inWeight) {
 #endif
 
       _lastUsedCell++;
-      _mean[_lastUsedCell] = inMean[ix];
-      _weight[_lastUsedCell] = inWeight[ix];
-      inWeight[ix] = 0;
+      _mean[_lastUsedCell] = _buffer_mean[ix];
+      _weight[_lastUsedCell] = _buffer_weight[ix];
+      _buffer_weight[ix] = 0;
     }
   }
   // points to next empty cell

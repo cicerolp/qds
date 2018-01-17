@@ -5,6 +5,8 @@
 
 class Pivot;
 
+using payload_t = stde::dynarray<float>;
+
 using pivot_ctn = stde::dynarray<Pivot>;
 using pivot_it = pivot_ctn::const_iterator;
 

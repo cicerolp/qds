@@ -80,9 +80,9 @@ class Pivot {
  protected:
   uint32_t _first, _second;
 
-  // [0  , N/2 - 1] -> number of points that have been added to each merged centroid
-  // [N/2,   N - 1] -> mean of points added to each merged centroid
-  stde::dynarray<float> *_payload{nullptr};
+  // [0  , N/2 - 1] -> mean of points added to each merged centroid
+  // [N/2,   N - 1] -> number of points that have been added to each merged centroid
+  payload_t *_payload{nullptr};
 };
 
 struct bined_pivot_t {

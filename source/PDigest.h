@@ -8,16 +8,16 @@
 
 class PDigest {
  public:
-  void merge(pivot_it &it_lower, pivot_it &it_upper);
   void merge(const Pivot &pivot);
+  void merge(pivot_it &it_lower, pivot_it &it_upper);
 
   float quantile(float q) const;
   float inverse(float value) const;
 
-  static stde::dynarray<float> *get_payload(uint32_t first, uint32_t second);
+  static payload_t *get_payload(uint32_t first, uint32_t second);
 
  private:
-  void add(std::vector<float> inMean, std::vector<float> inWeight);
+  void merge_buffer_data();
 
   template<typename T>
   static std::vector<size_t> sort_indexes(const std::vector<T> &v) {
@@ -84,4 +84,7 @@ class PDigest {
   std::array<float, PDIGEST_ARRAY_SIZE> _weight;
   // mean of points added to each merged centroid
   std::array<float, PDIGEST_ARRAY_SIZE> _mean;
+
+  // temporary data - avoid unnecessary memory allocations
+  std::vector<float> _buffer_mean, _buffer_weight;
 };
