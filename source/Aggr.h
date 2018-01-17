@@ -120,7 +120,7 @@ class AggrInverseSubset : public AggrSubset {
       writer.StartArray();
       write_value(value, writer);
       writer.Double(quantile);
-      writer.Double(_map[el].inverse_quantile(quantile));
+      writer.Double(_map[el].inverse(quantile));
       writer.EndArray();
     }
   }
@@ -214,7 +214,7 @@ class AggrInverseRange : public AggrRange {
         writer.StartArray();
         write_value(pair.first, writer);
         writer.Double(quantile);
-        writer.Double(pair.second.inverse_quantile(quantile));
+        writer.Double(pair.second.inverse(quantile));
         writer.EndArray();
       }
     }
@@ -320,7 +320,7 @@ class AggrInverseNone : public AggrNone {
 
       writer.StartArray();
       writer.Double(quantile);
-      writer.Double(_pdigest.inverse_quantile(quantile));
+      writer.Double(_pdigest.inverse(quantile));
       writer.EndArray();
     }
   }

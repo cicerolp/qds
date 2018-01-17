@@ -95,7 +95,7 @@ float PDigest::quantile(float q) const {
   return weightedAverage(_mean[n - 1], z1, _max, z2);
 }
 
-float PDigest::inverse_quantile(float value) const {
+float PDigest::inverse(float value) const {
   if (_lastUsedCell == 0 && _weight[_lastUsedCell] == 0) {
     // no centroids means no data, no way to get a quantile
     return std::numeric_limits<float>::quiet_NaN();
@@ -219,7 +219,7 @@ stde::dynarray<float> *PDigest::get_payload(uint32_t first, uint32_t second) {
   lastUsedCell++;
 
   // shrink_to_fit
-  stde::dynarray<float> *payload = new stde::dynarray<float>(lastUsedCell * 2 + 1);
+  stde::dynarray<float> *payload = new stde::dynarray<float>(lastUsedCell * 2);
 
   std::memcpy(&(*payload)[0], &mean[0], lastUsedCell * sizeof(float));
   std::memcpy(&(*payload)[lastUsedCell], &weight[0], lastUsedCell * sizeof(float));
