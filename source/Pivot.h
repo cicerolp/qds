@@ -11,10 +11,8 @@ class Pivot {
  public:
   Pivot() = default;
 
-  Pivot(uint32_t first, uint32_t second, bool readPDigestData = true) : _first(first), _second(second) {
-    if (readPDigestData) {
-      _payload = PDigest::get_payload(first, second);
-    }
+  Pivot(uint32_t first, uint32_t second)
+      : _first(first), _second(second) {
   };
 
   Pivot(const Pivot &other) = default;
@@ -23,9 +21,23 @@ class Pivot {
   Pivot &operator=(const Pivot &other) = default;
   Pivot &operator=(Pivot &&other) = default;
 
-  inline const stde::dynarray<float> &get_payload() const {
+  inline payload_t *get_payload() {
+    return _payload;
+  };
+
+  inline const payload_t &get_payload() const {
     return *_payload;
   };
+
+  inline void copy_payload(Pivot &rhs) {
+    assert(_payload == nullptr);
+    _payload = rhs._payload;
+  }
+
+  inline void create_payload() {
+    assert(_payload == nullptr);
+    _payload = PDigest::get_payload(_first, _second);
+  }
 
   // called once
   inline void delete_payload() {
