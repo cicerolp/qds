@@ -8,7 +8,7 @@ uint32_t Spatial::build(const build_ctn &range, build_ctn &response, const link_
 
   _tree = std::make_unique<SpatialElement>(spatial_t(0, 0, 0), range, links, share, nds);
 
-  uint32_t pivots_count = _tree->expand(response, _bin, _tree->get_link(), share, nds);
+  uint32_t pivots_count = _tree->expand(response, _bin, share, nds);
 
   std::sort(response.begin(), response.end());
 
