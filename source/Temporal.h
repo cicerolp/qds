@@ -24,8 +24,11 @@ class Temporal : public Dimension {
   Temporal(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple);
   ~Temporal() = default;
 
-  uint32_t build(const build_ctn &range, build_ctn &response,
-                 const link_ctn &links, link_ctn &share, NDS &nds) override;
+  uint32_t build(const build_ctn &range,
+                 build_ctn &response,
+                 const link_ctn &links,
+                 link_ctn &share,
+                 NDS &nds) override;
   bool query(const Query &query, subset_ctn &subsets) const override;
 
   inline interval_t get_interval() const {

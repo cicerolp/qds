@@ -17,14 +17,16 @@ class Dimension {
 
   virtual bool query(const Query &query, subset_ctn &subsets) const = 0;
 
-  virtual uint32_t build(const build_ctn &range, build_ctn &response,
-                         const link_ctn &links, link_ctn &share, NDS &nds) = 0;
+  virtual uint32_t build(const build_ctn &range,
+                         build_ctn &response,
+                         const link_ctn &links,
+                         link_ctn &share,
+                         NDS &nds) = 0;
 
   static std::string serialize(const Query &query, subset_ctn &subsets, const RangePivot &root);
 
  protected:
-  static void restrict(range_ctn &range, range_ctn &response,
-                       const subset_t &subset, CopyOption &option);
+  static void restrict(range_ctn &range, range_ctn &response, const subset_t &subset, CopyOption &option);
 
   template<typename _Aggr>
   static void group_by_subset(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,

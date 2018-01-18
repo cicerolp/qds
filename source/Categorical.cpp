@@ -4,8 +4,11 @@
 Categorical::Categorical(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple)
     : Dimension(tuple), _container(_bin) {}
 
-uint32_t Categorical::build(const build_ctn &range, build_ctn &response,
-                            const link_ctn &links, link_ctn &share, NDS &nds) {
+uint32_t Categorical::build(const build_ctn &range,
+                            build_ctn &response,
+                            const link_ctn &links,
+                            link_ctn &share,
+                            NDS &nds) {
   nds.data()->prepareOffset<categorical_t>(_offset);
 
   uint32_t pivots_count = 0;

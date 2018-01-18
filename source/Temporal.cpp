@@ -4,8 +4,11 @@
 Temporal::Temporal(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple)
     : Dimension(tuple) {}
 
-uint32_t Temporal::build(const build_ctn &range, build_ctn &response,
-                         const link_ctn &links, link_ctn &share, NDS &nds) {
+uint32_t Temporal::build(const build_ctn &range,
+                         build_ctn &response,
+                         const link_ctn &links,
+                         link_ctn &share,
+                         NDS &nds) {
   nds.data()->prepareOffset<temporal_t>(_offset);
 
   uint32_t pivots_count = 0;
@@ -108,10 +111,10 @@ bool Temporal::query(const Query &query, subset_ctn &subsets) const {
       auto it_lower = _container.begin();
       auto it_upper = _container.begin();
 
-      for (auto& interval : sequence.bounds) {
+      for (auto &interval : sequence.bounds) {
 
         it_lower = std::lower_bound(it_upper, _container.end(), interval.bound[0]);
-        it_upper  = std::lower_bound(it_lower, _container.end(), interval.bound[1]);
+        it_upper = std::lower_bound(it_lower, _container.end(), interval.bound[1]);
 
         for (auto it = it_lower; it < it_upper; ++it) {
           subset.container.emplace_back(&(*it).el);

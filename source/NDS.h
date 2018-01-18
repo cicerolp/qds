@@ -80,8 +80,7 @@ class NDS {
   }
 
   inline
-  void share(bined_pivot_t &binned, const build_ctn &container,
-             const link_ctn &links, link_ctn &share) {
+  void share(bined_pivot_t &binned, const build_ctn &container, const link_ctn &links, link_ctn &share) {
     pivot_ctn *link = get_link(binned, container, links);
 
     binned.pivots = link;
@@ -91,6 +90,5 @@ class NDS {
  private:
   pivot_ctn _root;
   std::unique_ptr<Data> _data_ptr;
-  std::vector<std::pair<Dimension::Type, std::unique_ptr<Dimension>>>
-      _dimension;
+  std::vector<std::pair<Dimension::Type, std::unique_ptr<Dimension>>> _dimension;
 };

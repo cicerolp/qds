@@ -3,14 +3,12 @@
 Spatial::Spatial(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple)
     : Dimension(tuple) {}
 
-uint32_t Spatial::build(const build_ctn &range, build_ctn &response,
-                        const link_ctn &links, link_ctn &share, NDS &nds) {
+uint32_t Spatial::build(const build_ctn &range, build_ctn &response, const link_ctn &links, link_ctn &share, NDS &nds) {
   nds.data()->prepareOffset<coordinates_t>(_offset);
 
-  _tree =
-      std::make_unique<SpatialElement>(spatial_t(0, 0, 0), range, links, nds);
+  _tree = std::make_unique<SpatialElement>(spatial_t(0, 0, 0), range, links, share, nds);
 
-  uint32_t pivots_count = _tree->expand(response, _bin, share, nds);
+  uint32_t pivots_count = _tree->expand(response, _bin, _tree->get_link(), share, nds);
 
   std::sort(response.begin(), response.end());
 
