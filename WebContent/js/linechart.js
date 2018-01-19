@@ -32,7 +32,7 @@ function loadLineChart(data, entry) {
         //.interpolate("monotone")
         .x(function (d) { return x(d[0]); })
         .y0(y(0))
-        .y1(function (d) { return y(d[1]); });
+        .y1(function (d) { return y(d[2]); });
 
     var yAxis = d3.svg.axis()
        .scale(y)
@@ -44,7 +44,7 @@ function loadLineChart(data, entry) {
         .interpolate("cardinal")
         //.interpolate("monotone")
         .x(function (d) { return x(d[0]); })
-        .y(function (d) { return y(d[1]); });
+        .y(function (d) { return y(d[2]); });
 
     // Select the svg element, if it exists.
     var svg = div.selectAll('svg').data([data]);
@@ -113,7 +113,7 @@ function loadLineChart(data, entry) {
     });
 
     x.domain([curr_lower_bound, curr_upper_bound]);
-    y.domain([0, d3.max(data, function (d) { return d[1]; })]);
+    y.domain([0, d3.max(data, function (d) { return d[2]; })]);
     zoom.x(x);
 
     svg.select("path.area").data([data]);
@@ -129,7 +129,7 @@ function loadLineChart(data, entry) {
     }
     function update_linechart() {
         curr_lower_bound = xAxis.scale().domain()[0].getTime();
-        curr_upper_bound = xAxis.scale().domain()[1].getTime();
+        curr_upper_bound = xAxis.scale().domain()[2].getTime();
 
         a_getQuery();
     }

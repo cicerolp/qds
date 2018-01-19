@@ -4,8 +4,8 @@ var lBound = 0;
 var uBound = 23;
 var sliderRT = false;
 
-var root = "./rest/";
-var _queryURL = root + "query/" + _schema;
+var root = "./api/";
+var _queryURL = root + "query/dataset=" + _schema;
 
 var map;
 
@@ -134,12 +134,13 @@ function updateDataRestrictions() {
             x1 = Math.pow(2, z);
         }
 
-        // /x0/y0/x1/y1/
-        curr_region += "/region/" + i + "/" + z
-            + "/" + x0
-            + "/" + roundtile(lat2tiley(lat0, z), z)
-            + "/" + x1
-            + "/" + roundtile(lat2tiley(lat1, z), z);
+        // [dimension_name].region.([x0]:[y0]:[x1]:[y1]:[z])
+        curr_region += "/const=" + i + ".region.("
+            + x0 + ":"
+            + roundtile(lat2tiley(lat0, z), z) + ":"
+            + x1 + ":"
+            + roundtile(lat2tiley(lat1, z), z) + ":"
+            + z + ")"
     }
 
     if (curr_region != region) {
@@ -147,28 +148,28 @@ function updateDataRestrictions() {
     }
     region = curr_region;
 
-    var query_where = false;
-    curr_where = "/where/";
+    curr_where = "";
 
     _view.views.forEach(function (entry) {
         if (entry.on_menu) {
-            var restriction = get_id(entry.field.name) + "=";
+            var restriction = "/const=" + get_id(entry.field.name) + ".values.(";
+
+            var values = "";
 
             $("#tabs-" + entry.field.name + "-checkboxes" + " :checked").each(function () {
-                restriction += parseInt($(this).val()) + ":";
-                query_where = true;
+                values += parseInt($(this).val()) + ":";
             });
-            restriction = restriction.substring(0, restriction.length - 1) + "&";
+            values = values.substring(0, values.length - 1);
+
+            if (values != "") {
+                restriction += values + ")"
+            } else {
+                restriction += "all" + ")"
+            }
 
             curr_where += restriction;
         }
     });
-
-    if (query_where) {
-        curr_where = curr_where.substring(0, curr_where.length - 1);
-    } else {
-        curr_where = "";
-    }
 
     if (curr_where != where) {
         update = true;
@@ -181,10 +182,10 @@ function updateDataRestrictions() {
     _view.views.forEach(function (entry) {
         if (entry.type == "time-series") {
 
-            var tseries_from = "/" + Math.floor(Math.max(lower_bound.getTime(), curr_lower_bound) / 1000);
-            var tseries_to = "/" + Math.ceil(Math.min(upper_bound.getTime(), curr_upper_bound) / 1000);
+            var tseries_from = Math.floor(Math.max(lower_bound.getTime(), curr_lower_bound) / 1000);
+            var tseries_to = Math.ceil(Math.min(upper_bound.getTime(), curr_upper_bound) / 1000);
 
-            curr_tseries += "/tseries/" + get_id(entry.field.name) + tseries_from + tseries_to;
+            curr_tseries += "/const=" + get_id(entry.field.name) + ".interval.(" + tseries_from + ":" + tseries_to + ")";
         }
     });
 
@@ -210,7 +211,7 @@ function a_getQuery() {
     if (update_tile) callbacks.fire(heatmap_resolution + where + tseries);
 
     if (update) {
-        var query = "/count/none" + region + tseries + where;
+        var query = "/aggr=count" + region + tseries + where;
         $.ajax({
             type: 'GET',
             url: _queryURL + query,
@@ -242,7 +243,7 @@ function a_getQuery() {
                     break;
 
                 case "histogram": {
-                    var query = "/count/group/field/" + get_id(entry.field.name) + region + where + tseries;
+                    var query = "/aggr=quantile.(0.5)" + region + where + tseries + "/group=" + get_id(entry.field.name);;
                     $.ajax({
                         type: 'GET',
                         url: _queryURL + query,
@@ -258,7 +259,7 @@ function a_getQuery() {
                     break;
 
                 case "time-series": {
-                    var query = "/count/tseries" + tseries + region + where;
+                    var query = "/aggr=quantile.(0.5)" + region + where + tseries + "/group=" + get_id(entry.field.name);;
                     $.ajax({
                         type: 'GET',
                         url: _queryURL + query,

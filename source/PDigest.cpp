@@ -7,6 +7,9 @@
 
 #include "Pivot.h"
 
+std::default_random_engine random_engine;
+std::uniform_int_distribution<> uniform_dist(0, 1000);
+
 void PDigest::merge(const Pivot &pivot) {
   _buffer_mean.clear();
   _buffer_weight.clear();
@@ -151,7 +154,7 @@ payload_t *PDigest::get_payload(uint32_t first, uint32_t second) {
   inMean.reserve(second - first);
 
   for (auto p = first; p < second; ++p) {
-    inMean.emplace_back(rand() % 1001);
+    inMean.emplace_back(uniform_dist(random_engine));
   }
   // every weight equal 1
   std::vector<float> inWeight(second - first, 1);

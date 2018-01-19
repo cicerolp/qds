@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
   // OK - http://localhost:7000/api/query/dataset=brightkite/aggr=count/const=0.tile.(0:0:0:8)
 
   // [dimension_name].region.([x0]:[y0]:[x1]:[y1]:[z])
-  // OK - http://localhost:7000/api/query/dataset=brightkite/aggr=count/const=0.region.(0:0:1:1:0)/group=0
+  // OK -
   // OK - http://localhost:7000/api/query/dataset=brightkite/aggr=count/const=0.region.(0:0:1:1:0)
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
   bool server = true;
   Server::server_opts nds_opts;
   nds_opts.port = 7000;
-  nds_opts.cache = false;
+  nds_opts.cache = true;
   nds_opts.multithreading = true;
 
   bool telemetry = false;

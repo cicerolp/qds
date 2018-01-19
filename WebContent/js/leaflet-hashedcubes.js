@@ -16,20 +16,21 @@ function heatmap_layer(value) {
         var context = canvas.getContext('2d');
         context.globalCompositeOperation = 'lighter';
 
-        var query_map = "/tile/" + value + "/" + coords.x + "/" + coords.y + "/" + zoom + "/" + heatmap_resolution + where + tseries;
+        // [dimension_name].tile.([x]:[y]:[z]:[resolution])
+        var query_map = "/const=" + value + ".tile.(" + coords.x + ":" + coords.y + ":" + zoom + ":" + heatmap_resolution + ")" + where + tseries;
 
         $.ajax({
             type: 'GET',
-            url: _queryURL + "/count/tile" + query_map,
+            url: _queryURL + "/aggr=quantile.(0.5)/" + query_map + "/group=" + value,
             dataType: "json",
             success: function (data) {
-               var entry = {
-                  data: data,
-                  context: context,
-                  tile_x: coords.x,
-                  tile_y: coords.y,
-                  tile_zoom: zoom,
-                  tile_resolution: heatmap_resolution
+                var entry = {
+                    data: data,
+                    context: context,
+                    tile_x: coords.x,
+                    tile_y: coords.y,
+                    tile_zoom: zoom,
+                    tile_resolution: heatmap_resolution
                 };
 
                 color_tile(entry);
@@ -53,51 +54,51 @@ function color_tile(entry) {
 
     entry.data.forEach(function (d) {
 
-       if (d[2] < entry.tile_zoom + entry.tile_resolution) {
-          d[0] = lon2tilex(tilex2lon(d[0] + 0.5, d[2]), entry.tile_zoom + entry.tile_resolution);
-          d[1] = lat2tiley(tiley2lat(d[1] + 0.5, d[2]), entry.tile_zoom + entry.tile_resolution);
-          d[2] = entry.tile_zoom + entry.tile_resolution;          
-       }
+        if (d[2] < entry.tile_zoom + entry.tile_resolution) {
+            d[0] = lon2tilex(tilex2lon(d[0] + 0.5, d[2]), entry.tile_zoom + entry.tile_resolution);
+            d[1] = lat2tiley(tiley2lat(d[1] + 0.5, d[2]), entry.tile_zoom + entry.tile_resolution);
+            d[2] = entry.tile_zoom + entry.tile_resolution;
+        }
 
-       var lon0 = tilex2lon(d[0], d[2]);
-       var lat0 = tiley2lat(d[1], d[2]);
-       var lon1 = tilex2lon(d[0] + 1, d[2]);
-       var lat1 = tiley2lat(d[1] + 1, d[2]);
+        var lon0 = tilex2lon(d[0], d[2]);
+        var lat0 = tiley2lat(d[1], d[2]);
+        var lon1 = tilex2lon(d[0] + 1, d[2]);
+        var lat1 = tiley2lat(d[1] + 1, d[2]);
 
-       var x0 = (lon2tilex(lon0, entry.tile_zoom) - entry.tile_x) * 256;
-       var y0 = (lat2tiley(lat0, entry.tile_zoom) - entry.tile_y) * 256;
-       var x1 = (lon2tilex(lon1, entry.tile_zoom) - entry.tile_x) * 256;
-       var y1 = (lat2tiley(lat1, entry.tile_zoom) - entry.tile_y) * 256;
+        var x0 = (lon2tilex(lon0, entry.tile_zoom) - entry.tile_x) * 256;
+        var y0 = (lat2tiley(lat0, entry.tile_zoom) - entry.tile_y) * 256;
+        var x1 = (lon2tilex(lon1, entry.tile_zoom) - entry.tile_x) * 256;
+        var y1 = (lat2tiley(lat1, entry.tile_zoom) - entry.tile_y) * 256;
 
-       var datum = {
-          data_zoom: d[2],
-          count: d[3],
-          tile_zoom: entry.tile_zoom,
-          x0: x0,
-          y0: y0,
-          x1: x1,
-          y1: y1
-       };
+        var datum = {
+            data_zoom: d[2],
+            count: d[3],
+            tile_zoom: entry.tile_zoom,
+            x0: x0,
+            y0: y0,
+            x1: x1,
+            y1: y1
+        };
 
-       entry.context.fillStyle = fs.color(d[3]);
-       //entry.context.fillStyle = fs.color(d[3] * fs.count_transform(datum));
+        entry.context.fillStyle = fs.color(d[4]);
+        //entry.context.fillStyle = fs.color(d[3] * fs.count_transform(datum));
 
-       fs.draw(entry.context, datum);
+        fs.draw(entry.context, datum);
 
-        
+
     });
 }
 
 function pickDrawFuncs() {
     var colormaps = {
         ryw: function (count) {
-           var lc = Math.log(count + 1) / Math.log(10);
+            var lc = Math.log(count) / Math.log(100);
 
-           var r = Math.floor(256 * Math.min(1, lc));
-           var g = Math.floor(256 * Math.min(1, Math.max(0, lc - 1)));
-           var b = Math.floor(256 * Math.min(1, Math.max(0, lc - 2)));
+            var r = Math.floor(256 * Math.min(1, lc));
+            var g = Math.floor(256 * Math.min(1, Math.max(0, lc - 1)));
+            var b = Math.floor(256 * Math.min(1, Math.max(0, lc - 2)));
 
-           return "rgba(" + r + "," + g + "," + b + "," + 1 + ")";
+            return "rgba(" + r + "," + g + "," + b + "," + 1 + ")";
         },
         bbb: d3.scale.linear()
             .domain([1, 100])
@@ -136,11 +137,11 @@ var PLOTTING_COLOR_SCALE = view_schemas[_schema].PLOTTING_COLOR_SCALE;
 var setMode = function (mode) {
     PLOTTING_MODE = mode;
     console.log(PLOTTING_MODE);
-    callbacks.fire({ isColorOnly: true });
+    callbacks.fire({isColorOnly: true});
 };
 
 var setScale = function (scale) {
     PLOTTING_COLOR_SCALE = scale;
     console.log(PLOTTING_COLOR_SCALE);
-    callbacks.fire({ isColorOnly: true });
+    callbacks.fire({isColorOnly: true});
 };
