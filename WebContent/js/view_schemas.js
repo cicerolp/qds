@@ -92,7 +92,7 @@ var view_schemas = {
     "brightkite": {
         PLOTTING: "black",
         PLOTTING_MODE: "rect",
-        PLOTTING_COLOR_SCALE: "ryw",
+        PLOTTING_COLOR_SCALE: "bbb",
         title: "Brightkite Checkins",
         tile: [{
             title: "Location",

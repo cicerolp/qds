@@ -81,11 +81,7 @@ function color_tile(entry) {
         };
 
         entry.context.fillStyle = fs.color(d[4]);
-        //entry.context.fillStyle = fs.color(d[3] * fs.count_transform(datum));
-
         fs.draw(entry.context, datum);
-
-
     });
 }
 
@@ -98,12 +94,11 @@ function pickDrawFuncs() {
             var g = Math.floor(256 * Math.min(1, Math.max(0, lc - 1)));
             var b = Math.floor(256 * Math.min(1, Math.max(0, lc - 2)));
 
-            return "rgba(" + r + "," + g + "," + b + "," + 1 + ")";
+            return "rgba(" + r + "," + g + "," + b + "," + 0.85 + ")";
         },
-        bbb: d3.scale.linear()
-            .domain([1, 100])
-            .range(['#000420', '#000D60', '#000D60'])
-            .clamp(true)
+        bbb: d3.scale.threshold()
+            .domain([200, 400, 600, 800])
+            .range(['#ca0020','#f4a582','black','#92c5de','#0571b0'])
     };
 
 
