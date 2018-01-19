@@ -95,25 +95,29 @@ class Pivot {
   // [0  , N/2 - 1] -> mean of points added to each merged centroid
   // [N/2,   N - 1] -> number of points that have been added to each merged centroid
   payload_t *_payload{nullptr};
+
+  //bool proper_payload{false};
 };
 
 struct bined_pivot_t {
  public:
-  // shared (false) or proper (true) content
-  bool proper{false};
-
   uint64_t value;
   pivot_ctn *pivots;
 
-  ~bined_pivot_t() {
-    if (proper) {
-      for (auto &pivot : (*pivots)) {
-        pivot.delete_payload();
-      }
+  // shared (false) or proper (true) content
+  //bool proper{false};
 
-      delete pivots;
+  /*~bined_pivot_t() {
+    if (proper) {
+      if (proper_payload) {
+        for (auto &pivot : (*pivots)) {
+          pivot.delete_payload();
+        }
+        delete pivots;
+      }
     }
-  }
+  }*/
+
   inline pivot_ctn &ptr() const { return *pivots; }
 };
 

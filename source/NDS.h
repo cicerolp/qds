@@ -27,37 +27,36 @@ class NDS {
     rhs.clear();
   }
 
-  inline pivot_ctn *create_link(bined_pivot_t &binned, const build_ctn &container) {
+  template<class InputIt1, class InputIt2>
+  inline void share_payload(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2) {
+    while (first1 != last1 && first2 != last2) {
+      if ((*first1).front() < (*first2).front()) {
+        ++first1;
+      } else {
+        if ((*first2).back() < (*first1).back()) {
+          ++first2;
+        } else {
+          first2->copy_payload(*first1);
+          ++first1;
+          ++first2;
+        }
+      }
+    }
+  }
+
+  inline pivot_ctn *create_link(bined_pivot_t &binned, const build_ctn &container, const link_ctn &links) {
     pivot_ctn *link = new pivot_ctn(container.size());
     std::memcpy(&(*link)[0], &container[0], container.size() * sizeof(Pivot));
 
-    // create payload for proper pivots
-    for (auto &ptr : (*link)) {
-      ptr.create_payload();
+    for (auto &link_ctn : links) {
+      share_payload(link_ctn->begin(), link_ctn->end(), link->begin(), link->end());
     }
 
-    /*// create or copy payloads
-    for (auto &ptr : (*link)) {
-
-      payload_t *payload = nullptr;
-      pivot_ctn::iterator it;
-
-      for (auto &link_ctn : links) {
-        it = std::find(link_ctn->begin(), link_ctn->end(), ptr);
-        if (it != link_ctn->end()) {
-          payload = (*it).get_payload();
-          break;
-        }
-      }
-
-      if (payload == nullptr) {
+    for (auto &ptr : *link) {
+      if (ptr.get_payload() == nullptr) {
         ptr.create_payload();
-      } else {
-        ptr.copy_payload((*it));
       }
-    }*/
-
-    binned.proper = true;
+    }
 
     return link;
   }
@@ -73,7 +72,7 @@ class NDS {
     }
 
     if (link == nullptr) {
-      return create_link(binned, container);
+      return create_link(binned, container, links);
     } else {
       return link;
     }
