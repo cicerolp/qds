@@ -176,7 +176,7 @@ function loadUi() {
         });
     });
 
-    $("#slider").slider("value", 8);
+    $("#slider").slider("value", 5);
     
     $("#checkTime").button({
         text : false,

@@ -94,11 +94,15 @@ function pickDrawFuncs() {
             var g = Math.floor(256 * Math.min(1, Math.max(0, lc - 1)));
             var b = Math.floor(256 * Math.min(1, Math.max(0, lc - 2)));
 
-            return "rgba(" + r + "," + g + "," + b + "," + 0.85 + ")";
+            return "rgba(" + r + "," + g + "," + b + "," + 1.0 + ")";
         },
         bbb: d3.scale.threshold()
-            .domain([200, 400, 600, 800])
-            .range(['#ca0020','#f4a582','black','#92c5de','#0571b0'])
+            .domain([100, 200, 300, 400, 500, 600, 700, 800, 900])
+            .range(['rgb(158,1,66, 1.0)', 'rgb(213,62,79, 1.0)',
+                'rgb(244,109,67, 1.0)', 'rgb(253,174,97, 1.0)',
+                'rgb(254,224,139, 1.0)', 'rgb(230,245,152, 1.0)',
+                'rgb(171,221,164, 1.0)', 'rgb(102,194,165, 1.0)',
+                'rgb(50,136,189, 1.0)', 'rgb(94,79,162, 1.0)'])
     };
 
 
