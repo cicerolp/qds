@@ -27,6 +27,7 @@ class NDS {
     rhs.clear();
   }
 
+#ifdef ENABLE_PDIGEST
   template<class InputIt1, class InputIt2>
   inline void share_payload(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2) {
     while (first1 != last1 && first2 != last2) {
@@ -43,11 +44,13 @@ class NDS {
       }
     }
   }
+#endif
 
   inline pivot_ctn *create_link(bined_pivot_t &binned, const build_ctn &container, const link_ctn &links) {
     pivot_ctn *link = new pivot_ctn(container.size());
     std::memcpy(&(*link)[0], &container[0], container.size() * sizeof(Pivot));
 
+#ifdef ENABLE_PDIGEST
     for (auto &link_ctn : links) {
       share_payload(link_ctn->begin(), link_ctn->end(), link->begin(), link->end());
     }
@@ -57,7 +60,7 @@ class NDS {
         ptr.create_payload();
       }
     }
-
+#endif
     return link;
   }
 

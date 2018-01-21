@@ -6,6 +6,8 @@
 
 #include "types.h"
 
+#ifdef ENABLE_PDIGEST
+
 class PDigest {
  public:
   void merge(const Pivot &pivot);
@@ -88,3 +90,5 @@ class PDigest {
   // temporary data - avoid unnecessary memory allocations
   std::vector<float> _buffer_mean, _buffer_weight;
 };
+
+#endif

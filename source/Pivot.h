@@ -21,10 +21,10 @@ class Pivot {
   Pivot &operator=(const Pivot &other) = default;
   Pivot &operator=(Pivot &&other) = default;
 
+#ifdef ENABLE_PDIGEST
   inline payload_t *get_payload() {
     return _payload;
   };
-
   inline const payload_t &get_payload() const {
     return *_payload;
   };
@@ -45,6 +45,7 @@ class Pivot {
     delete _payload;
     _payload = nullptr;
   }
+#endif
 
   inline bool empty() const { return (back() - front()) == 0; }
   inline uint32_t size() const { return back() - front(); }
@@ -92,9 +93,11 @@ class Pivot {
  protected:
   uint32_t _first, _second;
 
+#ifdef ENABLE_PDIGEST
   // [0  , N/2 - 1] -> mean of points added to each merged centroid
   // [N/2,   N - 1] -> number of points that have been added to each merged centroid
   payload_t *_payload{nullptr};
+#endif
 
   //bool proper_payload{false};
 };

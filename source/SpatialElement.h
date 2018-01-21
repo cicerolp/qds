@@ -42,11 +42,20 @@ class SpatialElement {
 };
 
 bool SpatialElement::count_expand(uint32_t bin) const {
+#ifdef OPTIMIZE_LEAF
+  if (_el.ptr().size() > bin) return true;
+#else
   if (_el.ptr().size() >= bin) return true;
+#endif
 
   uint32_t count = 0;
   for (auto &ptr : _el.ptr()) {
     count += ptr.size();
   }
+
+#ifdef OPTIMIZE_LEAF
   return (count > bin) ? true : false;
+#else
+  return (count >= bin) ? true : false;
+#endif
 }

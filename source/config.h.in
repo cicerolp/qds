@@ -7,17 +7,23 @@
 
 #include <cmath>
 
-#cmakedefine PDIGEST_WEIGHT_LIMIT
-#cmakedefine PDIGEST_PIECE_WISE_APPROXIMATION
+#cmakedefine OPTIMIZE_LEAF
 
-#define PDIGEST_COMPRESSION @PDIGEST_COMPRESSION@
+#cmakedefine ENABLE_PDIGEST
 
-#ifdef PDIGEST_WEIGHT_LIMIT
-// the weight limit approach generates smaller centroids than necessary
-// that can result in using a bit more memory than expected
-#define PDIGEST_ARRAY_SIZE (uint32_t)((std::ceil(@PDIGEST_COMPRESSION@) * 2) + 10)
-#else
-#define PDIGEST_ARRAY_SIZE (uint32_t)((std::ceil(@PDIGEST_COMPRESSION@) * 2))
+#ifdef ENABLE_PDIGEST
+    #cmakedefine PDIGEST_WEIGHT_LIMIT
+    #cmakedefine PDIGEST_PIECE_WISE_APPROXIMATION
+
+    #define PDIGEST_COMPRESSION @PDIGEST_COMPRESSION@
+
+    #ifdef PDIGEST_WEIGHT_LIMIT
+    // the weight limit approach generates smaller centroids than necessary
+    // that can result in using a bit more memory than expected
+        #define PDIGEST_ARRAY_SIZE (uint32_t)((std::ceil(@PDIGEST_COMPRESSION@) * 2) + 10)
+    #else
+        #define PDIGEST_ARRAY_SIZE (uint32_t)((std::ceil(@PDIGEST_COMPRESSION@) * 2))
+    #endif
 #endif
 
 #endif //NDS_CONFIG_H_IN
