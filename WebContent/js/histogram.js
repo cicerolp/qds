@@ -12,8 +12,8 @@ function setHistogramData(data, entry) {
     var maxValue = -1;
     for (var index in data) {
 
-        if (data[index][2] > maxValue)
-            maxValue = data[index][2];
+        if (data[index][1] > maxValue)
+            maxValue = data[index][1];
     }
 
     var w = div.node().getBoundingClientRect().width - margin.left - margin.right;
@@ -27,7 +27,7 @@ function setHistogramData(data, entry) {
     .attr('class', 'd3-tip')
     .offset([-10, 0])
     .html(function(d) {    	
-      return "<strong>Value:</strong> <span style='color:red;'>" + d[2] + "</span>";
+      return "<strong>Value:</strong> <span style='color:red;'>" + d[1] + "</span>";
     });
 
 
@@ -40,9 +40,9 @@ function setHistogramData(data, entry) {
     .attr("x", function(d, i) {
         return i * (w / data.length);
     }).attr("y", function(d) {
-        return h - (d[2] / maxValue * h);
+        return h - (d[1] / maxValue * h);
     }).attr("width", w / data.length - barPadding).attr("height", function(d) {
-        return d[2] / maxValue * h;
+        return d[1] / maxValue * h;
     }).attr("fill", function(d) {
         return colors[0];
     })
@@ -73,7 +73,7 @@ function setHistogramData(data, entry) {
     .attr("fill", "white")
     .attr("text-anchor", "start")
     .attr("transform", function (d, i) {
-        var x = Math.max(4, h - (d[2] / maxValue * h) - this.getComputedTextLength() - 4);
+        var x = Math.max(4, h - (d[1] / maxValue * h) - this.getComputedTextLength() - 4);
         var y = - (i * (w / data.length) + (w / data.length - barPadding) / 2) + 4;
         return 'rotate(90)translate(' + x + ',' + y + ')';
     });

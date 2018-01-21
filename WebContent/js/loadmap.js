@@ -243,7 +243,7 @@ function a_getQuery() {
                     break;
 
                 case "histogram": {
-                    var query = "/aggr=quantile.(0.5)" + region + where + tseries + "/group=" + get_id(entry.field.name);;
+                    var query = "/aggr=count" + region + where + tseries + "/group=" + get_id(entry.field.name);;
                     $.ajax({
                         type: 'GET',
                         url: _queryURL + query,
@@ -259,7 +259,7 @@ function a_getQuery() {
                     break;
 
                 case "time-series": {
-                    var query = "/aggr=quantile.(0.5)" + region + where + tseries + "/group=" + get_id(entry.field.name);;
+                    var query = "/aggr=count" + region + where + tseries + "/group=" + get_id(entry.field.name);;
                     $.ajax({
                         type: 'GET',
                         url: _queryURL + query,

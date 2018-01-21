@@ -21,7 +21,7 @@ function heatmap_layer(value) {
 
         $.ajax({
             type: 'GET',
-            url: _queryURL + "/aggr=quantile.(0.5)/" + query_map + "/group=" + value,
+            url: _queryURL + "/aggr=count/" + query_map + "/group=" + value,
             dataType: "json",
             success: function (data) {
                 var entry = {
@@ -80,7 +80,7 @@ function color_tile(entry) {
             y1: y1
         };
 
-        entry.context.fillStyle = fs.color(d[4]);
+        entry.context.fillStyle = fs.color(d[3]);
         fs.draw(entry.context, datum);
     });
 }
@@ -102,7 +102,10 @@ function pickDrawFuncs() {
                 'rgb(244,109,67, 1.0)', 'rgb(253,174,97, 1.0)',
                 'rgb(254,224,139, 1.0)', 'rgb(230,245,152, 1.0)',
                 'rgb(171,221,164, 1.0)', 'rgb(102,194,165, 1.0)',
-                'rgb(50,136,189, 1.0)', 'rgb(94,79,162, 1.0)'])
+                'rgb(50,136,189, 1.0)', 'rgb(94,79,162, 1.0)']),
+        debug: function (count) {
+            return "rgba(256,256,256,1.0)";
+        },
     };
 
 

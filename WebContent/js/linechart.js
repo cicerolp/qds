@@ -1,6 +1,4 @@
 function loadLineChart(data, entry) {
-    if (data.length <= 1) return;
-
     var margin = {
         top: 10,
         right: 40,
@@ -32,7 +30,7 @@ function loadLineChart(data, entry) {
         //.interpolate("monotone")
         .x(function (d) { return x(d[0]); })
         .y0(y(0))
-        .y1(function (d) { return y(d[2]); });
+        .y1(function (d) { return y(d[1]); });
 
     var yAxis = d3.svg.axis()
        .scale(y)
@@ -44,7 +42,7 @@ function loadLineChart(data, entry) {
         .interpolate("cardinal")
         //.interpolate("monotone")
         .x(function (d) { return x(d[0]); })
-        .y(function (d) { return y(d[2]); });
+        .y(function (d) { return y(d[1]); });
 
     // Select the svg element, if it exists.
     var svg = div.selectAll('svg').data([data]);
@@ -113,7 +111,7 @@ function loadLineChart(data, entry) {
     });
 
     x.domain([curr_lower_bound, curr_upper_bound]);
-    y.domain([0, d3.max(data, function (d) { return d[2]; })]);
+    y.domain([0, d3.max(data, function (d) { return d[1]; })]);
     zoom.x(x);
 
     svg.select("path.area").data([data]);

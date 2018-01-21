@@ -6,7 +6,7 @@ var curr_region = null, curr_where = null, curr_tseries = null;
 var update = false;
 var update_tile = false;
 
-var curr_heatmap_resolution = 5, heatmap_resolution = 5;
+var curr_heatmap_resolution = 8, heatmap_resolution = 8;
 
 var total_count = 0, curr_count = 0;
 var lower_bound = null, upper_bound = null;
