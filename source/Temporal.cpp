@@ -59,10 +59,10 @@ bool Temporal::query(const Query &query, subset_ctn &subsets) const {
   auto clausule = query.get_const(std::to_string(_key));
 
   if (clausule != nullptr) {
+    subset_t subset;
+
     if (clausule->first == "interval") {
       auto interval = parse_interval(clausule->second);
-
-      subset_t subset;
 
       if (query.group_by(std::to_string(_key))) {
         subset.option = CopyValueFromSubset;
@@ -95,14 +95,8 @@ bool Temporal::query(const Query &query, subset_ctn &subsets) const {
         }
       }
 
-      subsets.emplace_back(subset);
-      return true;
-
     } else if (clausule->first == "sequence") {
-
       auto sequence = parse_sequence(clausule->second);
-
-      subset_t subset;
 
       if (query.group_by(std::to_string(_key))) {
         subset.option = CopyValueFromSubset;
@@ -120,13 +114,17 @@ bool Temporal::query(const Query &query, subset_ctn &subsets) const {
           subset.container.emplace_back(&(*it).el);
         }
       }
+    }
 
+    if (!subset.container.empty()) {
       subsets.emplace_back(subset);
       return true;
+    } else {
+      return false;
     }
-  } else {
-    return true;
   }
+
+  return true;
 }
 interval_t Temporal::parse_interval(const std::string &str) const {
   auto clausule = boost::trim_copy_if(str, boost::is_any_of("()"));

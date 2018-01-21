@@ -42,7 +42,7 @@ class SpatialElement {
 };
 
 bool SpatialElement::count_expand(uint32_t bin) const {
-  if (_el.ptr().size() > bin) return true;
+  if (_el.ptr().size() >= bin) return true;
 
   uint32_t count = 0;
   for (auto &ptr : _el.ptr()) {

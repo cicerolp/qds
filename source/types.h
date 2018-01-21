@@ -16,7 +16,7 @@ using link_it = link_ctn::const_iterator;
 using build_ctn = std::vector<Pivot>;
 using build_it = build_ctn::const_iterator;
 
-enum CopyOption { CopyValueFromRange, CopyValueFromSubset, DefaultCopy };
+enum CopyOption { CopyValueFromRange, CopyValueFromSubset, DefaultCopy};
 
 typedef uint32_t temporal_t;
 typedef uint8_t categorical_t;

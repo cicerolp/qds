@@ -21,10 +21,10 @@ bool Spatial::query(const Query &query, subset_ctn &subsets) const {
   auto clausule = query.get_const(std::to_string(_key));
 
   if (clausule != nullptr) {
+    subset_t subset;
+
     if (clausule->first == "tile") {
       auto tile = parse_tile(clausule->second);
-
-      subset_t subset;
 
       if (query.group_by(std::to_string(_key))) {
         subset.option = CopyValueFromSubset;
@@ -32,28 +32,25 @@ bool Spatial::query(const Query &query, subset_ctn &subsets) const {
 
       _tree->query_tile(tile.tile, tile.resolution, subset.container, 0);
 
-      subsets.emplace_back(subset);
-      return true;
-
     } else if (clausule->first == "region") {
-
       auto region = parse_region(clausule->second);
-
-      subset_t subset;
 
       if (query.group_by(std::to_string(_key))) {
         subset.option = CopyValueFromSubset;
       }
 
       _tree->query_region(region, subset.container, 0);
-
-      subsets.emplace_back(subset);
-      return true;
     }
 
-  } else {
-    return true;
+    if (!subset.container.empty()) {
+      subsets.emplace_back(subset);
+      return true;
+    } else {
+      return false;
+    }
   }
+
+  return true;
 }
 tile_t Spatial::parse_tile(const std::string &str) const {
   auto clausule = boost::trim_copy_if(str, boost::is_any_of("()"));

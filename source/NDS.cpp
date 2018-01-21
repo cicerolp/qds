@@ -72,14 +72,18 @@ std::string NDS::query(const Query &query, std::ofstream *telemetry) {
 
   start = std::chrono::high_resolution_clock::now();
 
+  RangePivot root(_root[0]);
+
   for (auto &pair : _dimension) {
-    if (!pair.second->query(query, subsets)) {
+    if (pair.second->query(query, subsets) == false) {
+      // empty query
+      root.pivot.back(0);
       subsets.clear();
       break;
     }
   }
 
-  std::string buffer = Dimension::serialize(query, subsets, RangePivot(_root[0]));
+  std::string buffer = Dimension::serialize(query, subsets, root);
 
   end = std::chrono::high_resolution_clock::now();
 

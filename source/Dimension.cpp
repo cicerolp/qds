@@ -76,16 +76,17 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
   writer.StartArray();
 
   if (subsets.size() == 0) {
-    if (aggr.first == "count") {
-      group_by_none<AggrCountNone>(query, writer, response);
+    if (!root.pivot.empty()) {
+      if (aggr.first == "count") {
+        group_by_none<AggrCountNone>(query, writer, response);
 
-    } else if (aggr.first == "quantile") {
-      group_by_none<AggrQuantileNone>(query, writer, response);
+      } else if (aggr.first == "quantile") {
+        group_by_none<AggrQuantileNone>(query, writer, response);
 
-    } else if (aggr.first == "inverse") {
-      group_by_none<AggrInverseNone>(query, writer, response);
+      } else if (aggr.first == "inverse") {
+        group_by_none<AggrInverseNone>(query, writer, response);
+      }
     }
-
   } else {
     for (auto i = 0; i < subsets.size() - 1; ++i)
       restrict(range, response, subsets[i], option);

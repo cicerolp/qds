@@ -67,11 +67,15 @@ bool Categorical::query(const Query &query, subset_ctn &subsets) const {
       if (values.size() == _bin) {
         // all values selected
         for (const auto &el : _container) {
-          subset.container.emplace_back(&el);
+          if (!el.pivots->empty()) {
+            subset.container.emplace_back(&el);
+          }
         }
       } else {
         for (auto &value : values) {
-          subset.container.emplace_back(&_container[value]);
+          if (!_container[value].pivots->empty()) {
+            subset.container.emplace_back(&_container[value]);
+          }
         }
       }
 
@@ -81,17 +85,22 @@ bool Categorical::query(const Query &query, subset_ctn &subsets) const {
         return true;
       } else {
         for (auto &value : values) {
-          subset.container.emplace_back(&_container[value]);
+          if (!_container[value].pivots->empty()) {
+            subset.container.emplace_back(&_container[value]);
+          }
         }
       }
     }
 
-    subsets.emplace_back(subset);
-    return true;
-
-  } else {
-    return true;
+    if (!subset.container.empty()) {
+      subsets.emplace_back(subset);
+      return true;
+    } else {
+      return false;
+    }
   }
+
+  return true;
 }
 std::vector<categorical_t> Categorical::parse(const std::string &str) const {
   auto clausule = boost::trim_copy_if(str, boost::is_any_of("()"));
