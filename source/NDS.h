@@ -13,7 +13,7 @@ class NDS {
   NDS(const NDS &that) = delete;
   NDS &operator=(NDS const &) = delete;
 
-  std::string query(const Query &query, std::ofstream *telemetry);
+  std::string query(const Query &query);
 
   interval_t get_interval() const;
 
