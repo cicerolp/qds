@@ -8,13 +8,13 @@ class NDSInstances : public Singleton<NDSInstances> {
   friend class Singleton<NDSInstances>;
 
  public:
-  static void run(const std::vector<Schema>& args, bool telemetry);
+  static void run(const std::vector<Schema> &args);
 
-  std::string query(const Query& query);
-  std::string schema(const std::string& instance) const;
+  std::string query(const Query &query);
+  std::string schema(const std::string &instance) const;
 
  private:
-  inline std::shared_ptr<NDS> get_instance(const std::string& instance) const {
+  inline std::shared_ptr<NDS> get_instance(const std::string &instance) const {
     auto it = _container.find(instance);
 
     if (it == _container.end()) {
@@ -29,8 +29,4 @@ class NDSInstances : public Singleton<NDSInstances> {
 
   bool _ready{false};
   std::unordered_map<std::string, std::shared_ptr<NDS>> _container;
-
-  bool _telemetry{false};
-  std::unordered_map<std::string, std::unique_ptr<std::ofstream>>
-      _telemetry_files;
 };
