@@ -1,6 +1,6 @@
 image: cicerolp/ubuntu
 pipelines:
-  default:
+  master:
     - step:
         script:
           - uname -a
