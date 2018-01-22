@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.0)
 
 option(OPTIMIZE_LEAF "Enable Spatial Element Leaf Optimization" ON)
 
-option(ENABLE_PDIGEST "Enable p-digest" ON)
+option(ENABLE_PDIGEST "Enable p-digest" OFF)
 
 # the weight limit approach generates smaller centroids than necessary
 # that can result in using a bit more memory than expected
