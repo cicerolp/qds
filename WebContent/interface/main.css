@@ -1,0 +1,134 @@
+#mapID { width: 1100px; height: 1070px; background-color: #333;}
+
+.legendSVG {
+    height:170px;
+    line-height: 19px;
+    color: #555;
+    padding: 0px 0px;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    display: block;
+}
+
+#stackedWidget{
+    position: absolute;
+    left: 1220px;
+    top: 270px;
+    display: block;
+    width: 800px;
+    height: 370px;
+}
+
+#timeTableWidget{
+    position: absolute;
+    left: 1220px;
+    top: 560px;
+    display: block;
+}
+
+#placeIDWidget{
+    position: absolute;
+    left: 1220px;
+    top: 770px;
+    display: block;
+}
+
+#timeSeriesValueOption{
+    position: relative;
+    left: 5px;
+    top: 5px;
+    display: block;
+}
+
+#boxPlotWidget {
+    position: relative;
+    left: 1120px;
+    top: -1070px;
+    display: block;
+}
+
+#equidepthWidget {
+    position: relative;
+    left: 1120px;
+    top: -970px;
+    display: block;
+}
+
+
+#timeSeriesSelectionLabel{
+    position: relative;
+    left: 95px;
+    top: -12px;
+    display: block;
+}
+
+#timeSeriesDiv{
+    position: absolute;
+    left: 1220px;
+    top: 5px;
+    display: block;
+}
+
+.controls{
+    line-height: 19px;
+    color: #555;
+    padding: 0px 0px;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+}
+
+.layersControl{
+    line-height: 30px;
+    color: #555;
+    padding: 0px 0px;
+    background: white;
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    width: 36px;
+    height: 36px;
+    background-repeat: no-repeat;
+    background-position: 50% 50%;
+    background-image: url(../resources/layers.png);
+    display: block;
+}
+
+.layersControl-expanded .layersList {
+    display: block;
+    position: relative;
+}
+
+.layersControl .layersList{
+    display: none;
+}
+
+#placeIDTextLabel{
+    position: relative;
+    left: 5px;
+    top:5px;
+    display: block;
+}
+
+#placeIDTextInput{
+    position: relative;
+    left: 70px;
+    top:-15px;
+    display: block;
+}
+
+#placeIDQueryButton{
+    position: relative;
+    left: 580px;
+    top:-35px;
+    display: block;
+}
+
+#placeIDLabel{
+    position: relative;
+    left: 610px;
+    top:-300px;
+    display: block;
+}

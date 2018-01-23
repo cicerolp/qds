@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config ver="1.0">
+	<input header="true">example.csv</input>
+    <output>example.nds</output>
+	<schema>
+        <categorical index="0" type="discrete" name="genero">
+            <bins>
+                <bin>
+                    <key>M</key>
+                </bin>
+                <bin>
+                    <key>F</key>
+                </bin>
+            </bins>
+        </categorical>
+
+        <categorical index="1" type="discrete" name="uf-da-pessoa">
+            <bins>
+                <bin>
+                    <key>RS</key>
+                </bin>
+                <bin>
+                    <key>NA</key>
+                </bin>
+            </bins>
+        </categorical>
+
+        <categorical index="2" type="discrete" name="cidade-da-pessoa">
+            <bins>
+                <bin>
+                    <key>Porto Alegre</key>
+                </bin>
+                <bin>
+                    <key>NA</key>
+                </bin>
+            </bins>
+        </categorical>
+
+        <categorical index="4" type="binary" name="permission-status">
+        </categorical>
+
+        <categorical index="5" type="binary" name="deliverability-status">
+        </categorical>
+
+        <categorical index="7" type="discrete" name="uf-da-loja">
+            <bins>
+                <bin>
+                    <key>RS</key>
+                </bin>
+                <bin>
+                    <key>NA</key>
+                </bin>
+            </bins>
+        </categorical>
+
+        <categorical index="8" type="discrete" name="uf-da-loja">
+            <bins>
+                <bin>
+                    <key>Porto Alegre</key>
+                </bin>
+                <bin>
+                    <key>NA</key>
+                </bin>
+            </bins>
+        </categorical>
+
+        <categorical index="9" type="binary" name="tem-telefone">
+        </categorical>
+
+        <categorical index="10" type="binary" name="tem-email">
+        </categorical>
+
+        <categorical index="11" type="binary" name="tem-endereco">
+        </categorical>
+
+        <categorical index="12" type="binary" name ="tem-celular">
+        </categorical>
+
+        <categorical index="13" type="binary" name="tem-cpf">
+        </categorical>
+
+        <categorical index="3" type="range" name="idade">
+            <bins>
+                <bin>
+                    <min>0</min>
+                    <max>20</max>
+                </bin>
+                <bin>
+                    <min>21</min>
+                    <max>30</max>
+                </bin>
+                <bin>
+                    <min>31</min>
+                    <max>40</max>
+                </bin>
+                <bin>
+                    <min>41</min>
+                    <max>50</max>
+                </bin>
+                <bin>
+                    <min>51</min>
+                    <max>60</max>
+                </bin>
+                <bin>
+                    <min>61</min>
+                    <max>70</max>
+                </bin>
+            </bins>
+        </categorical>
+
+        <categorical index="6" type="sequential" name="origem-do-contato">
+            <bins>
+                <bin>
+                    <min>0</min>
+                    <max>9</max>
+                </bin>                
+            </bins>
+        </categorical>
+
+        <temporal index="14" name="data-referencia">
+            <bins>
+                <bin>
+                    <min>01/01/2017</min>
+                    <interval>86400</interval>
+                    <max>31/12/2017</max>
+                </bin>                
+            </bins>
+        </temporal>
+
+        <spatial index="15" name="geolocation">
+            <bins>
+                <bin>
+                </bin>                
+            </bins>
+        </spatial>
+	</schema>
+</config>
