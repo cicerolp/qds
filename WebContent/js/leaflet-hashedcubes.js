@@ -70,6 +70,8 @@ function color_tile(entry) {
         var x1 = (lon2tilex(lon1, entry.tile_zoom) - entry.tile_x) * 256;
         var y1 = (lat2tiley(lat1, entry.tile_zoom) - entry.tile_y) * 256;
 
+	debugger
+	
         var datum = {
             data_zoom: d[2],
             count: d[3],
