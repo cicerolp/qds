@@ -81,10 +81,13 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
         group_by_none<AggrCountNone>(query, writer, response);
 
       } else if (aggr.first == "quantile") {
+#ifdef ENABLE_PDIGEST
         group_by_none<AggrQuantileNone>(query, writer, response);
-
+#endif
       } else if (aggr.first == "inverse") {
+#ifdef ENABLE_PDIGEST
         group_by_none<AggrInverseNone>(query, writer, response);
+#endif
       }
     }
   } else {
@@ -111,6 +114,7 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
       }
 
     } else if (aggr.first == "quantile") {
+#ifdef ENABLE_PDIGEST
       if (query.group_by()) {
         if (option == CopyValueFromSubset) {
           // group_by_subset
@@ -123,8 +127,9 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
         // group_by_none
         group_by_none<AggrQuantileNone>(query, writer, range, subsets.back().container);
       }
-
+#endif
     } else if (aggr.first == "inverse") {
+#ifdef ENABLE_PDIGEST
       if (query.group_by()) {
         if (option == CopyValueFromSubset) {
           // group_by_subset
@@ -137,6 +142,7 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
         // group_by_none
         group_by_none<AggrInverseNone>(query, writer, range, subsets.back().container);
       }
+#endif
     }
   }
 

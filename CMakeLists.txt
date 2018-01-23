@@ -1,6 +1,13 @@
 project(nds)
 cmake_minimum_required(VERSION 3.0)
 
+
+option(OPTIMIZE_LEAF "Enable Spatial Element Leaf Optimization" ON)
+
+option(ENABLE_PDIGEST "Enable p-digest" ON)
+
+# the weight limit approach generates smaller centroids than necessary
+# that can result in using a bit more memory than expected
 option(PDIGEST_WEIGHT_LIMIT "Enable p-digest Weight Limit" OFF)
 option(PDIGEST_PIECE_WISE_APPROXIMATION "Enable p-digest Piece Wise Approximation" ON)
 

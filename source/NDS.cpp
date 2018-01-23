@@ -65,12 +65,8 @@ NDS::NDS(const Schema &schema) {
   _data_ptr = nullptr;
 }
 
-std::string NDS::query(const Query &query, std::ofstream *telemetry) {
-  std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
-
+std::string NDS::query(const Query &query) {
   subset_ctn subsets;
-
-  start = std::chrono::high_resolution_clock::now();
 
   RangePivot root(_root[0]);
 
@@ -84,13 +80,6 @@ std::string NDS::query(const Query &query, std::ofstream *telemetry) {
   }
 
   std::string buffer = Dimension::serialize(query, subsets, root);
-
-  end = std::chrono::high_resolution_clock::now();
-
-  if (telemetry != nullptr) {
-    auto clock = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-    (*telemetry) << clock << "," << query << std::endl;
-  }
 
   return buffer;
 }

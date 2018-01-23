@@ -7,6 +7,8 @@
 
 #include "Pivot.h"
 
+#ifdef ENABLE_PDIGEST
+
 std::default_random_engine random_engine;
 std::uniform_int_distribution<> uniform_dist(0, 1000);
 
@@ -387,3 +389,5 @@ float PDigest::asinApproximation(float x) {
   return std::asin(x);
 #endif
 }
+
+#endif

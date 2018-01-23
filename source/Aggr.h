@@ -35,6 +35,27 @@ class AggrSubset : public Aggr {
   virtual void output(size_t el, uint64_t value, const Query &query, json &writer) = 0;
 };
 
+/////////////////////////////////////////////////////////////////////////////////////////
+// Range
+/////////////////////////////////////////////////////////////////////////////////////////
+
+class AggrRange : public Aggr {
+ public:
+  virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) = 0;
+  virtual void output(const Query &query, json &writer) = 0;
+};
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// None
+/////////////////////////////////////////////////////////////////////////////////////////
+
+class AggrNone : public Aggr {
+ public:
+  virtual void merge(pivot_it &it_lower, pivot_it &it_upper) = 0;
+  virtual void merge(const range_it &it_lower, const range_it &it_upper) = 0;
+  virtual void output(const Query &query, json &writer) = 0;
+};
+
 // count
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -60,6 +81,54 @@ class AggrCountSubset : public AggrSubset {
  protected:
   std::vector<uint32_t> _map;
 };
+
+// count
+/////////////////////////////////////////////////////////////////////////////////////////
+class AggrCountRange : public AggrRange {
+ public:
+  virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
+    while (it_lower != it_upper) {
+      _map[value] += (*it_lower++).size();
+    }
+  }
+
+  virtual void output(const Query &query, json &writer) override {
+    for (const auto &pair : _map) {
+      writer.StartArray();
+      write_value(pair.first, writer);
+      writer.Uint(pair.second);
+      writer.EndArray();
+    }
+  }
+
+ protected:
+  std::map<uint64_t, uint32_t> _map;
+};
+
+// count
+/////////////////////////////////////////////////////////////////////////////////////////
+class AggrCountNone : public AggrNone {
+ public:
+  void merge(pivot_it &it_lower, pivot_it &it_upper) override {
+    while (it_lower != it_upper) {
+      _count += (*it_lower++).size();
+    }
+  }
+  void merge(const range_it &it_lower, const range_it &it_upper) override {
+    auto it = it_lower;
+
+    while (it != it_upper) {
+      _count += (*it++).pivot.size();
+    }
+  }
+  void output(const Query &query, json &writer) override {
+    writer.Uint(_count);
+  }
+ protected:
+  uint32_t _count{0};
+};
+
+#ifdef ENABLE_PDIGEST
 
 // quantile
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -129,39 +198,6 @@ class AggrInverseSubset : public AggrSubset {
   std::vector<PDigest> _map;
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////
-// Range
-/////////////////////////////////////////////////////////////////////////////////////////
-
-class AggrRange : public Aggr {
- public:
-  virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) = 0;
-  virtual void output(const Query &query, json &writer) = 0;
-};
-
-// count
-/////////////////////////////////////////////////////////////////////////////////////////
-class AggrCountRange : public AggrRange {
- public:
-  virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
-    while (it_lower != it_upper) {
-      _map[value] += (*it_lower++).size();
-    }
-  }
-
-  virtual void output(const Query &query, json &writer) override {
-    for (const auto &pair : _map) {
-      writer.StartArray();
-      write_value(pair.first, writer);
-      writer.Uint(pair.second);
-      writer.EndArray();
-    }
-  }
-
- protected:
-  std::map<uint64_t, uint32_t> _map;
-};
-
 // quantile
 /////////////////////////////////////////////////////////////////////////////////////////
 class AggrQuantileRange : public AggrRange {
@@ -222,40 +258,6 @@ class AggrInverseRange : public AggrRange {
 
  protected:
   std::map<uint64_t, PDigest> _map;
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////
-// None
-/////////////////////////////////////////////////////////////////////////////////////////
-
-class AggrNone : public Aggr {
- public:
-  virtual void merge(pivot_it &it_lower, pivot_it &it_upper) = 0;
-  virtual void merge(const range_it &it_lower, const range_it &it_upper) = 0;
-  virtual void output(const Query &query, json &writer) = 0;
-};
-
-// count
-/////////////////////////////////////////////////////////////////////////////////////////
-class AggrCountNone : public AggrNone {
- public:
-  void merge(pivot_it &it_lower, pivot_it &it_upper) override {
-    while (it_lower != it_upper) {
-      _count += (*it_lower++).size();
-    }
-  }
-  void merge(const range_it &it_lower, const range_it &it_upper) override {
-    auto it = it_lower;
-
-    while (it != it_upper) {
-      _count += (*it++).pivot.size();
-    }
-  }
-  void output(const Query &query, json &writer) override {
-    writer.Uint(_count);
-  }
- protected:
-  uint32_t _count{0};
 };
 
 // quantile
@@ -327,3 +329,5 @@ class AggrInverseNone : public AggrNone {
  protected:
   PDigest _pdigest;
 };
+
+#endif
