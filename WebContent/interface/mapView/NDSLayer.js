@@ -6,32 +6,68 @@ function toNanocubeCoords(coords){
 }
 
 L.GridLayer.CanvasCircles = L.GridLayer.extend({
-    createTile: function (coords,done) {
+    myColorScale:function(count){
+	var opacity = this.options.opacity
+	var lc = Math.log(count + 1) / Math.log(10);
 
-        var tile = document.createElement('canvas');
+        var r = toString(Math.floor(255 * Math.min(1, lc)),16);
+	if(r.length == 1)
+	    r = "0" + r;
+	
+        var g = toString(Math.floor(255 * Math.min(1, Math.max(0, lc - 1))),16);
+	if(g.length == 1)
+	    g = "0" + g;
 
-        var tileSize = this.getTileSize();
-        tile.setAttribute('width', tileSize.x);
-        tile.setAttribute('height', tileSize.y);
+        var b = Math.floor(255 * Math.min(1, Math.max(0, lc - 2)));
+	if(b.length == 1)
+	    b = "0" + b;
+	var a = toString(Math.floor(255 * opacity),16);
+	if(a.length == 1)
+	    a = "0" + a;
+	
+        return "#" + r + g + b + a;
+    },
+    colorTile: function(tile, coords){
+	//
+	var layer = this;
         var ctx = tile.getContext('2d');
-	var resolution = 10;
 
 	//
+        var tileSize = this.getTileSize();
+	var resolution = this.options.resolution;
+	var numPixels = 2**resolution;
+	var pixelWidth  = tileSize.x / numPixels;
+	var pixelHeight = tileSize.y / numPixels;		
+	
+	tile.data.forEach(function(pixel){
+	    var pixelInLocalCoords = [pixel[0]-coords[0],pixel[1]-coords[1]];
+	    var rgba = layer.myColorScale(pixel[2]);
+	    ctx.fillStyle = rgba;
+	    ctx.fillRect(pixelInLocalCoords[0]*pixelWidth, pixelInLocalCoords[1]*pixelHeight , pixelWidth, pixelHeight);
+	});
+    },
+    createTile: function (coords,done) {
+	var layer = this;
+        var tile = document.createElement('canvas');
+	tile.data = undefined;
+	//
+        var tileSize = layer.getTileSize();
+        tile.setAttribute('width', tileSize.x);
+        tile.setAttribute('height', tileSize.y);
+	//
+	var resolution = this.options.resolution;
+	var totalResolution = resolution + coords.z;	
+	var tileLatLng = [tilex2lon(coords.x,coords.z),tiley2lat(coords.y,coords.z)];
+	var tileInTotalResolution = [lon2tilex(tileLatLng[0],totalResolution),lat2tiley(tileLatLng[1],totalResolution)];
+	
+	//
 	var query = new NDSQuery(datasetName,"count",spatialDimension,function(result,myQ){
-	    //
-	    var resolution = 5;
-	    var numPixels = 2**resolution;
-	    var pixelWidth  = tileSize.x / numPixels;
-	    var pixelHeight = tileSize.y / numPixels;		
-	    
-	    result.forEach(function(pixel){
-		
-		ctx.fillRect(pixel[0]*pixelWidth, (numPixels-pixel[1] - 1)*pixelHeight , pixelWidth, pixelHeight);
-	    });
-	    
+	    tile.data = result;
+	    layer.colorTile(tile,tileInTotalResolution);	    	    
             done(null, tile);	// Syntax is 'done(error, tile)'
 	});
 	query.addConstraint("tile",spatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
+	query.tile = [tileInTotalResolution[0],tileInTotalResolution[1],totalResolution];
 	ndsInterface.query(query);
 	
         return tile;
@@ -102,8 +138,8 @@ class NDSLayer{
 	
 	//
 	var that = this;
-	this.tileLayer = L.gridLayer.canvasCircles({"ndsInterface":ndsInterface, "parent":that});
-	 this.tileLayer.addTo(this.containerMap);
+	this.tileLayer = L.gridLayer.canvasCircles({"ndsInterface":ndsInterface, "parent":that, "resolution":5,"opacity":1.0});
+	this.tileLayer.addTo(this.containerMap);
 
 	//
 	this.debugLayer = L.gridLayer.debugCoords();
