@@ -8,7 +8,7 @@ function toNanocubeCoords(coords){
 L.GridLayer.CanvasCircles = L.GridLayer.extend({
     myColorScale:function(count){
 	var opacity = this.options.opacity
-	var lc = Math.log(count + 1) / Math.log(10);
+	var lc = Math.log(count + 1) / Math.log(100);
 
         var r = toString(Math.floor(255 * Math.min(1, lc)),16);
 	if(r.length == 1)
@@ -41,6 +41,7 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	
 	tile.data.forEach(function(pixel){
 	    var pixelInLocalCoords = [pixel[0]-coords[0],pixel[1]-coords[1]];
+	    console.log(pixel[2]);
 	    var rgba = layer.myColorScale(pixel[2]);
 	    ctx.fillStyle = rgba;
 	    ctx.fillRect(pixelInLocalCoords[0]*pixelWidth, pixelInLocalCoords[1]*pixelHeight , pixelWidth, pixelHeight);
@@ -142,8 +143,8 @@ class NDSLayer{
 	this.tileLayer.addTo(this.containerMap);
 
 	//
-	this.debugLayer = L.gridLayer.debugCoords();
-	this.debugLayer.addTo(this.containerMap);
+	// this.debugLayer = L.gridLayer.debugCoords();
+	// this.debugLayer.addTo(this.containerMap);
     }
     
     setOpacity(newValue){
