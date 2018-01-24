@@ -14,6 +14,10 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	this.options.resolution = v;
 	this.redraw();
     },
+    setQuantileMapQuantile(v){
+	this.options.quantileQuery = v;
+	this.redraw();
+    },
     myColorScale:function(count){
 	var opacity = this.options.opacity
 	var lc = Math.log(count + 1) / Math.log(100);
@@ -66,15 +70,14 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	};
 	//
 	var query = undefined;
-	if(layer.state == "count"){
+	if(layer.options.state == "count"){
 	    query = new NDSQuery(datasetName,"count",spatialDimension,fCallback);
 	    query.addConstraint("tile",spatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
 	}
-	else if(layer.state == "quantile"){
+	else if(layer.options.state == "quantile"){
 	    query = new NDSQuery(datasetName,"quantile",spatialDimension,fCallback);
 	    query.addConstraint("tile",spatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
-	    q.setPayload({"quantiles":layer.quantileQuery});
-
+	    query.setPayload({"quantiles":[layer.options.quantileQuery]});
 	}
 
 	//
@@ -169,7 +172,7 @@ class NDSLayer{
 	
 	//
 	var that = this;
-	this.tileLayer = L.gridLayer.canvasCircles({"ndsInterface":ndsInterface, "parent":that, "resolution":5,"opacity":1.0,"quantileQuery":0.5,"state":"count"});
+	this.tileLayer = L.gridLayer.canvasCircles({"ndsInterface":ndsInterface, "parent":that, "resolution":5,"opacity":1.0,"quantileQuery":0.5,"state":"quantile"});
 	this.tileLayer.addTo(this.containerMap);
 
 	//
@@ -183,6 +186,10 @@ class NDSLayer{
 
     setResolution(newValue){
 	this.tileLayer.setResolution(newValue);
+    }
+
+    setQuantileMapQuantile(v){
+	this.tileLayer.setQuantileMapQuantile(v);
     }
     
     setColorNormalization(newMin,newMax){

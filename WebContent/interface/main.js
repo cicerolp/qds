@@ -157,10 +157,7 @@ function initializeSystem(){
 
     //
     var formQueryPlaceDiv = d3.select("body").append("div").attr("class","placeForm").attr("id","placeFeaturesDiv");
-    var divFunctions = [{"id":"Name","screenName":"Name"},
-			{"id":"placeID","screenName":"Place ID"},
-			{"id":"Coords","screenName":"Coords"},
-			{"id":"Labels","screenName":"Labels"}];
+    var divFunctions = [{"id":"Quantile","screenName":"Quantile"}];
     var divs = formQueryPlaceDiv
 	.selectAll("div")
 	.data(divFunctions)
@@ -178,9 +175,9 @@ function initializeSystem(){
 	.attr("value",50)
 	.attr("id",d=>("input" + d.id))
 	.on("change",function(e){
-	    debugger
+	    var newValue = +d3.event.target.value;
+	    ndsLayer.setQuantileMapQuantile((newValue/100.0));
 	});
-    
     
     //add boxplot histogram
     var boxPlotWidgetDiv = d3.select("body").append("div").attr("id","boxPlotWidget");
