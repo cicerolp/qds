@@ -129,7 +129,6 @@ function queryEquiDepthPlot(){
 
 function updateSystem(){
     queryBoxPlot();
-
 }
 
 //
@@ -155,6 +154,32 @@ function initializeSystem(){
 	var newValue = +d3.event.target.value;
 	ndsLayer.setOpacity(newValue/255.0);
     });
+
+    //
+    var formQueryPlaceDiv = d3.select("body").append("div").attr("class","placeForm").attr("id","placeFeaturesDiv");
+    var divFunctions = [{"id":"Name","screenName":"Name"},
+			{"id":"placeID","screenName":"Place ID"},
+			{"id":"Coords","screenName":"Coords"},
+			{"id":"Labels","screenName":"Labels"}];
+    var divs = formQueryPlaceDiv
+	.selectAll("div")
+	.data(divFunctions)
+	.enter()
+	.append("div")
+	.attr("id",d=>("funcDiv" + d.id));
+    divs.append("label")
+	.attr("for",d=>("funcDiv" + d.id))
+	.text(d=>(d.screenName + ":  "));
+    divs.append("input")
+	.attr("type","range")
+	.attr("min",0)
+	.attr("max",100)
+	.attr("step",10)
+	.attr("value",50)
+	.attr("id",d=>("input" + d.id))
+	.on("change",function(e){
+	    debugger
+	});
     
     
     //add boxplot histogram

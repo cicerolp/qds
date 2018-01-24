@@ -57,14 +57,27 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	var totalResolution = resolution + coords.z;	
 	var tileLatLng = [tilex2lon(coords.x,coords.z),tiley2lat(coords.y,coords.z)];
 	var tileInTotalResolution = [lon2tilex(tileLatLng[0],totalResolution),lat2tiley(tileLatLng[1],totalResolution)];
-	
+
 	//
-	var query = new NDSQuery(datasetName,"count",spatialDimension,function(result,myQ){
+	var fCallback = function(result,myQ){
 	    tile.data = result;
 	    layer.colorTile(tile,tileInTotalResolution);	    	    
             done(null, tile);	// Syntax is 'done(error, tile)'
-	});
-	query.addConstraint("tile",spatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
+	};
+	//
+	var query = undefined;
+	if(layer.state == "count"){
+	    query = new NDSQuery(datasetName,"count",spatialDimension,fCallback);
+	    query.addConstraint("tile",spatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
+	}
+	else if(layer.state == "quantile"){
+	    query = new NDSQuery(datasetName,"quantile",spatialDimension,fCallback);
+	    query.addConstraint("tile",spatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
+	    q.setPayload({"quantiles":layer.quantileQuery});
+
+	}
+
+	//
 	query.tile = [tileInTotalResolution[0],tileInTotalResolution[1],totalResolution];
 	ndsInterface.query(query);
 	
@@ -103,7 +116,7 @@ L.GridLayer.CanvasLayer = L.GridLayer.extend({
 	if(true){
 	    var tile = document.createElement('canvas');
 
-            var tileSize = this.getTileSize();
+            var tileS1ize = this.getTileSize();
             tile.setAttribute('width', tileSize.x);
             tile.setAttribute('height', tileSize.y);
 
@@ -156,7 +169,7 @@ class NDSLayer{
 	
 	//
 	var that = this;
-	this.tileLayer = L.gridLayer.canvasCircles({"ndsInterface":ndsInterface, "parent":that, "resolution":5,"opacity":1.0});
+	this.tileLayer = L.gridLayer.canvasCircles({"ndsInterface":ndsInterface, "parent":that, "resolution":5,"opacity":1.0,"quantileQuery":0.5,"state":"count"});
 	this.tileLayer.addTo(this.containerMap);
 
 	//
