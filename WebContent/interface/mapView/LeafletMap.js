@@ -171,7 +171,7 @@ class GLLeafletMap{
 	    var div = L.DomUtil.create('div', 'info controls');
 	    div.setAttribute("id","heatmapControls");
 	    
-	    div.innerHTML = "<b> Heatmap Level:</b></br><input type=\"range\" id=\"geoLevelSlider\" min=\"0\" max=\"25\" step=\"1\" value=\"15\"></br><b> Heatmap Opacity:</b></br><input type=\"range\" id=\"heatmapOppacitySlider\" min=\"0\" max=\"255\" step=\"1\" value=\"255\">"
+	    div.innerHTML = "<b> Heatmap Level:</b></br><input type=\"range\" id=\"geoLevelSlider\" min=\"0\" max=\"10\" step=\"1\" value=\"5\"></br><b> Heatmap Opacity:</b></br><input type=\"range\" id=\"heatmapOppacitySlider\" min=\"0\" max=\"255\" step=\"1\" value=\"255\">"
 	    
 	    return div;
 	};

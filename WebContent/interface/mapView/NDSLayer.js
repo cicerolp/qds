@@ -6,26 +6,23 @@ function toNanocubeCoords(coords){
 }
 
 L.GridLayer.CanvasCircles = L.GridLayer.extend({
+    setOpacity(v){
+	this.options.opacity = v;
+	this.redrawTiles();
+    },
+    setResolution(v){
+	this.options.resolution = v;
+	this.redraw();
+    },
     myColorScale:function(count){
 	var opacity = this.options.opacity
 	var lc = Math.log(count + 1) / Math.log(100);
 
-        var r = toString(Math.floor(255 * Math.min(1, lc)),16);
-	if(r.length == 1)
-	    r = "0" + r;
-	
-        var g = toString(Math.floor(255 * Math.min(1, Math.max(0, lc - 1))),16);
-	if(g.length == 1)
-	    g = "0" + g;
-
-        var b = Math.floor(255 * Math.min(1, Math.max(0, lc - 2)));
-	if(b.length == 1)
-	    b = "0" + b;
-	var a = toString(Math.floor(255 * opacity),16);
-	if(a.length == 1)
-	    a = "0" + a;
-	
-        return "#" + r + g + b + a;
+        var r = Math.floor(255 * Math.min(1, lc));
+	var g = Math.floor(255 * Math.min(1, Math.max(0, lc - 1)));
+	var b = Math.floor(255 * Math.min(1, Math.max(0, lc - 2)));
+	var a = opacity;
+        return  "rgba(" + ([r, g, b, a].join(",")) + ")";
     },
     colorTile: function(tile, coords){
 	//
@@ -37,12 +34,12 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	var resolution = this.options.resolution;
 	var numPixels = 2**resolution;
 	var pixelWidth  = tileSize.x / numPixels;
-	var pixelHeight = tileSize.y / numPixels;		
+	var pixelHeight = tileSize.y / numPixels;
 	
+	//
 	tile.data.forEach(function(pixel){
 	    var pixelInLocalCoords = [pixel[0]-coords[0],pixel[1]-coords[1]];
-	    console.log(pixel[2]);
-	    var rgba = layer.myColorScale(pixel[2]);
+	    var rgba = layer.myColorScale(pixel[2]);  
 	    ctx.fillStyle = rgba;
 	    ctx.fillRect(pixelInLocalCoords[0]*pixelWidth, pixelInLocalCoords[1]*pixelHeight , pixelWidth, pixelHeight);
 	});
@@ -73,6 +70,26 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	
         return tile;
     	
+    },
+    redrawTiles:function(){
+	var layer = this;
+	for(var tileKey in this._tiles){
+	    var tile = this._tiles[tileKey];
+	    var canvas = tile.el;
+	    var coords = tile.coords;
+	    //
+	    var resolution = this.options.resolution;
+	    var totalResolution = resolution + coords.z;	
+	    var tileLatLng = [tilex2lon(coords.x,coords.z),tiley2lat(coords.y,coords.z)];
+	    var tileInTotalResolution = [lon2tilex(tileLatLng[0],totalResolution),lat2tiley(tileLatLng[1],totalResolution)];
+	    //
+            var tileSize = this.getTileSize();
+            var ctx = canvas.getContext('2d');
+	    ctx.clearRect(0, 0, tileSize.x,tileSize.y);
+
+	    //
+	    layer.colorTile(canvas,tileInTotalResolution);
+	}
     }
 });
 
@@ -151,6 +168,10 @@ class NDSLayer{
 	this.tileLayer.setOpacity(newValue);
     }
 
+    setResolution(newValue){
+	this.tileLayer.setResolution(newValue);
+    }
+    
     setColorNormalization(newMin,newMax){
 	this.minNormalizer = newMin;
 	this.maxNormalizer = newMax;

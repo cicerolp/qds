@@ -27,7 +27,7 @@ function test(){
     ndsInterface.query(q);
 }
 
-//
+// 
 function testBoxPlot(){
     var data = [["entry1",0,1,2,4,5],
 		["entry2",0.5,1.5,2,4,10],
@@ -144,7 +144,18 @@ function initializeSystem(){
     };
     myMap = new GLLeafletMap(mapID,[-14.408656850000002,-51.31668], 4, tileURL, tileLayerProperties);
     var ndsLayer = new NDSLayer(myMap.map,ndsInterface);
-    // myMap.addLayer(ndsLayer,"ndsLayer");
+    var levelSlider = d3.select("#geoLevelSlider");
+    levelSlider.on("change",function(){
+	var geoDiveLevel = +d3.event.target.value;
+	ndsLayer.setResolution(geoDiveLevel);
+	// queryGeo();
+    });
+    var heatmapOppacitySlider = d3.select("#heatmapOppacitySlider");
+    heatmapOppacitySlider.on("input",function(){
+	var newValue = +d3.event.target.value;
+	ndsLayer.setOpacity(newValue/255.0);
+    });
+    
     
     //add boxplot histogram
     var boxPlotWidgetDiv = d3.select("body").append("div").attr("id","boxPlotWidget");
