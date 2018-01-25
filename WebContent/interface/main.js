@@ -4,6 +4,7 @@ console.log("EVV");
 var myMap           = undefined;
 var boxPlotWidget   = undefined;
 var equidepthWidget = undefined;
+var  bandPlotWidget = undefined;
 
 //vars
 var xmlFile        = "data/example.xml";
@@ -126,6 +127,43 @@ function queryEquiDepthPlot(){
 
 }
 
+function queryBandPlot(){
+    //http://localhost:7000/api/query/dataset=brightkite/aggr=quantile.(0:0.25:0.5:0.75:1.0)/const=1.values.(all)/group=1
+    var q = new NDSQuery(datasetName,"quantile",1,
+			 function(result){
+			     var numEntries = result.length;
+			     //{"lower":0,"upper":0.1  ,"density":0.25}
+			     var numQuantiles = this.payload.quantiles.length;
+			     var data = d3.range(numQuantiles).map(d=>[]);
+			     console.log(result);
+			     debugger
+			     if(numEntries > 0){
+				 for(var i = 0 ; i < numEntries ; ++i){
+				     data[i%numQuantiles].push([result[i][0],result[i][2]])
+				 }
+			     }
+			     
+			     //
+			     var numCurves = data.length;
+			     var numBands = Math.floor(numCurves/2);
+
+			     var bands = [];
+			     
+			     for(var i = 0 ; i < numBands ; ++i){
+				 var upperLeft  = data[i][0];
+				 var bandData = data[i].concat(data[numCurves-1-i].reverse()).concat([upperLeft]);
+
+				 bands.push(bandData);
+			     }
+			     
+			     //
+			     bandPlotWidget.setData(bands,data[Math.floor(numCurves/2)]);
+			 });
+    q.setPayload({"quantiles":d3.range(5).map(d=>0.1*d)});
+    q.addConstraint("categorical",1,{"values":["all"]});
+    ndsInterface.query(q);
+
+}
 
 function updateSystem(){
     queryBoxPlot();
@@ -187,14 +225,19 @@ function initializeSystem(){
     var equidepthWidgetDiv = d3.select("body").append("div").attr("id","equidepthWidget");
     equidepthWidget = new EquidepthWidget(equidepthWidgetDiv,"equidepthWidgetDiv");
 
+    //add equidepth histogram
+    var bandWidgetDiv = d3.select("body").append("div").attr("id","bandWidget");
+    bandPlotWidget = new BandPlotWidget(bandWidgetDiv,"bandWidgetDiv");
+
+    
     //
     // var timeSeriesDiv = d3.select("body").append("div").attr("id","timeSeriesWidget");
     // timeSeriesWidget = new TimeSeriesWidget(equidepthWidgetDiv,"equidepthWidgetDiv");
     
     //
-    testEquiDepth();
     queryBoxPlot();
     queryEquiDepthPlot();
+    queryBandPlot();
 }
 
 /*******************

@@ -63,6 +63,12 @@
     display: block;
 }
 
+#bandWidget {
+    position: relative;
+    left: 1120px;
+    top: 1250px;
+    display: block;
+}
 
 #timeSeriesSelectionLabel{
     position: relative;
