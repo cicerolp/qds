@@ -104,7 +104,6 @@ class EquiDepthHistogram {
 	var extentMax = d3.max(binEnds,d=>d[1]);
 
 	//
-	console.log("****",binEnds);
 	this.yScale.domain([extentMin,extentMax]);
 	//
 	this.updatePlot();

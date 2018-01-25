@@ -42,10 +42,20 @@
     display: block;
 }
 
+#modeDiv{
+    position: relative;
+    left: 1120px;
+    top: 20px;
+    display: block;
+    border: 1px solid #CCC;
+    border-radius: 1em;
+    width: 500px;
+}
+
 #formDiv{
     position: relative;
     left: 1120px;
-    top: -1070px;
+    top: -970px;
     display: block;    
 }
 
@@ -159,7 +169,7 @@
 
 #placeFeaturesDiv {
     /* Apenas para centralizar o form na página */
-    margin: -1050 1130;
+    margin: -950 1130;
     width: 500px;
     /* Para ver as bordas do formulário */
     padding: 1em;

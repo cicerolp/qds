@@ -4,8 +4,11 @@ console.log("EVV");
 var myMap           = undefined;
 var boxPlotWidget   = undefined;
 var equidepthWidget = undefined;
-var  bandPlotWidget = undefined;
 
+//constraints
+var initialTimeConstraint = {"lower":1205971200,"upper":1287014400};
+var timeConstraint = {"lower":1205971200,"upper":1287014400};
+                              
 //vars
 var xmlFile        = "data/example.xml";
 var ndsInterface   = undefined;
@@ -65,6 +68,9 @@ function testEquiDepth(){
 //
 function queryBoxPlot(){
     //http://localhost:7000/api/query/dataset=brightkite/aggr=quantile.(0:0.25:0.5:0.75:1.0)/const=3.interval.(1205971200:1287014400)/group=3
+    if(boxPlotWidget == undefined)
+	return;
+    
     var q = new NDSQuery(datasetName,"quantile",temporalDimension,
 			 function(result){
 			     var prevValue = undefined;
@@ -89,7 +95,8 @@ function queryBoxPlot(){
 			     boxPlotWidget.setData(data);
 			 });
     q.setPayload({"quantiles":[0,0.25,0.5,0.75,1.0]});
-    q.addConstraint("time_interval",temporalDimension,{"lower":1205971200,"upper":1214438400});
+    console.log("======>",timeConstraint);
+    q.addConstraint("time_interval",temporalDimension,timeConstraint);
     console.log(q.toString());
     ndsInterface.query(q);
 
@@ -129,15 +136,15 @@ function queryEquiDepthPlot(){
 
 function queryBandPlot(){
     //http://localhost:7000/api/query/dataset=brightkite/aggr=quantile.(0:0.25:0.5:0.75:1.0)/const=1.values.(all)/group=1
-    var q = new NDSQuery(datasetName,"quantile",1,
+    var q = new NDSQuery(datasetName,"quantile",temporalDimension,
 			 function(result){
+			     console.log(result);
 			     var numEntries = result.length;
 			     //{"lower":0,"upper":0.1  ,"density":0.25}
 			     var numQuantiles = this.payload.quantiles.length;
 			     var data = d3.range(numQuantiles).map(d=>[]);
 			     console.log(result);
-			     debugger
-			     if(numEntries > 0){
+ 			     if(numEntries > 0){
 				 for(var i = 0 ; i < numEntries ; ++i){
 				     data[i%numQuantiles].push([result[i][0],result[i][2]])
 				 }
@@ -159,14 +166,39 @@ function queryBandPlot(){
 			     //
 			     bandPlotWidget.setData(bands,data[Math.floor(numCurves/2)]);
 			 });
-    q.setPayload({"quantiles":d3.range(5).map(d=>0.1*d)});
-    q.addConstraint("categorical",1,{"values":["all"]});
+    q.setPayload({"quantiles":[0,0.25,0.5,0.75,1.0]});
+    q.addConstraint("time_interval",temporalDimension,timeConstraint);
     ndsInterface.query(q);
 
 }
 
 function updateSystem(){
     queryBoxPlot();
+}
+
+function setTemporalConstraint(constraint){
+    console.log("====>",constraint);
+    if(constraint == null){
+	timeConstraint = initialTimeConstraint;
+    }
+    else{
+	timeConstraint.lower = constraint.constraints[0];
+	timeConstraint.upper = constraint.constraints[1];
+    }
+
+    console.log("constraint",constraint);
+    
+    //
+    queryBoxPlot();
+    queryEquiDepthPlot();
+    var ndsLayer = myMap.getLayer("ndsLayer");
+    ndsLayer.repaint();
+}
+
+function changeMapMode(e){
+    var newMode = d3.event.target.getAttribute("value");
+    var ndsLayer = myMap.getLayer("ndsLayer");
+    ndsLayer.setMode(newMode);
 }
 
 //
@@ -181,6 +213,9 @@ function initializeSystem(){
     };
     myMap = new GLLeafletMap(mapID,[-14.408656850000002,-51.31668], 4, tileURL, tileLayerProperties);
     var ndsLayer = new NDSLayer(myMap.map,ndsInterface);
+    myMap.addLayer(ndsLayer,"ndsLayer");
+    
+    //
     var levelSlider = d3.select("#geoLevelSlider");
     levelSlider.on("change",function(){
 	var geoDiveLevel = +d3.event.target.value;
@@ -194,7 +229,13 @@ function initializeSystem(){
     });
 
     //
+    var modeOptions = d3.select("#modeDiv")
+	.selectAll("input")
+	.on("change",changeMapMode);
+    
+    //
     var formQueryPlaceDiv = d3.select("body").append("div").attr("class","placeForm").attr("id","placeFeaturesDiv");
+    var optionsDiv = formQueryPlaceDiv.append("div").attr("id","optionsDiv");
     var divFunctions = [{"id":"Quantile","screenName":"Quantile"}];
     var divs = formQueryPlaceDiv
 	.selectAll("div")
@@ -218,8 +259,8 @@ function initializeSystem(){
 	});
     
     //add boxplot histogram
-    var boxPlotWidgetDiv = d3.select("body").append("div").attr("id","boxPlotWidget");
-    boxPlotWidget = new BoxPlotWidget(boxPlotWidgetDiv,"boxPlotWidget");
+    // var boxPlotWidgetDiv = d3.select("body").append("div").attr("id","boxPlotWidget");
+    // boxPlotWidget = new BoxPlotWidget(boxPlotWidgetDiv,"boxPlotWidget");
 
     //add equidepth histogram
     var equidepthWidgetDiv = d3.select("body").append("div").attr("id","equidepthWidget");
@@ -227,7 +268,7 @@ function initializeSystem(){
 
     //add equidepth histogram
     var bandWidgetDiv = d3.select("body").append("div").attr("id","bandWidget");
-    bandPlotWidget = new BandPlotWidget(bandWidgetDiv,"bandWidgetDiv");
+    bandPlotWidget = new BandPlotWidget(bandWidgetDiv,"bandWidgetDiv",setTemporalConstraint);
 
     
     //

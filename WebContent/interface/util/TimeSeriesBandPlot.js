@@ -56,9 +56,11 @@ class TimeSeriesBandPlot{
 	var brushGroup = this.canvas.select(".brushGroup");
 	var myBrush = d3.brushX();
 	var scale = this.xScale;
+	var that = this;
+	//
 	if(moveCallback){
-	myBrush.on("brush", function(){
-	    if(d3.event.selection == null)
+	    myBrush.on("brush", (function(){
+		if(d3.event.selection == null)
 		    myCallback(null)
 		else{
 		    var limits = d3.event.selection.map(d=>scale.invert(d));
@@ -66,8 +68,9 @@ class TimeSeriesBandPlot{
 		    limits[1] = Math.ceil(limits[1]);
 		    moveCallback({"widgetID":this.widgetID,"constraints":limits});
 		}
-	});
+	    }).bind(this));
 	}
+	//
 	if(myCallback){
 	    myBrush.on("end", (function(){
 		//console.log("brush");
@@ -176,6 +179,7 @@ class TimeSeriesBandPlot{
 	//
 	var xExtent = d3.extent(xExtents);
 	//xExtent = [new Date("2017-01-01"), new Date("2017-12-31")]
+	console.log("x extent", xExtent);
 	this.xScale.domain( xExtent );
 	this.xAxis.scale(this.xScale);
 	//
