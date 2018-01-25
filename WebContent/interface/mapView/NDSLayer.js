@@ -48,11 +48,7 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	tile.data.forEach(function(pixel){
 	    var pixelInLocalCoords = [pixel[0]-coords[0],pixel[1]-coords[1]];
 	    var rgba;
-	    if(layer.options.state == "count" || layer.options.state == "quantile")
-		rgba = layer.myColorScale(pixel[3]);
-	    else if(layer.options.state == "quantile_range"){
-		debugger
-	    }
+	    rgba = layer.myColorScale(pixel[3]);
 	    ctx.fillStyle = rgba;
 	    ctx.fillRect(pixelInLocalCoords[0]*pixelWidth, pixelInLocalCoords[1]*pixelHeight , pixelWidth, pixelHeight);
 	});
@@ -78,10 +74,24 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 		tile.data = result;
 	    }
 	    if(layer.options.state == "quantile"){
-		debugger
+		result = result.map(entry=>[entry[0],entry[1],entry[2],entry[4]]);
+		tile.data = result;
+		//TODO: set proper scale
 	    }
 	    else if(layer.options.state == "quantile_range"){
-		
+		var auxMap = {};
+		var consolidatedData = [];
+		result.forEach(entry=>{
+		    var key = entry[0] + "_" + entry[1] + "_" + entry[2];
+		    if(key in auxMap){
+			consolidatedData.push([entry[0],entry[1],entry[2],entry[4]-auxMap[key][4]]);
+		    }
+		    else{
+			auxMap[key] = entry;
+		    }
+		});
+		tile.data = consolidatedData;
+		//TODO: set proper scale		
 	    }
 	    
 	    layer.colorTile(tile,tileInTotalResolution);	    	    
