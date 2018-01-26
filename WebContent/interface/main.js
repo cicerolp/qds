@@ -32,6 +32,7 @@ function queryEquiDepthPlot(){
 			     //{"lower":0,"upper":0.1  ,"density":0.25}
 			     var data = [];
 			     if(numEntries > 0){
+ 				 //
 				 var prevEntry = result[0];
 				 var bins = [];
 				 for(var i = 1 ; i < numEntries ; ++i){
@@ -47,6 +48,8 @@ function queryEquiDepthPlot(){
 				     prevEntry = entry;
 				 }
 				 data.push({"label":prevEntry[0],"bins":bins});
+
+				 //TODO:normalize
 			     }
 			     equidepthWidget.setData(data);
 			 });
@@ -113,9 +116,19 @@ function updateSystem(){
  *************************/
 
 function changeMapMode(e){
+    //
     var newMode = d3.event.target.getAttribute("value");
     var ndsLayer = myMap.getLayer("ndsLayer");
     ndsLayer.setMode(newMode);
+    //
+    if(newMode == "inverse_quantile"){
+	var heatmapColorScale = d3.scaleOrdinal().domain([0, 0.14285714285714285, 0.2857142857142857, 0.42857142857142855, 0.5714285714285714, 0.7142857142857142, 0.8571428571428571, 1]).range(['#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#b10026']);
+	myMap.updateLegend(d3.scaleLinear().range(["white","red"]),"continuousLog","Quantile","#legend");
+	d3.select("#legend").style("display", "block");
+    }
+    else{
+	d3.select("#legend").style("display", "none");
+    }
 }
 
 /**********************
@@ -165,6 +178,8 @@ function initializeSystem(){
     myMap.setCallback("selectionChanged",mapSelectionChanged);
     var ndsLayer = new NDSLayer(myMap.map,ndsInterface);
     myMap.addLayer(ndsLayer,"ndsLayer");
+    d3.select("#legend").style("display", "none");
+    d3.select("#legendSeq").style("display", "none");
     
     //
     var levelSlider = d3.select("#geoLevelSlider");
@@ -185,29 +200,44 @@ function initializeSystem(){
 	.on("change",changeMapMode);
     
     //
-    var formQueryPlaceDiv = d3.select("body").append("div").attr("class","placeForm").attr("id","placeFeaturesDiv");
-    var optionsDiv = formQueryPlaceDiv.append("div").attr("id","optionsDiv");
-    var divFunctions = [{"id":"Quantile","screenName":"Quantile"}];
-    var divs = formQueryPlaceDiv
-	.selectAll("div")
-	.data(divFunctions)
-	.enter()
-	.append("div")
-	.attr("id",d=>("funcDiv" + d.id));
-    divs.append("label")
-	.attr("for",d=>("funcDiv" + d.id))
-	.text(d=>(d.screenName + ":  "));
-    divs.append("input")
-	.attr("type","range")
-	.attr("min",0)
-	.attr("max",100)
-	.attr("step",10)
-	.attr("value",50)
-	.attr("id",d=>("input" + d.id))
-	.on("change",function(e){
-	    var newValue = +d3.event.target.value;
-	    ndsLayer.setQuantileMapQuantile((newValue/100.0));
-	});
+    // var formQueryPlaceDiv = d3.select("body").append("div").attr("class","placeForm").attr("id","placeFeaturesDiv");
+    // var optionsDiv = formQueryPlaceDiv.append("div").attr("id","optionsDiv");
+    // var divFunctions = [{"id":"Quantile","screenName":"Quantile"}];
+    // var divs = formQueryPlaceDiv
+    // 	.selectAll("div")
+    // 	.data(divFunctions)
+    // 	.enter()
+    // 	.append("div")
+    // 	.attr("id",d=>("funcDiv" + d.id));
+    // divs.append("label")
+    // 	.attr("for",d=>("funcDiv" + d.id))
+    // 	.text(d=>(d.screenName + ":  "));
+    // divs.append("input")
+    // 	.attr("type","range")
+    // 	.attr("min",0)
+    // 	.attr("max",100)
+    // 	.attr("step",10)
+    // 	.attr("value",50)
+    // 	.attr("id",d=>("input" + d.id))
+    // 	.on("change",function(e){
+    // 	    var newValue = +d3.event.target.value;
+    // 	    ndsLayer.setQuantileMapQuantile((newValue/100.0));
+    // 	});
+
+    //
+     d3.select("#quantileSlider").on("change",function(d){
+	 var newValue = +d3.event.target.value;
+	 d3.select("#quantileLabel").text(newValue/100.0);
+	 ndsLayer.setQuantileMapQuantile((newValue/100.0));
+    });
+    //
+    d3.select("#inverseQuantileSlider").on("change",function(d){
+	var newValue = +d3.event.target.value;
+	d3.select("#inverseQuantileLabel").text(newValue);
+	ndsLayer.setInverseQuantileMapQuantile((newValue));
+    });
+    
+
     
     //add boxplot histogram
     // var boxPlotWidgetDiv = d3.select("body").append("div").attr("id","boxPlotWidget");

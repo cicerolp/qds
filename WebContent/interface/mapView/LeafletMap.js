@@ -235,7 +235,79 @@ class GLLeafletMap{
 	//
 	var group = svg.select(".legendQuant");
 	//debugger
-	if(scaleType == "categorical"){
+	if (scaleType == "continuousLog") {
+
+	    var rectHeight = 130;
+	    var rectWidth = 10;
+
+	    var defs = svg.append("defs");
+	    var linearGradient = defs.append("linearGradient")
+		.attr("id", "count-gradient");
+	    
+	    linearGradient
+		.attr("x1", "0%")
+		.attr("y1", "100%")
+		.attr("x2", "0%")
+		.attr("y2", "0%");
+
+	    linearGradient.selectAll("stop")
+		.data(colorScale.range())
+		.enter()
+		.append("stop")
+		.attr("offset", function(d, i) { return (i/(colorScale.range().length - 1)); })
+		.attr("stop-color", d => d);
+	    
+	    //
+	    //svg.attr("height", function () { return 40 + (colorScale.domain().length) * (rectHeight + ySlack) });
+	    //
+	    group.selectAll("rect")
+		.remove();
+
+	    group
+		.append("rect")
+		.attr("fill", "url(#count-gradient)")
+		.attr("y", function (d, i) { return (rectHeight + ySlack) * i; })
+		.attr("width", rectWidth)
+		.attr("height", rectHeight)
+		.style("stroke-width", "1")
+		.style("stroke", "black");
+	    //
+
+	    var yScale = d3.scaleLinear()
+		.domain(colorScale.domain().reverse())
+		.range([0,130]);
+
+	    var yAxis = d3.axisLeft()
+		.scale(yScale);
+		// .tickSize(10)
+		// .tickSizeInner(5)
+		// .ticks(4, ".0s");
+
+	    group.selectAll("g")
+		.remove();
+
+	    var axisGroup = group.append("g")
+		.call(yAxis)
+		.attr("transform", "translate("+(30+rectWidth)+",0)");
+
+	    // axisGroup.selectAll(".tick")
+	    // 	.select("text")
+	    // 	.attr("transform", "translate(5,0)");
+
+
+	    var myBrush = d3.brushY().extent([[0, 0], [rectWidth+xSlack, rectHeight]]);
+	    myBrush.on("brush", (function () {
+		var countExtent = d3.event.selection.map(d => yScale.invert(d));
+		console.log("brush!");
+		//this.getLayer("countriesChoroplethLayer").filterLayers(countExtent[1],countExtent[0]);
+	    }).bind(this))
+		.on("end", function () {
+		    if (d3.event.selection == null)
+			svg.select(".brushGroup").call(myBrush.move, [0, rectHeight])
+		});
+	    svg.select(".brushGroup").call(myBrush).call(myBrush.move, [0, rectHeight]);
+	}
+	else if(scaleType == "categorical"){
 	    var rectHeight = 14;
 	    var rectWidth = 15;
 	    //
@@ -314,7 +386,7 @@ class GLLeafletMap{
 	    var myBrush = d3.brushY().extent([[0, 0], [40, maximumScreenCoord]]);
 	    myBrush.on("brush",(function(){
 		var countExtent = d3.event.selection.map(d=>axisScale.invert(d));
-		this.getLayer("Visits Layer").setColorNormalization(countExtent[0],countExtent[1]);
+		//this.getLayer("Visits Layer").setColorNormalization(countExtent[0],countExtent[1]);
 		this.repaint();
 	    }).bind(this))
 		.on("end",function(){

@@ -11,6 +11,10 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	this.options.quantileQuery = v;
 	this.redraw();
     },
+    setInverseQuantileMapQuantile(v){
+	this.options.inverseQuantileQuery = v;
+	this.redraw();
+    },
     setState(v){
 	this.options.state = v;
 	this.redraw();
@@ -47,7 +51,6 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	    var rgba;
 	    if(layer.options.state == "inverse_quantile"){
 		rgba = layer.normalizedColorScale(pixel[3]);
-		console.log(pixel[3],rgba);
 	    }
 	    else
 		rgba = layer.myColorScale(pixel[3]);
@@ -131,7 +134,6 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	}
 
 	//
-	console.log(query.toString());
 	query.tile = [tileInTotalResolution[0],tileInTotalResolution[1],totalResolution];
 	ndsInterface.query(query);
 	
@@ -244,6 +246,10 @@ class NDSLayer{
 
     setQuantileMapQuantile(v){
 	this.tileLayer.setQuantileMapQuantile(v);
+    }
+
+    setInverseQuantileMapQuantile(v){
+	this.tileLayer.setInverseQuantileMapQuantile(v);
     }
     
     setColorNormalization(newMin,newMax){
