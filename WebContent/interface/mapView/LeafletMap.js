@@ -299,7 +299,7 @@ class GLLeafletMap{
 	    myBrush.on("brush", (function () {
 		var countExtent = d3.event.selection.map(d => yScale.invert(d));
 		console.log("brush!");
-		//this.getLayer("countriesChoroplethLayer").filterLayers(countExtent[1],countExtent[0]);
+		this.getLayer("ndsLayer").setInverseQuantileFilter(countExtent[1],countExtent[0]);
 	    }).bind(this))
 		.on("end", function () {
 		    if (d3.event.selection == null)

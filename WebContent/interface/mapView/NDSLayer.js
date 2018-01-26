@@ -15,6 +15,10 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	this.options.inverseQuantileQuery = v;
 	this.redraw();
     },
+    setInverseQuantileFilter(min,max){
+	this.options.inverseQuantileFilter = [min,max];
+	this.redraw();
+    },
     setState(v){
 	this.options.state = v;
 	this.redraw();
@@ -50,6 +54,9 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	    var pixelInLocalCoords = [pixel[0]-coords[0],pixel[1]-coords[1]];
 	    var rgba;
 	    if(layer.options.state == "inverse_quantile"){
+		if(layer.options.inverseQuantileFilter[0] > pixel[3] ||
+		   layer.options.inverseQuantileFilter[1] < pixel[3])
+		    return;
 		rgba = layer.normalizedColorScale(pixel[3]);
 	    }
 	    else
@@ -271,6 +278,10 @@ class NDSLayer{
 
     repaint(){
 	this.tileLayer.redraw();
+    }
+
+    setInverseQuantileFilter(minFilter,maxFilter){
+	this.tileLayer.setInverseQuantileFilter(minFilter,maxFilter);
     }
     
     renderData(){
