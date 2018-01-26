@@ -30,7 +30,21 @@ class NDSQuery{
 	    }
 	    if(constraint.type == "time_interval"){	
 		myStr = ("const=" + constraint["dimensionId"] + ".interval.(" + constraint.payload.lower+ ":" + constraint.payload.upper + ")/");		
+	    }
+	    if(constraint.type == "region"){
+		//
+		var zoom = constraint.payload.zoom;
+		//         
+		var aux = [Math.floor(lon2tilex(constraint.payload.geometry[1],zoom)),
+			   Math.floor(lat2tiley(constraint.payload.geometry[0],zoom)),
+			   Math.ceil(lon2tilex(constraint.payload.geometry[3],zoom)),
+			   Math.ceil(lat2tiley(constraint.payload.geometry[2],zoom)),
+			   zoom];
+		//
+		//const=0.region.(0:0:1:1:0)
+		myStr = ("const=" + constraint["dimensionId"] + ".region.(" + aux.join(":")  + ")/");		
 	    }	    
+
 	    strConstraints += myStr;
 	}
 	return strConstraints;

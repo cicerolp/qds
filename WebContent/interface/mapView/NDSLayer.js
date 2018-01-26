@@ -1,10 +1,3 @@
-function toNanocubeCoords(coords){
-    var latlng             = tile_to_degree(coords,coords.z,false);
-    var nanocubeTileCoords = degree_to_tile(latlng,coords.z,true);
-    //return z + "," + nanocubeTileCoords.x + "," + nanocubeTileCoords.y;
-    return {"x":nanocubeTileCoords.x, "y": nanocubeTileCoords.y, "z": coords.z};
-}
-
 L.GridLayer.CanvasCircles = L.GridLayer.extend({
     setOpacity(v){
 	this.options.opacity = v;
@@ -34,7 +27,6 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
     normalizedColorScale:function(value){
 	var opacity = this.options.opacity
 	var scale = d3.scaleLinear().range(["rgba(255,255,255,"+opacity+")","rgba(255,0,0,"+opacity+")"]);
-	debugger
 	return scale(value);
     },
     colorTile: function(tile, coords){

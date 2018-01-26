@@ -8,7 +8,7 @@ class BrushManager {
 
     newBrush(){
 	var bounds = [[0, 0], [0,0]];
-	var myColor = d3.schemeSet1[this.nextID%d3.schemeSet1.length];
+	var myColor = d3.schemeSet1[1];//this.nextID%d3.schemeSet1.length];
 	var newBrush = L.rectangle(bounds, {color: myColor, weight: 1});
 	newBrush.internalID = this.nextID;
 	this.nextID += 1;

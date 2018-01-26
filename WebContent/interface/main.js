@@ -8,7 +8,8 @@ var equidepthWidget = undefined;
 //constraints
 var initialTimeConstraint = {"lower":1205971200,"upper":1287014400};
 var timeConstraint = {"lower":1205971200,"upper":1287014400};
-                              
+var geoConstraints = [];
+
 //vars
 var xmlFile        = "data/example.xml";
 var ndsInterface   = undefined;
@@ -19,88 +20,9 @@ var mapIndexToName = {};
 var temporalDimension = 3;
 var spatialDimension  = 0; 
 
-//
-function test(){
-    var q = new NDSQuery(datasetName,"count","",(d,q)=>{console.log(d,q);});
-
-    ndsInterface.query(q);
-
-    var myDate0 = new Date(2018,1,1);
-    var myDate1 = new Date(2018,10,1);
-    q.addConstraint("time_interval","time",{"lower":myDate0.getTime()/1000,"upper":myDate1.getTime()/1000});
-    ndsInterface.query(q);
-}
-
-// 
-function testBoxPlot(){
-    var data = [["entry1",0,1,2,4,5],
-		["entry2",0.5,1.5,2,4,10],
-		["entry3",3,4,9,9.5,15]];
-
-    boxPlotWidget.setData(data);
-}
-
-//
-function testEquiDepth(){
-
-    var data = [{"label":"entry1","bins":[{"lower":0,"upper":0.1  ,"density":0.25},
-					  {"lower":0.1,"upper":0.5,"density":0.25},
-					  {"lower":0.5,"upper":0.9,"density":0.25},
-					  {"lower":0.9,"upper":1.0,"density":0.25}]},
-		
-		{"label":"entry2","bins":[{"lower":0.1,"upper":0.2,"density":0.4},
-					  {"lower":0.2,"upper":0.3,"density":0.05},
-					  {"lower":0.3,"upper":0.4,"density":0.1},
-					  {"lower":0.4,"upper":0.5,"density":0.05},
-					  {"lower":0.5,"upper":0.6,"density":0.4},
-					 ]
-		},	    
-		{"label":"entry3","bins":[{"lower":0.5,"upper":1.0,"density":0.75},
-					  {"lower":1.0,"upper":2.0,"density":0.15},
-					  {"lower":2.0,"upper":2.5,"density":0.1}
-					 ]
-		}
-	       ];
-    
-    equidepthWidget.setData(data);
-}
-
-//
-function queryBoxPlot(){
-    //http://localhost:7000/api/query/dataset=brightkite/aggr=quantile.(0:0.25:0.5:0.75:1.0)/const=3.interval.(1205971200:1287014400)/group=3
-    if(boxPlotWidget == undefined)
-	return;
-    
-    var q = new NDSQuery(datasetName,"quantile",temporalDimension,
-			 function(result){
-			     var prevValue = undefined;
-			     var currentEntry = [];
-			     var data = [];
-			     result.forEach(function(entry){
-				 
-				 if(entry[0] == prevValue){
-				     currentEntry.push(entry[2]);
-				 }
-				 else{
-				     if(prevValue != undefined){
-					 data.push(currentEntry);
-				     }
-
-				     //
-				     currentEntry = [entry[0],entry[2]];
-				     prevValue = entry[0];
-				 }
-			     });
-			     data.push(currentEntry);
-			     boxPlotWidget.setData(data);
-			 });
-    q.setPayload({"quantiles":[0,0.25,0.5,0.75,1.0]});
-    console.log("======>",timeConstraint);
-    q.addConstraint("time_interval",temporalDimension,timeConstraint);
-    console.log(q.toString());
-    ndsInterface.query(q);
-
-}
+/*******************
+ * Query Functions *
+ *******************/
 
 function queryEquiDepthPlot(){
     //http://localhost:7000/api/query/dataset=brightkite/aggr=quantile.(0:0.25:0.5:0.75:1.0)/const=1.values.(all)/group=1
@@ -129,7 +51,12 @@ function queryEquiDepthPlot(){
 			     equidepthWidget.setData(data);
 			 });
     q.setPayload({"quantiles":d3.range(11).map(d=>0.1*d)});
+    //
     q.addConstraint("categorical",1,{"values":["all"]});
+    if(geoConstraints.length > 0){
+	q.addConstraint("region",spatialDimension,{"zoom":myMap.map.getZoom(),"geometry":[geoConstraints[0].geometry[0], geoConstraints[0].geometry[1],geoConstraints[0].geometry[4],geoConstraints[0].geometry[5]]});
+    }
+    //
     ndsInterface.query(q);
 
 }
@@ -167,13 +94,39 @@ function queryBandPlot(){
 			     bandPlotWidget.setData(bands,data[Math.floor(numCurves/2)]);
 			 });
     q.setPayload({"quantiles":[0,0.25,0.5,0.75,1.0]});
+    //
     q.addConstraint("time_interval",temporalDimension,timeConstraint);
+    if(geoConstraints.length > 0){
+	q.addConstraint("region",spatialDimension,{"zoom":myMap.map.getZoom(),"geometry":[geoConstraints[0].geometry[0], geoConstraints[0].geometry[1],geoConstraints[0].geometry[4],geoConstraints[0].geometry[5]]});
+    }
+    //
     ndsInterface.query(q);
 
 }
 
 function updateSystem(){
     queryBoxPlot();
+}
+
+/*************************
+ * set control variables *
+ *************************/
+
+function changeMapMode(e){
+    var newMode = d3.event.target.getAttribute("value");
+    var ndsLayer = myMap.getLayer("ndsLayer");
+    ndsLayer.setMode(newMode);
+}
+
+/**********************
+ * Handle Constraints *
+ **********************/
+
+function mapSelectionChanged(mapConstraints){
+    geoConstraints = mapConstraints.constraints;
+    //
+    queryEquiDepthPlot();
+    queryBandPlot();
 }
 
 function setTemporalConstraint(constraint){
@@ -195,13 +148,10 @@ function setTemporalConstraint(constraint){
     ndsLayer.repaint();
 }
 
-function changeMapMode(e){
-    var newMode = d3.event.target.getAttribute("value");
-    var ndsLayer = myMap.getLayer("ndsLayer");
-    ndsLayer.setMode(newMode);
-}
+/********
+ * Main *
+ ********/
 
-//
 function initializeSystem(){
     //add map
     var mapID = "mapID";
@@ -212,6 +162,7 @@ function initializeSystem(){
 	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     };
     myMap = new GLLeafletMap(mapID,[-14.408656850000002,-51.31668], 4, tileURL, tileLayerProperties);
+    myMap.setCallback("selectionChanged",mapSelectionChanged);
     var ndsLayer = new NDSLayer(myMap.map,ndsInterface);
     myMap.addLayer(ndsLayer,"ndsLayer");
     
@@ -322,3 +273,94 @@ d3.xml(xmlFile, function(error, data) {
 
 });
 
+
+
+/******************
+ * test functions *
+ ******************/
+
+
+function test(){
+    var q = new NDSQuery(datasetName,"count","",(d,q)=>{console.log(d,q);});
+
+    ndsInterface.query(q);
+
+    var myDate0 = new Date(2018,1,1);
+    var myDate1 = new Date(2018,10,1);
+    q.addConstraint("time_interval","time",{"lower":myDate0.getTime()/1000,"upper":myDate1.getTime()/1000});
+    ndsInterface.query(q);
+}
+
+// 
+function testBoxPlot(){
+    var data = [["entry1",0,1,2,4,5],
+		["entry2",0.5,1.5,2,4,10],
+		["entry3",3,4,9,9.5,15]];
+
+    boxPlotWidget.setData(data);
+}
+
+//
+function testEquiDepth(){
+
+    var data = [{"label":"entry1","bins":[{"lower":0,"upper":0.1  ,"density":0.25},
+					  {"lower":0.1,"upper":0.5,"density":0.25},
+					  {"lower":0.5,"upper":0.9,"density":0.25},
+					  {"lower":0.9,"upper":1.0,"density":0.25}]},
+		
+		{"label":"entry2","bins":[{"lower":0.1,"upper":0.2,"density":0.4},
+					  {"lower":0.2,"upper":0.3,"density":0.05},
+					  {"lower":0.3,"upper":0.4,"density":0.1},
+					  {"lower":0.4,"upper":0.5,"density":0.05},
+					  {"lower":0.5,"upper":0.6,"density":0.4},
+					 ]
+		},	    
+		{"label":"entry3","bins":[{"lower":0.5,"upper":1.0,"density":0.75},
+					  {"lower":1.0,"upper":2.0,"density":0.15},
+					  {"lower":2.0,"upper":2.5,"density":0.1}
+					 ]
+		}
+	       ];
+    
+    equidepthWidget.setData(data);
+}
+
+/***********
+ * scratch *
+ ***********/
+
+function queryBoxPlot(){
+    //http://localhost:7000/api/query/dataset=brightkite/aggr=quantile.(0:0.25:0.5:0.75:1.0)/const=3.interval.(1205971200:1287014400)/group=3
+    if(boxPlotWidget == undefined)
+	return;
+    
+    var q = new NDSQuery(datasetName,"quantile",temporalDimension,
+			 function(result){
+			     var prevValue = undefined;
+			     var currentEntry = [];
+			     var data = [];
+			     result.forEach(function(entry){
+				 
+				 if(entry[0] == prevValue){
+				     currentEntry.push(entry[2]);
+				 }
+				 else{
+				     if(prevValue != undefined){
+					 data.push(currentEntry);
+				     }
+
+				     //
+				     currentEntry = [entry[0],entry[2]];
+				     prevValue = entry[0];
+				 }
+			     });
+			     data.push(currentEntry);
+			     boxPlotWidget.setData(data);
+			 });
+    q.setPayload({"quantiles":[0,0.25,0.5,0.75,1.0]});
+    console.log("======>",timeConstraint);
+    q.addConstraint("time_interval",temporalDimension,timeConstraint);
+    console.log(q.toString());
+    ndsInterface.query(q);
+
+}

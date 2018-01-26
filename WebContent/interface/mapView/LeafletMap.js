@@ -97,6 +97,10 @@ class GLLeafletMap{
 	    
 	    if(this.interactionFlag == 1){
 		if(this.currentSelection == undefined){
+		    if(this.brushManager.getNumBrushes() == 1){
+			var existingBrush = this.brushManager.brushes[0];
+			this.brushManager.remove(existingBrush.internalID);
+		    }
 		    this.currentSelection = this.brushManager.newBrush();
 		}
 
