@@ -22,15 +22,20 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	this.options.state = v;
 	this.redraw();
     },
-    myColorScale:function(count){
+    myColorScale:function(value){
 	var opacity = this.options.opacity
-	var lc = Math.log(count + 1) / Math.log(100);
-
+	var lc = Math.log(value + 1) / Math.log(100);
         var r = Math.floor(255 * Math.min(1, lc));
 	var g = Math.floor(255 * Math.min(1, Math.max(0, lc - 1)));
 	var b = Math.floor(255 * Math.min(1, Math.max(0, lc - 2)));
 	var a = opacity;
         return  "rgba(" + ([r, g, b, a].join(",")) + ")";
+    },
+    normalizedColorScale:function(value){
+	var opacity = this.options.opacity
+	var scale = d3.scaleLinear().range(["rgba(255,255,255,"+opacity+")","rgba(255,0,0,"+opacity+")"]);
+	debugger
+	return scale(value);
     },
     colorTile: function(tile, coords){
 	//
@@ -48,7 +53,12 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	tile.data.forEach(function(pixel){
 	    var pixelInLocalCoords = [pixel[0]-coords[0],pixel[1]-coords[1]];
 	    var rgba;
-	    rgba = layer.myColorScale(pixel[3]);
+	    if(layer.options.state == "inverse_quantile"){
+		rgba = layer.normalizedColorScale(pixel[3]);
+		console.log(pixel[3],rgba);
+	    }
+	    else
+		rgba = layer.myColorScale(pixel[3]);
 	    ctx.fillStyle = rgba;
 	    ctx.fillRect(pixelInLocalCoords[0]*pixelWidth, pixelInLocalCoords[1]*pixelHeight , pixelWidth, pixelHeight);
 	});
@@ -74,6 +84,11 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 		tile.data = result;
 	    }
 	    if(layer.options.state == "quantile"){
+		result = result.map(entry=>[entry[0],entry[1],entry[2],entry[4]]);
+		tile.data = result;
+		//TODO: set proper scale
+	    }
+	    else if(layer.options.state == "inverse_quantile"){
 		result = result.map(entry=>[entry[0],entry[1],entry[2],entry[4]]);
 		tile.data = result;
 		//TODO: set proper scale
@@ -117,11 +132,10 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	    query.setPayload({"quantiles":[0.25,0.75]});
 	}
 	else if(layer.options.state == "inverse_quantile"){
-	    // query = new NDSQuery(datasetName,"quantile",spatialDimension,fCallback);
-	    // query.addConstraint("time_interval",temporalDimension,timeConstraint);	    
-	    // query.addConstraint("tile",spatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
-	    // query.setPayload({"quantiles":[layer.options.quantileQuery]});
-	    console.log("inverse quantile");
+	    query = new NDSQuery(datasetName,"inverse_quantile",spatialDimension,fCallback);
+	    query.addConstraint("time_interval",temporalDimension,timeConstraint);	    
+	    query.addConstraint("tile",spatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
+	    query.setPayload({"inverse_quantile":layer.options.inverseQuantileQuery});
 	}
 
 	//
@@ -217,7 +231,7 @@ class NDSLayer{
 	
 	//
 	var that = this;
-	this.tileLayer = L.gridLayer.canvasCircles({"ndsInterface":ndsInterface, "parent":that, "resolution":5,"opacity":1.0,"quantileQuery":0.5,"state":"count"});
+	this.tileLayer = L.gridLayer.canvasCircles({"ndsInterface":ndsInterface, "parent":that, "resolution":5,"opacity":1.0,"quantileQuery":0.5,"inverseQuantileQuery":100,"state":"count"});
 	this.tileLayer.addTo(this.containerMap);
 	//
 	// this.debugLayer = L.gridLayer.debugCoords();

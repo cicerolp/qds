@@ -52,6 +52,9 @@ class NDSQuery{
 	if(this.aggregation == "quantile"){
 	    return "aggr=quantile.(" + this.payload.quantiles.join(":")   + ")"
 	}
+	else if(this.aggregation == "inverse_quantile"){
+	    return "aggr=inverse.(" + this.payload.inverse_quantile   + ")"
+	}
 	else if(this.aggregation == "count"){
 	    return  "aggr=count";
 	}
