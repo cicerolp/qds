@@ -5,6 +5,7 @@
 
 #include "PDigest.h"
 
+class NDS;
 class RangePivot;
 
 class Pivot {
@@ -34,9 +35,9 @@ class Pivot {
     _payload = rhs._payload;
   }
 
-  inline void create_payload() {
+  inline void create_payload(NDS &nds) {
     assert(_payload == nullptr);
-    _payload = PDigest::get_payload(_first, _second);
+    _payload = PDigest::get_payload(_first, _second, nds);
   }
 
   // called once

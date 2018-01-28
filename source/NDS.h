@@ -57,7 +57,7 @@ class NDS {
 
     for (auto &ptr : *link) {
       if (ptr.get_payload() == nullptr) {
-        ptr.create_payload();
+        ptr.create_payload(*this);
       }
     }
 #endif

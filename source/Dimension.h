@@ -10,7 +10,7 @@ class NDS;
 
 class Dimension {
  public:
-  enum Type { Spatial, Temporal, Categorical };
+  enum Type { Spatial, Temporal, Categorical, Payload };
 
   Dimension(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple);
   virtual ~Dimension() = default;

@@ -7,6 +7,8 @@
 
 #include "Pivot.h"
 
+#include "NDS.h"
+
 #ifdef ENABLE_PDIGEST
 
 std::default_random_engine random_engine;
@@ -150,14 +152,20 @@ float PDigest::inverse(float value) const {
   return weightSoFar / totalWeight;
 }
 
-payload_t *PDigest::get_payload(uint32_t first, uint32_t second) {
-  // TODO get value from dataset
+payload_t *PDigest::get_payload(uint32_t first, uint32_t second, NDS &nds) {
+  // TODO remove temporary vector
   std::vector<float> inMean;
   inMean.reserve(second - first);
 
   for (auto p = first; p < second; ++p) {
-    inMean.emplace_back(uniform_dist(random_engine));
+    if (nds.data()->has_payload()) {
+      inMean.emplace_back((*nds.data()->payload<float>(p)));
+    } else {
+      inMean.emplace_back(uniform_dist(random_engine));
+    }
   }
+
+  // TODO payload weight
   // every weight equal 1
   std::vector<float> inWeight(second - first, 1);
 

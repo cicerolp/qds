@@ -8,6 +8,8 @@
 
 #ifdef ENABLE_PDIGEST
 
+class NDS;
+
 class PDigest {
  public:
   void merge(const Pivot &pivot);
@@ -16,7 +18,7 @@ class PDigest {
   float quantile(float q) const;
   float inverse(float value) const;
 
-  static payload_t *get_payload(uint32_t first, uint32_t second);
+  static payload_t *get_payload(uint32_t first, uint32_t second, NDS &nds);
 
  private:
   void merge_buffer_data();

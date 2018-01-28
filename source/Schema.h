@@ -13,22 +13,21 @@ struct Schema {
       name = pt.get<std::string>("config.name");
       bytes = pt.get<uint8_t>("config.bytes");
       file = std::string(std::getenv("NDS_DATA")) + "/" +
-             pt.get<std::string>("config.file");
+          pt.get<std::string>("config.file");
 
-      for (auto& v : pt.get_child("config.schema")) {
+      for (auto &v : pt.get_child("config.schema")) {
         uint32_t index = v.second.get<uint32_t>("index");
         uint32_t bin = v.second.get<uint32_t>("bin");
         uint32_t offset = v.second.get<uint32_t>("offset");
 
         if (v.first == "spatial") {
-          dimension.emplace_back(
-              std::make_tuple(Dimension::Spatial, index, bin, offset));
+          dimension.emplace_back(std::make_tuple(Dimension::Spatial, index, bin, offset));
         } else if (v.first == "categorical") {
-          dimension.emplace_back(
-              std::make_tuple(Dimension::Categorical, index, bin, offset));
+          dimension.emplace_back(std::make_tuple(Dimension::Categorical, index, bin, offset));
         } else if (v.first == "temporal") {
-          dimension.emplace_back(
-              std::make_tuple(Dimension::Temporal, index, bin, offset));
+          dimension.emplace_back(std::make_tuple(Dimension::Temporal, index, bin, offset));
+        } else if (v.first == "payload") {
+          payload.emplace_back(std::make_tuple(index, bin, offset));
         }
       }
     } catch (...) {
@@ -40,7 +39,9 @@ struct Schema {
   uint8_t bytes;
   std::string name, file;
 
+  // payload [index, bin, offset]
+  std::vector<std::tuple<uint32_t, uint32_t, uint32_t>> payload;
+
   // dimension_e, index, bin, offset
-  std::vector<std::tuple<Dimension::Type, uint32_t, uint32_t, uint32_t>>
-      dimension;
+  std::vector<std::tuple<Dimension::Type, uint32_t, uint32_t, uint32_t>> dimension;
 };

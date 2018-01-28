@@ -17,6 +17,12 @@ NDS::NDS(const Schema &schema) {
   std::cout << "\tSize: " << _data_ptr->size() << std::endl;
   std::cout << std::endl;
 
+  // prepare payload
+  for (const auto &tuple : schema.payload) {
+    uint32_t offset = std::get<2>(tuple);
+    data()->preparePayloadOffset<float>(offset);
+  }
+
   _root = pivot_ctn(1);
   _root[0] = Pivot(0, _data_ptr->size());
 
