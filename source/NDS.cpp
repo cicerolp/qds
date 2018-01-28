@@ -20,6 +20,10 @@ NDS::NDS(const Schema &schema) {
   _root = pivot_ctn(1);
   _root[0] = Pivot(0, _data_ptr->size());
 
+#ifdef ENABLE_PDIGEST
+  _root[0].create_payload(*this);
+#endif
+
   link_ctn links, share;
   links.emplace_back(&_root);
 
