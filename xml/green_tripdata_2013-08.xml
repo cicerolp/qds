@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<name>green_tripdata_2013-08</name>
+	<bytes>17</bytes>
+	<file>green_tripdata_2013-08.nds</file>
+	<schema>
+		<categorical>
+			<index>0</index>
+			<bin>6</bin>
+			<offset>0</offset>
+		</categorical>
+		<temporal>
+			<index>1</index>
+			<bin>86400</bin>
+			<offset>1</offset>
+		</temporal>
+		<spatial>
+			<index>2</index>
+			<bin>1</bin>
+			<offset>5</offset>
+		</spatial>
+		<payload>
+			<index>3</index>
+			<bin>1</bin>
+			<offset>13</offset>
+		</payload>
+	</schema>
+</config>
