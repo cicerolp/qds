@@ -1,12 +1,6 @@
 #include "Dimension.h"
 
-Dimension::Dimension(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple)
-    : _key(std::get<0>(tuple)),
-      _bin(std::get<1>(tuple)),
-      _offset(std::get<2>(tuple)) {
-  std::cout << "\t\tKey: [" << _key << "], Bin: [" << _bin << "], Offset: ["
-            << _offset << "]" << std::endl;
-}
+Dimension::Dimension(const DimensionSchema &schema) : _schema(schema) {}
 
 void Dimension::restrict(range_ctn &range, range_ctn &response,
                          const subset_t &subset, CopyOption &option) {

@@ -21,7 +21,7 @@ class Temporal : public Dimension {
   };
 
  public:
-  Temporal(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple);
+  Temporal(const DimensionSchema &schema);
   ~Temporal() = default;
 
   uint32_t build(const build_ctn &range,

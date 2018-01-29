@@ -4,7 +4,7 @@
 
 class Categorical : public Dimension {
  public:
-  Categorical(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple);
+  Categorical(const DimensionSchema &schema);
   ~Categorical() = default;
 
   uint32_t build(const build_ctn &range,

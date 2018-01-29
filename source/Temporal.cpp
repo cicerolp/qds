@@ -1,15 +1,14 @@
 #include "Temporal.h"
 #include "NDS.h"
 
-Temporal::Temporal(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple)
-    : Dimension(tuple) {}
+Temporal::Temporal(const DimensionSchema &schema) : Dimension(schema) {}
 
 uint32_t Temporal::build(const build_ctn &range,
                          build_ctn &response,
                          const link_ctn &links,
                          link_ctn &share,
                          NDS &nds) {
-  nds.data()->prepareOffset<temporal_t>(_offset);
+  nds.data()->prepareOffset<temporal_t>(_schema.offset);
 
   uint32_t pivots_count = 0;
 
@@ -20,7 +19,7 @@ uint32_t Temporal::build(const build_ctn &range,
 
     for (auto i = ptr.front(); i < ptr.back(); ++i) {
       auto value = (*nds.data()->record<temporal_t>(i));
-      value = static_cast<temporal_t>(value / static_cast<float>(_bin)) * _bin;
+      value = static_cast<temporal_t>(value / static_cast<float>(_schema.bin)) * _schema.bin;
 
       nds.data()->setHash(i, value);
       ++used[value];
@@ -56,7 +55,7 @@ uint32_t Temporal::build(const build_ctn &range,
 }
 
 bool Temporal::query(const Query &query, subset_ctn &subsets) const {
-  auto clausule = query.get_const(std::to_string(_key));
+  auto clausule = query.get_const(_schema.index);
 
   if (clausule != nullptr) {
     subset_t subset;
@@ -64,7 +63,7 @@ bool Temporal::query(const Query &query, subset_ctn &subsets) const {
     if (clausule->first == "interval") {
       auto interval = parse_interval(clausule->second);
 
-      if (query.group_by(std::to_string(_key))) {
+      if (query.group_by(_schema.index)) {
         subset.option = CopyValueFromSubset;
 
         if (interval.contain(_container.front().el.value, _container.back().el.value)) {
@@ -98,7 +97,7 @@ bool Temporal::query(const Query &query, subset_ctn &subsets) const {
     } else if (clausule->first == "sequence") {
       auto sequence = parse_sequence(clausule->second);
 
-      if (query.group_by(std::to_string(_key))) {
+      if (query.group_by(_schema.index)) {
         subset.option = CopyValueFromSubset;
       }
 

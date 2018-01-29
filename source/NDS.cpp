@@ -18,9 +18,8 @@ NDS::NDS(const Schema &schema) {
   std::cout << std::endl;
 
   // prepare payload
-  for (const auto &tuple : schema.payload) {
-    uint32_t offset = std::get<2>(tuple);
-    data()->preparePayloadOffset<float>(offset);
+  for (const auto &attr : schema.payload) {
+    data()->preparePayloadOffset<float>(attr.offset);
   }
 
   _root = pivot_ctn(1);
@@ -37,18 +36,21 @@ NDS::NDS(const Schema &schema) {
   current.emplace_back(0, _data_ptr->size());
 
   for (const auto &tuple : schema.dimension) {
-    auto opt = std::make_tuple(std::get<1>(tuple), std::get<2>(tuple),
-                               std::get<3>(tuple));
-
     switch (std::get<0>(tuple)) {
-      case Dimension::Spatial:std::cout << "\tBuilding Spatial Dimension: " << std::get<1>(tuple) << std::endl;
-        _dimension.emplace_back(std::make_pair(std::get<0>(tuple), std::make_unique<Spatial>(opt)));
+      case Dimension::Spatial: {
+        std::cout << "\tBuilding Spatial Dimension: \n\t\t" << std::get<1>(tuple) << std::endl;
+        _dimension.emplace_back(std::make_pair(std::get<0>(tuple), std::make_unique<Spatial>(std::get<1>(tuple))));
+      }
         break;
-      case Dimension::Temporal:std::cout << "\tBuilding Temporal Dimension: " << std::get<1>(tuple) << std::endl;
-        _dimension.emplace_back(std::make_pair(std::get<0>(tuple), std::make_unique<Temporal>(opt)));
+      case Dimension::Temporal: {
+        std::cout << "\tBuilding Temporal Dimension: \n\t\t" << std::get<1>(tuple) << std::endl;
+        _dimension.emplace_back(std::make_pair(std::get<0>(tuple), std::make_unique<Temporal>(std::get<1>(tuple))));
+      }
         break;
-      case Dimension::Categorical:std::cout << "\tBuilding Categorical Dimension: " << std::get<1>(tuple) << std::endl;
-        _dimension.emplace_back(std::make_pair(std::get<0>(tuple), std::make_unique<Categorical>(opt)));
+      case Dimension::Categorical: {
+        std::cout << "\tBuilding Categorical Dimension: \n\t\t" << std::get<1>(tuple) << std::endl;
+        _dimension.emplace_back(std::make_pair(std::get<0>(tuple), std::make_unique<Categorical>(std::get<1>(tuple))));
+      }
         break;
       default:std::cerr << "error: invalid NDS" << std::endl;
         std::abort();

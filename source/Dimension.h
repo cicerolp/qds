@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ostream>
 #include "RangePivot.h"
 #include "Data.h"
 #include "Pivot.h"
@@ -10,9 +11,24 @@ class NDS;
 
 class Dimension {
  public:
+  struct DimensionSchema {
+    DimensionSchema() = default;
+    DimensionSchema(const std::string &__index, uint32_t __bin, uint32_t __offset) :
+        index(__index), bin(__bin), offset(__offset) {}
+
+    friend std::ostream &operator<<(std::ostream &os, const DimensionSchema &schema) {
+      os << "Index: [" << schema.index << "] Bin: [" << schema.bin << "] Offset: [" << schema.offset << "]";
+      return os;
+    }
+
+    uint32_t bin;
+    uint32_t offset;
+    std::string index;
+  };
+
   enum Type { Spatial, Temporal, Categorical, Payload };
 
-  Dimension(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple);
+  Dimension(const DimensionSchema &schema);
   virtual ~Dimension() = default;
 
   virtual bool query(const Query &query, subset_ctn &subsets) const = 0;
@@ -51,7 +67,7 @@ class Dimension {
 
   static inline void swap_and_sort(range_ctn &range, range_ctn &response, CopyOption option);
 
-  const uint32_t _key, _bin, _offset;
+  const DimensionSchema _schema;
 };
 
 template<typename _Aggr>
