@@ -73,7 +73,7 @@ bool Categorical::query(const Query &query, subset_ctn &subsets) const {
         }
       } else {
         for (auto &value : values) {
-          if (!_container[value].pivots->empty()) {
+          if (value < _container.size() && !_container[value].pivots->empty()) {
             subset.container.emplace_back(&_container[value]);
           }
         }
@@ -85,7 +85,7 @@ bool Categorical::query(const Query &query, subset_ctn &subsets) const {
         return true;
       } else {
         for (auto &value : values) {
-          if (!_container[value].pivots->empty()) {
+          if (value < _container.size() && !_container[value].pivots->empty()) {
             subset.container.emplace_back(&_container[value]);
           }
         }
