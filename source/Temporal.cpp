@@ -49,8 +49,6 @@ uint32_t Temporal::build(const build_ctn &range,
     ++index;
   }
 
-  nds.data()->dispose();
-
   return pivots_count;
 }
 

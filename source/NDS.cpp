@@ -74,6 +74,8 @@ NDS::NDS(const Schema &schema) {
   std::cout << "\tDuration: " + std::to_string(duration) + "s\n" << std::endl;
 
   // release data
+
+  _data_ptr.reset();
   _data_ptr = nullptr;
 }
 

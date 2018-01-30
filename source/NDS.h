@@ -37,7 +37,7 @@ class NDS {
         if ((*first2).back() < (*first1).back()) {
           ++first2;
         } else {
-          first2->copy_payload(*first1);
+          first2->set_payload(*first1);
           ++first1;
           ++first2;
         }

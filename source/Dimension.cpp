@@ -78,6 +78,7 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
         if (clausule.first == "count") {
           group_by_none<AggrCountNone>(clausule, writer, response);
         }
+
 #ifdef ENABLE_PDIGEST
         if (clausule.first == "quantile") {
           group_by_none<AggrQuantileNone>(clausule, writer, response);

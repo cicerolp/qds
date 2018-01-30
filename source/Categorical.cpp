@@ -48,8 +48,6 @@ uint32_t Categorical::build(const build_ctn &range,
     nds.share(_container[index], tmp_ctn[index], links, share);
   }
 
-  nds.data()->dispose();
-
   return pivots_count;
 }
 

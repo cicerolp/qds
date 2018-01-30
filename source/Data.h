@@ -31,8 +31,6 @@ class Data {
   template <typename T>
   void preparePayloadOffset(uint8_t offset);
 
-  void dispose();
-
   inline uint32_t size() const;
 
  private:
@@ -56,6 +54,8 @@ T* Data::record(size_t id) {
 
 template <typename T>
 void Data::prepareOffset(uint8_t offset) {
+  _data.clear();
+
   std::ifstream infile(_path, std::ios::binary);
 
   infile.ignore(sizeof(BinaryHeader) + (_header.records * offset));
@@ -73,6 +73,8 @@ T* Data::payload(size_t id) {
 
 template <typename T>
 void Data::preparePayloadOffset(uint8_t offset) {
+  _payload.clear();
+
   std::ifstream infile(_path, std::ios::binary);
 
   infile.ignore(sizeof(BinaryHeader) + (_header.records * offset));

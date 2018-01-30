@@ -12,8 +12,6 @@ uint32_t Spatial::build(const build_ctn &range, build_ctn &response, const link_
 
   std::sort(response.begin(), response.end());
 
-  nds.data()->dispose();
-
   return pivots_count;
 }
 

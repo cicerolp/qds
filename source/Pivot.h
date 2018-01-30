@@ -30,7 +30,7 @@ class Pivot {
     return *_payload;
   };
 
-  inline void copy_payload(Pivot &rhs) {
+  inline void set_payload(Pivot &rhs) {
     assert(_payload == nullptr);
     _payload = rhs._payload;
   }
@@ -100,27 +100,12 @@ class Pivot {
   payload_t *_payload{nullptr};
 #endif
 
-  //bool proper_payload{false};
 };
 
 struct bined_pivot_t {
  public:
   uint64_t value;
   pivot_ctn *pivots;
-
-  // shared (false) or proper (true) content
-  //bool proper{false};
-
-  /*~bined_pivot_t() {
-    if (proper) {
-      if (proper_payload) {
-        for (auto &pivot : (*pivots)) {
-          pivot.delete_payload();
-        }
-        delete pivots;
-      }
-    }
-  }*/
 
   inline pivot_ctn &ptr() const { return *pivots; }
 };

@@ -52,7 +52,6 @@ class Query {
   std::string _group_by;
 
   // [aggr]
-  //clausule _aggr{"count", ""};
   std::vector<clausule> _aggr;
 };
 
