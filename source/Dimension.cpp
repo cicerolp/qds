@@ -72,6 +72,9 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
   if (subsets.size() == 0) {
     if (!root.pivot.empty()) {
       for (const auto &clausule : aggr) {
+        // start json
+        writer.StartArray();
+
         if (clausule.first == "count") {
           group_by_none<AggrCountNone>(clausule, writer, response);
         }
@@ -82,6 +85,9 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
           group_by_none<AggrInverseNone>(clausule, writer, response);
         }
 #endif
+
+        // end json
+        writer.EndArray();
       }
     }
   } else {
@@ -95,6 +101,9 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
     swap_and_sort(range, response, option);
 
     for (const auto &clausule : aggr) {
+      // start json
+      writer.StartArray();
+
       if (clausule.first == "count") {
         if (query.group_by()) {
           if (option == CopyValueFromSubset) {
@@ -139,6 +148,9 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
         }
       }
 #endif
+
+      // end json
+      writer.EndArray();
     }
   }
 
