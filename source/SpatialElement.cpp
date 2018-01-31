@@ -5,20 +5,17 @@ SpatialElement::SpatialElement(const spatial_t &tile,
                                const build_ctn &container,
                                const link_ctn &links,
                                link_ctn &share,
-                               NDS &nds) {
+                               Data &data) {
   _el.value = tile.data;
-  nds.share(_el, container, links, share);
+  NDS::share(data, _el, container, links, share);
 }
 
-SpatialElement::SpatialElement(const spatial_t &tile,
-                               const build_ctn &container,
-                               const link_ctn &links,
-                               NDS &nds) {
+SpatialElement::SpatialElement(const spatial_t &tile, const build_ctn &container, const link_ctn &links, Data &data) {
   _el.value = tile.data;
-  _el.pivots = nds.get_link(_el, container, links);
+  _el.pivots = NDS::get_link(data, _el, container, links);
 }
 
-uint32_t SpatialElement::expand(build_ctn &response, uint32_t bin, link_ctn &share, NDS &nds) {
+uint32_t SpatialElement::expand(build_ctn &response, uint32_t bin, link_ctn &share, Data &data) {
   spatial_t &value = (*reinterpret_cast<spatial_t *>(&_el.value));
 
   uint8_t next_level = value.z + 1;
@@ -34,18 +31,18 @@ uint32_t SpatialElement::expand(build_ctn &response, uint32_t bin, link_ctn &sha
       std::array<uint32_t, 4> used{};
 
       for (auto i = ptr.front(); i < ptr.back(); ++i) {
-        auto coords = nds.data()->record<coordinates_t>(i);
+        auto coords = data.record<coordinates_t>(i);
 
         auto y = mercator_util::lat2tiley(coords->lat, next_level);
         auto x = mercator_util::lon2tilex(coords->lon, next_level);
         auto index = mercator_util::index(x, y);
 
-        nds.data()->setHash(i, index);
+        data.setHash(i, index);
         ++used[index];
       }
 
       // sorting
-      nds.data()->sort(ptr.front(), ptr.back());
+      data.sort(ptr.front(), ptr.back());
 
       uint32_t accum = ptr.front();
       for (int i = 0; i < 4; ++i) {
@@ -67,9 +64,9 @@ uint32_t SpatialElement::expand(build_ctn &response, uint32_t bin, link_ctn &sha
 
       // share pivot between child and parent
       _container[i] =
-          std::make_unique<SpatialElement>(spatial_t(tile.first, tile.second, next_level), tmp_ctn[i], parent, nds);
+          std::make_unique<SpatialElement>(spatial_t(tile.first, tile.second, next_level), tmp_ctn[i], parent, data);
 
-      pivots_count += _container[i]->expand(response, bin, share, nds);
+      pivots_count += _container[i]->expand(response, bin, share, data);
     }
 
   } else {

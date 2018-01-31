@@ -5,6 +5,7 @@
 #pragma once
 
 #include "types.h"
+#include "Data.h"
 
 #ifdef ENABLE_PDIGEST
 
@@ -18,7 +19,7 @@ class PDigest {
   float quantile(float q) const;
   float inverse(float value) const;
 
-  static payload_t *get_payload(uint32_t first, uint32_t second, NDS &nds);
+  static std::vector<float> get_payload(Data &data, Pivot &pivot);
 
  private:
   void merge_buffer_data();

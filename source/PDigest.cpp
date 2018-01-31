@@ -152,22 +152,26 @@ float PDigest::inverse(float value) const {
   return weightSoFar / totalWeight;
 }
 
-payload_t *PDigest::get_payload(uint32_t first, uint32_t second, NDS &nds) {
+std::vector<float> PDigest::get_payload(Data &data, Pivot &pivot) {
   // TODO remove temporary vector
   std::vector<float> inMean;
-  inMean.reserve(second - first);
+  inMean.reserve(pivot.back() - pivot.front());
 
-  for (auto p = first; p < second; ++p) {
-    if (nds.data()->has_payload()) {
-      inMean.emplace_back((*nds.data()->payload<float>(p)));
+  for (auto p = pivot.front(); p < pivot.back(); ++p) {
+    // TODO refactor code
+
+    /*if (data.has_payload()) {
+      inMean.emplace_back((*data.payload(p)));
     } else {
       inMean.emplace_back(uniform_dist(random_engine));
-    }
+    }*/
+
+    inMean.emplace_back(uniform_dist(random_engine));
   }
 
   // TODO payload weight
   // every weight equal 1
-  std::vector<float> inWeight(second - first, 1);
+  std::vector<float> inWeight(pivot.back() - pivot.front(), 1);
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // temporary data
@@ -235,11 +239,18 @@ payload_t *PDigest::get_payload(uint32_t first, uint32_t second, NDS &nds) {
   // points to next empty cell
   lastUsedCell++;
 
-  // shrink_to_fit
+  /*// shrink_to_fit
   stde::dynarray<float> *payload = new stde::dynarray<float>(lastUsedCell * 2);
 
   std::memcpy(&(*payload)[0], &mean[0], lastUsedCell * sizeof(float));
-  std::memcpy(&(*payload)[lastUsedCell], &weight[0], lastUsedCell * sizeof(float));
+  std::memcpy(&(*payload)[lastUsedCell], &weight[0], lastUsedCell * sizeof(float));*/
+
+  // TODO optimize
+  std::vector<float> payload;
+  payload.reserve(lastUsedCell * 2);
+
+  payload.insert(payload.end(), mean.begin(), mean.begin() + lastUsedCell);
+  payload.insert(payload.end(), weight.begin(), weight.begin() + lastUsedCell);
 
   return payload;
 }

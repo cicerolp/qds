@@ -4,6 +4,7 @@
 #include "types.h"
 
 #include "PDigest.h"
+#include "Data.h"
 
 class NDS;
 class RangePivot;
@@ -30,23 +31,10 @@ class Pivot {
     return *_payload;
   };
 
-  inline void set_payload(Pivot &rhs) {
+  inline void set_payload(payload_t *rhs) {
     assert(_payload == nullptr);
-    _payload = rhs._payload;
-  }
-
-  inline void create_payload(NDS &nds) {
-    assert(_payload == nullptr);
-    #ifdef ENABLE_PDIGEST
-    _payload = PDigest::get_payload(_first, _second, nds);
-    #endif // ENABLE_PDIGEST
-  }
-
-  // called once
-  inline void delete_payload() {
-    assert(_payload != nullptr);
-    delete _payload;
-    _payload = nullptr;
+    assert(rhs != nullptr);
+    _payload = rhs;
   }
 #endif // NDS_ENABLE_PAYLOAD
 

@@ -5,6 +5,29 @@
 
 class Pivot;
 
+template<typename T>
+struct BuildPair {
+  T input, output;
+};
+
+struct DimensionSchema {
+  enum Type { Spatial, Temporal, Categorical, Payload };
+
+  DimensionSchema() = default;
+  DimensionSchema(Type __type, const std::string &__index, uint32_t __bin, uint32_t __offset) :
+      type(__type), index(__index), bin(__bin), offset(__offset) {}
+
+  friend std::ostream &operator<<(std::ostream &os, const DimensionSchema &schema) {
+    os << "Index: [" << schema.index << "] Bin: [" << schema.bin << "] Offset: [" << schema.offset << "]";
+    return os;
+  }
+
+  Type type;
+  uint32_t bin;
+  uint32_t offset;
+  std::string index;
+};
+
 using payload_t = stde::dynarray<float>;
 
 using pivot_ctn = stde::dynarray<Pivot>;
@@ -16,7 +39,7 @@ using link_it = link_ctn::const_iterator;
 using build_ctn = std::vector<Pivot>;
 using build_it = build_ctn::const_iterator;
 
-enum CopyOption { CopyValueFromRange, CopyValueFromSubset, DefaultCopy};
+enum CopyOption { CopyValueFromRange, CopyValueFromSubset, DefaultCopy };
 
 typedef uint32_t temporal_t;
 typedef uint8_t categorical_t;

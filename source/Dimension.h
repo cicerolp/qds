@@ -1,43 +1,21 @@
 #pragma once
 
-#include <ostream>
 #include "RangePivot.h"
-#include "Data.h"
 #include "Pivot.h"
 #include "Query.h"
 #include "Aggr.h"
 
 class NDS;
+class Data;
 
 class Dimension {
  public:
-  struct DimensionSchema {
-    DimensionSchema() = default;
-    DimensionSchema(const std::string &__index, uint32_t __bin, uint32_t __offset) :
-        index(__index), bin(__bin), offset(__offset) {}
-
-    friend std::ostream &operator<<(std::ostream &os, const DimensionSchema &schema) {
-      os << "Index: [" << schema.index << "] Bin: [" << schema.bin << "] Offset: [" << schema.offset << "]";
-      return os;
-    }
-
-    uint32_t bin;
-    uint32_t offset;
-    std::string index;
-  };
-
-  enum Type { Spatial, Temporal, Categorical, Payload };
-
   Dimension(const DimensionSchema &schema);
   virtual ~Dimension() = default;
 
   virtual bool query(const Query &query, subset_ctn &subsets) const = 0;
 
-  virtual uint32_t build(const build_ctn &range,
-                         build_ctn &response,
-                         const link_ctn &links,
-                         link_ctn &share,
-                         NDS &nds) = 0;
+  virtual uint32_t build(BuildPair<build_ctn> &range, BuildPair<link_ctn> &links, Data &data) = 0;
 
   static std::string serialize(const Query &query, subset_ctn &subsets, const RangePivot &root);
 

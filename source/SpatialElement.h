@@ -8,11 +8,11 @@ extern uint32_t g_Quadtree_Depth;
 
 class SpatialElement {
  public:
-  SpatialElement(const spatial_t &tile, const build_ctn &container, const link_ctn &links, link_ctn &share, NDS &nds);
-  SpatialElement(const spatial_t &tile, const build_ctn &container, const link_ctn &links, NDS &nds);
+  SpatialElement(const spatial_t &tile, const build_ctn &container, const link_ctn &links, link_ctn &share, Data &data);
+  SpatialElement(const spatial_t &tile, const build_ctn &container, const link_ctn &links, Data &data);
   ~SpatialElement() = default;
 
-  uint32_t expand(build_ctn &response, uint32_t bin, link_ctn &share, NDS &nds);
+  uint32_t expand(build_ctn &response, uint32_t bin, link_ctn &share, Data &data);
 
   void query_tile(const spatial_t &tile, uint64_t resolution, subset_pivot_ctn &subset, uint64_t zoom) const;
   void query_region(const region_t &region, subset_pivot_ctn &subset, uint64_t zoom) const;
