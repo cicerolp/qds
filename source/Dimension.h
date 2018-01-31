@@ -1,5 +1,6 @@
 #pragma once
 
+#include <ostream>
 #include "RangePivot.h"
 #include "Data.h"
 #include "Pivot.h"
@@ -10,9 +11,24 @@ class NDS;
 
 class Dimension {
  public:
-  enum Type { Spatial, Temporal, Categorical };
+  struct DimensionSchema {
+    DimensionSchema() = default;
+    DimensionSchema(const std::string &__index, uint32_t __bin, uint32_t __offset) :
+        index(__index), bin(__bin), offset(__offset) {}
 
-  Dimension(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple);
+    friend std::ostream &operator<<(std::ostream &os, const DimensionSchema &schema) {
+      os << "Index: [" << schema.index << "] Bin: [" << schema.bin << "] Offset: [" << schema.offset << "]";
+      return os;
+    }
+
+    uint32_t bin;
+    uint32_t offset;
+    std::string index;
+  };
+
+  enum Type { Spatial, Temporal, Categorical, Payload };
+
+  Dimension(const DimensionSchema &schema);
   virtual ~Dimension() = default;
 
   virtual bool query(const Query &query, subset_ctn &subsets) const = 0;
@@ -29,19 +45,19 @@ class Dimension {
   static void restrict(range_ctn &range, range_ctn &response, const subset_t &subset, CopyOption &option);
 
   template<typename _Aggr>
-  static void group_by_subset(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+  static void group_by_subset(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                               range_ctn &range, const subset_pivot_ctn &subset);
 
   template<typename _Aggr>
-  static void group_by_range(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+  static void group_by_range(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                              range_ctn &range, const subset_pivot_ctn &subset);
 
   template<typename _Aggr>
-  static void group_by_none(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+  static void group_by_none(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                             range_ctn &range, const subset_pivot_ctn &subset);
 
   template<typename _Aggr>
-  static void group_by_none(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+  static void group_by_none(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                             range_ctn &range);
 
   static inline bool search_iterators(range_it &it_range, const range_ctn &range,
@@ -51,11 +67,11 @@ class Dimension {
 
   static inline void swap_and_sort(range_ctn &range, range_ctn &response, CopyOption option);
 
-  const uint32_t _key, _bin, _offset;
+  const DimensionSchema _schema;
 };
 
 template<typename _Aggr>
-void Dimension::group_by_subset(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+void Dimension::group_by_subset(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                                 range_ctn &range, const subset_pivot_ctn &subset) {
 
   _Aggr aggregator(subset.size());
@@ -69,12 +85,12 @@ void Dimension::group_by_subset(const Query &query, rapidjson::Writer<rapidjson:
       ++it_range;
     }
 
-    aggregator.output(el, subset[el]->value, query, writer);
+    aggregator.output(el, subset[el]->value, clausule, writer);
   }
 }
 
 template<typename _Aggr>
-void Dimension::group_by_range(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+void Dimension::group_by_range(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                                range_ctn &range, const subset_pivot_ctn &subset) {
 
   _Aggr aggregator;
@@ -89,11 +105,11 @@ void Dimension::group_by_range(const Query &query, rapidjson::Writer<rapidjson::
     }
   }
 
-  aggregator.output(query, writer);
+  aggregator.output(clausule, writer);
 }
 
 template<typename _Aggr>
-void Dimension::group_by_none(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+void Dimension::group_by_none(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                               range_ctn &range, const subset_pivot_ctn &subset) {
 
   _Aggr aggregator;
@@ -108,18 +124,18 @@ void Dimension::group_by_none(const Query &query, rapidjson::Writer<rapidjson::S
     }
   }
 
-  aggregator.output(query, writer);
+  aggregator.output(clausule, writer);
 }
 
 template<typename _Aggr>
-void Dimension::group_by_none(const Query &query, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+void Dimension::group_by_none(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                               range_ctn &range) {
 
   _Aggr aggregator;
 
   aggregator.merge(range.begin(), range.end());
 
-  aggregator.output(query, writer);
+  aggregator.output(clausule, writer);
 }
 
 bool Dimension::search_iterators(range_it &it_range, const range_ctn &range,

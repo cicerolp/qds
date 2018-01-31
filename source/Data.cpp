@@ -16,5 +16,3 @@ void Data::sort(size_t fromIndex, size_t toIndex) {
 }
 
 void Data::setHash(size_t id, uint32_t value) { _element[id].hash = value; }
-
-void Data::dispose() { _data.clear(); }

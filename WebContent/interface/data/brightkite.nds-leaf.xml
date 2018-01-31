@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<name>brightkite</name>
+	<bytes>14</bytes>
+	<file>brightkite.nds</file>
+	<schema>
+		<categorical>
+			<index>1</index>
+			<bin>7</bin>
+			<offset>8</offset>
+		</categorical>
+		<categorical>
+			<index>2</index>
+			<bin>24</bin>
+			<offset>9</offset>
+		</categorical>
+		<temporal>
+			<index>3</index>
+			<bin>604800</bin>
+			<offset>10</offset>
+		</temporal>
+		<spatial>
+			<index>0</index>
+			<bin>1</bin>
+			<offset>0</offset>
+		</spatial>
+	</schema>
+</config>

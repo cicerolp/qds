@@ -135,7 +135,7 @@ function updateDataRestrictions() {
         }
 
         // [dimension_name].region.([x0]:[y0]:[x1]:[y1]:[z])
-        curr_region += "/const=" + i + ".region.("
+        curr_region += "/const=" + currTileValue + ".region.("
             + x0 + ":"
             + roundtile(lat2tiley(lat0, z), z) + ":"
             + x1 + ":"
@@ -152,7 +152,7 @@ function updateDataRestrictions() {
 
     _view.views.forEach(function (entry) {
         if (entry.on_menu) {
-            var restriction = "/const=" + get_id(entry.field.name) + ".values.(";
+            var restriction = "/const=" + entry.field.name + ".values.(";
 
             var values = "";
 
@@ -185,7 +185,7 @@ function updateDataRestrictions() {
             var tseries_from = Math.floor(Math.max(lower_bound.getTime(), curr_lower_bound) / 1000);
             var tseries_to = Math.ceil(Math.min(upper_bound.getTime(), curr_upper_bound) / 1000);
 
-            curr_tseries += "/const=" + get_id(entry.field.name) + ".interval.(" + tseries_from + ":" + tseries_to + ")";
+            curr_tseries += "/const=" + entry.field.name + ".interval.(" + tseries_from + ":" + tseries_to + ")";
         }
     });
 
@@ -226,7 +226,7 @@ function a_getQuery() {
 
         _view.views.forEach(function (entry) {
             switch (entry.type) {
-                case "mysql": {
+                /*case "mysql": {
                     var query = "/count/mysql" + tseries + region + where;
                     $.ajax({
                         type: 'GET',
@@ -240,10 +240,10 @@ function a_getQuery() {
                         }
                     });
                 }
-                    break;
+                    break;*/
 
                 case "histogram": {
-                    var query = "/aggr=count" + region + where + tseries + "/group=" + get_id(entry.field.name);;
+                    var query = "/aggr=count" + region + where + tseries + "/group=" + entry.field.name;
                     $.ajax({
                         type: 'GET',
                         url: _queryURL + query,
@@ -259,7 +259,7 @@ function a_getQuery() {
                     break;
 
                 case "time-series": {
-                    var query = "/aggr=count" + region + where + tseries + "/group=" + get_id(entry.field.name);;
+                    var query = "/aggr=count" + region + where + tseries + "/group=" + entry.field.name;
                     $.ajax({
                         type: 'GET',
                         url: _queryURL + query,
@@ -274,7 +274,7 @@ function a_getQuery() {
                 }
                     break;
 
-                case "binned-scatterplot": {
+                /*case "binned-scatterplot": {
                     var query = "/count/scatter/field/" + get_id(entry.field_x.name) + "/field/" + get_id(entry.field_y.name) + region;
 
                     $.ajax({
@@ -289,7 +289,7 @@ function a_getQuery() {
                         }
                     });
                 }
-                    break;
+                    break;*/
             }
         });
     }

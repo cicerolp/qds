@@ -304,6 +304,8 @@ function onMapMouseUp(e) {
     }
     
     drawing = false;
+
+    marker[currTile].value = currTileValue;
     
     a_getQuery();
     

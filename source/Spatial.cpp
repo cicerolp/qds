@@ -1,24 +1,22 @@
 #include "Spatial.h"
 
-Spatial::Spatial(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple)
-    : Dimension(tuple) {}
+Spatial::Spatial(const DimensionSchema &schema)
+    : Dimension(schema) {}
 
 uint32_t Spatial::build(const build_ctn &range, build_ctn &response, const link_ctn &links, link_ctn &share, NDS &nds) {
-  nds.data()->prepareOffset<coordinates_t>(_offset);
+  nds.data()->prepareOffset<coordinates_t>(_schema.offset);
 
   _tree = std::make_unique<SpatialElement>(spatial_t(0, 0, 0), range, links, share, nds);
 
-  uint32_t pivots_count = _tree->expand(response, _bin, share, nds);
+  uint32_t pivots_count = _tree->expand(response, _schema.bin, share, nds);
 
   std::sort(response.begin(), response.end());
-
-  nds.data()->dispose();
 
   return pivots_count;
 }
 
 bool Spatial::query(const Query &query, subset_ctn &subsets) const {
-  auto clausule = query.get_const(std::to_string(_key));
+  auto clausule = query.get_const(_schema.index);
 
   if (clausule != nullptr) {
     subset_t subset;
@@ -26,7 +24,7 @@ bool Spatial::query(const Query &query, subset_ctn &subsets) const {
     if (clausule->first == "tile") {
       auto tile = parse_tile(clausule->second);
 
-      if (query.group_by(std::to_string(_key))) {
+      if (query.group_by(_schema.index)) {
         subset.option = CopyValueFromSubset;
       }
 
@@ -35,7 +33,7 @@ bool Spatial::query(const Query &query, subset_ctn &subsets) const {
     } else if (clausule->first == "region") {
       auto region = parse_region(clausule->second);
 
-      if (query.group_by(std::to_string(_key))) {
+      if (query.group_by(_schema.index)) {
         subset.option = CopyValueFromSubset;
       }
 

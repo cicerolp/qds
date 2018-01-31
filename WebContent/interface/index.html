@@ -1,0 +1,79 @@
+<html>
+  <head>
+
+    <link rel="stylesheet" href="main.css"></link>
+
+    <script src="global.js"></script>
+    
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="../interface/libs/leaflet.css"></link>
+    <script src="../interface/libs/leaflet.js"></script>
+    <script src="../interface/mapView/L.CanvasOverlay.js"></script>
+    
+    <!-- D3 -->
+    <script src="../interface/libs/d3.js"></script>
+    <script src="../interface/libs/d3-selection-multi.min.js"></script>
+    <script src="../interface/libs/d3-scale-chromatic.js"></script>
+
+    <script src="../interface/util/UsefulFunctions.js"></script>
+    
+    <!-- NDS -->
+    <script src="../interface/nds/NDSQuery.js"></script>
+    <script src="../interface/nds/NDSInterface.js"></script>
+
+    <!-- OWN -->
+    <script src="../interface/util/TileLatLngUtils.js"></script>
+    <script src="../interface/util/xyz.js"></script>
+    <script src="../interface/util/webgl/gl-matrix.js"></script>
+    <script src="../interface/util/webgl/ShaderProgram.js"></script>
+    <script src="../interface/util/webgl/GLBuffer.js"></script>
+    <script src="../interface/util/BoxPlot.js"></script>
+    <script src="../interface/util/BoxPlotWidget.js"></script>
+    <script src="../interface/util/EquiDepthHistogram.js"></script>
+    <script src="../interface/util/EquidepthWidget.js"></script>
+    <script src="../interface/util/TimeSeriesBandPlot.js"></script>
+    <script src="../interface/util/BandPlotWidget.js"></script>
+    
+    <!-- <script src="../util/PieChartWidget.js"></script> -->
+    <!-- <script src="../util/TimeSeriesWidget.js"></script> -->
+    <!-- <script src="../util/BarChartWidget.js"></script> -->
+    <!-- <script src="../util/PlacesRowChart.js"></script> -->
+    <!-- <script src="../util/StackedBarChartWidget.js"></script> -->
+    <!-- <script src="../util/PlacesInfoProvider.js"></script> -->
+
+    
+    <!-- Map View -->
+    <script src="../interface/mapView/myShaders.js"></script>
+    <script src="../interface/mapView/BrushManager.js"></script>    
+    <script src="../interface/mapView/ShaderManager.js"></script>
+    <script src="../interface/mapView/LayerManager.js"></script>    
+    <script src="../interface/mapView/LatLngQuadTreeLayer.js"></script>
+    <script src="../interface/mapView/LatLngPolygonLayer.js"></script>    
+    <script src="../interface/mapView/PointLayer.js"></script>
+    <script src="../interface/mapView/LatLngPointLayer.js"></script>
+    <script src="../interface/mapView/PolygonRenderingLayer.js"></script>
+    <script src="../interface/mapView/LeafletMap.js"></script>
+    <script src="../interface/mapView/NDSLayer.js"></script>
+
+  </head>
+  <body>
+    <div id="modeDiv">
+      <text>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<text>
+      <input name="modeRadioButton" type="radio" value="count" id="mapModeCount" checked><label for="mapModeCount"> Count</label>
+      <input name="modeRadioButton" type="radio" value="quantile" id="mapModeQuantile"><label for="mapModeQuantile"> Quantile</label>
+      <input name="modeRadioButton" type="radio" value="quantile_range" id="mapModeQuantileRange"><label for="mapModeQuantileRange"> Quantile Range</label>
+      <input name="modeRadioButton" type="radio" value="inverse_quantile" id="mapModeInverseQuantile"><label for="mapModeInverseQuantile"> Inverse Quantile</label>      
+      <text>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<text>
+      Quantile:
+      <input type="range" id="quantileSlider" min="0" max="100" step="1" value="50">
+      <label for="quantileSlider" id="quantileLabel">0.50</label>      
+      <text>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<text>
+      Inverse Quantile:
+      <input type="range" id="inverseQuantileSlider" min="0" max="1000" step="10" value="100">
+      <label for="inverseQuantileSlider" id="inverseQuantileLabel">100</label>      
+
+    </div>
+
+  </body>
+  <script src="main.js"></script>
+</html>

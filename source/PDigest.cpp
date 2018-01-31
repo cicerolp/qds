@@ -7,6 +7,8 @@
 
 #include "Pivot.h"
 
+#include "NDS.h"
+
 #ifdef ENABLE_PDIGEST
 
 std::default_random_engine random_engine;
@@ -150,14 +152,20 @@ float PDigest::inverse(float value) const {
   return weightSoFar / totalWeight;
 }
 
-payload_t *PDigest::get_payload(uint32_t first, uint32_t second) {
-  // TODO get value from dataset
+payload_t *PDigest::get_payload(uint32_t first, uint32_t second, NDS &nds) {
+  // TODO remove temporary vector
   std::vector<float> inMean;
   inMean.reserve(second - first);
 
   for (auto p = first; p < second; ++p) {
-    inMean.emplace_back(uniform_dist(random_engine));
+    if (nds.data()->has_payload()) {
+      inMean.emplace_back((*nds.data()->payload<float>(p)));
+    } else {
+      inMean.emplace_back(uniform_dist(random_engine));
+    }
   }
+
+  // TODO payload weight
   // every weight equal 1
   std::vector<float> inWeight(second - first, 1);
 
@@ -199,14 +207,7 @@ payload_t *PDigest::get_payload(uint32_t first, uint32_t second) {
 
     bool addThis = false;
 
-#ifdef PDIGEST_WEIGHT_LIMIT
-    float z = proposedWeight * normalizer;
-    float q0 = wSoFar / totalWeight;
-    float q2 = (wSoFar + proposedWeight) / totalWeight;
-    addThis = z * z <= q0 * (1 - q0) && z * z <= q2 * (1 - q2);
-#else
     addThis = projectedW <= wLimit;
-#endif
 
     if (addThis) {
       // next point will fit
@@ -221,10 +222,8 @@ payload_t *PDigest::get_payload(uint32_t first, uint32_t second) {
       // didn't fit ... move to next output, copy out first centroid
       wSoFar += weight[lastUsedCell];
 
-#ifndef PDIGEST_WEIGHT_LIMIT
       k1 = integratedLocation(wSoFar / totalWeight);
       wLimit = totalWeight * integratedQ(k1 + 1);
-#endif
 
       lastUsedCell++;
       mean[lastUsedCell] = inMean[ix];
@@ -274,14 +273,7 @@ void PDigest::merge_buffer_data() {
 
     bool addThis = false;
 
-#ifdef PDIGEST_WEIGHT_LIMIT
-    float z = proposedWeight * normalizer;
-    float q0 = wSoFar / totalWeight;
-    float q2 = (wSoFar + proposedWeight) / totalWeight;
-    addThis = z * z <= q0 * (1 - q0) && z * z <= q2 * (1 - q2);
-#else
     addThis = projectedW <= wLimit;
-#endif
 
     if (addThis) {
       // next point will fit
@@ -296,10 +288,8 @@ void PDigest::merge_buffer_data() {
       // didn't fit ... move to next output, copy out first centroid
       wSoFar += _weight[_lastUsedCell];
 
-#ifndef PDIGEST_WEIGHT_LIMIT
       k1 = integratedLocation(wSoFar / totalWeight);
       wLimit = totalWeight * integratedQ(k1 + 1);
-#endif
 
       _lastUsedCell++;
       _mean[_lastUsedCell] = _buffer_mean[ix];
@@ -390,4 +380,4 @@ float PDigest::asinApproximation(float x) {
 #endif
 }
 
-#endif
+#endif // ENABLE_PDIGEST

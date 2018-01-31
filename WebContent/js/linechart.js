@@ -1,4 +1,10 @@
 function loadLineChart(data, entry) {
+    if (typeof data == 'undefined') {
+        data = [];
+    } else {
+        data = data[0];
+    }
+
     var margin = {
         top: 10,
         right: 40,

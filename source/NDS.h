@@ -27,7 +27,7 @@ class NDS {
     rhs.clear();
   }
 
-#ifdef ENABLE_PDIGEST
+#ifdef NDS_SHARE_PAYLOAD
   template<class InputIt1, class InputIt2>
   inline void share_payload(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2) {
     while (first1 != last1 && first2 != last2) {
@@ -37,34 +37,37 @@ class NDS {
         if ((*first2).back() < (*first1).back()) {
           ++first2;
         } else {
-          first2->copy_payload(*first1);
+          first2->set_payload(*first1);
           ++first1;
           ++first2;
         }
       }
     }
   }
-#endif
+#endif // NDS_SHARE_PAYLOAD
 
   inline pivot_ctn *create_link(bined_pivot_t &binned, const build_ctn &container, const link_ctn &links) {
     pivot_ctn *link = new pivot_ctn(container.size());
     std::memcpy(&(*link)[0], &container[0], container.size() * sizeof(Pivot));
 
-#ifdef ENABLE_PDIGEST
+#ifdef NDS_ENABLE_PAYLOAD
+    #ifdef NDS_SHARE_PAYLOAD
     for (auto &link_ctn : links) {
       share_payload(link_ctn->begin(), link_ctn->end(), link->begin(), link->end());
     }
+    #endif // NDS_SHARE_PAYLOAD
 
     for (auto &ptr : *link) {
       if (ptr.get_payload() == nullptr) {
-        ptr.create_payload();
+        ptr.create_payload(*this);
       }
     }
-#endif
+#endif // NDS_ENABLE_PAYLOAD
     return link;
   }
 
   inline pivot_ctn *get_link(bined_pivot_t &binned, const build_ctn &container, const link_ctn &links) {
+#ifdef NDS_SHARE_PIVOT
     pivot_ctn *link = nullptr;
 
     for (auto &ptr : links) {
@@ -79,6 +82,9 @@ class NDS {
     } else {
       return link;
     }
+#else
+    return create_link(binned, container, links);
+#endif // NDS_SHARE_PIVOT
   }
 
   inline

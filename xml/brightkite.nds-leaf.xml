@@ -5,22 +5,22 @@
 	<file>brightkite.nds</file>
 	<schema>
 		<categorical>
-			<index>1</index>
+			<index>day_of_week</index>
 			<bin>7</bin>
 			<offset>8</offset>
 		</categorical>
 		<categorical>
-			<index>2</index>
+			<index>hour_of_day</index>
 			<bin>24</bin>
 			<offset>9</offset>
 		</categorical>
 		<temporal>
-			<index>3</index>
+			<index>date</index>
 			<bin>604800</bin>
 			<offset>10</offset>
 		</temporal>
 		<spatial>
-			<index>0</index>
+			<index>coord</index>
 			<bin>1</bin>
 			<offset>0</offset>
 		</spatial>

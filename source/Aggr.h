@@ -32,7 +32,7 @@ class Aggr {
 class AggrSubset : public Aggr {
  public:
   virtual void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) = 0;
-  virtual void output(size_t el, uint64_t value, const Query &query, json &writer) = 0;
+  virtual void output(size_t el, uint64_t value, const Query::clausule &aggr, json &writer) = 0;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -42,7 +42,7 @@ class AggrSubset : public Aggr {
 class AggrRange : public Aggr {
  public:
   virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) = 0;
-  virtual void output(const Query &query, json &writer) = 0;
+  virtual void output(const Query::clausule &aggr, json &writer) = 0;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -53,7 +53,7 @@ class AggrNone : public Aggr {
  public:
   virtual void merge(pivot_it &it_lower, pivot_it &it_upper) = 0;
   virtual void merge(const range_it &it_lower, const range_it &it_upper) = 0;
-  virtual void output(const Query &query, json &writer) = 0;
+  virtual void output(const Query::clausule &aggr, json &writer) = 0;
 };
 
 // count
@@ -69,7 +69,7 @@ class AggrCountSubset : public AggrSubset {
     }
   }
 
-  virtual void output(size_t el, uint64_t value, const Query &query, json &writer) override {
+  virtual void output(size_t el, uint64_t value, const Query::clausule &aggr, json &writer) override {
     if (_map[el] == 0) return;
 
     writer.StartArray();
@@ -92,7 +92,7 @@ class AggrCountRange : public AggrRange {
     }
   }
 
-  virtual void output(const Query &query, json &writer) override {
+  virtual void output(const Query::clausule &aggr, json &writer) override {
     for (const auto &pair : _map) {
       writer.StartArray();
       write_value(pair.first, writer);
@@ -121,7 +121,7 @@ class AggrCountNone : public AggrNone {
       _count += (*it++).pivot.size();
     }
   }
-  void output(const Query &query, json &writer) override {
+  void output(const Query::clausule &aggr, json &writer) override {
     writer.Uint(_count);
   }
  protected:
@@ -140,11 +140,11 @@ class AggrQuantileSubset : public AggrSubset {
     _map[el].merge(it_lower, it_upper);
   }
 
-  virtual void output(size_t el, uint64_t value, const Query &query, json &writer) override {
+  virtual void output(size_t el, uint64_t value, const Query::clausule &aggr, json &writer) override {
     // TODO fix empty p-digest
     //if (_map[el].empty_pdigest()) return;
 
-    auto clausule = boost::trim_copy_if(query.get_aggr().second, boost::is_any_of("()"));
+    auto clausule = boost::trim_copy_if(aggr.second, boost::is_any_of("()"));
 
     boost::char_separator<char> sep(":");
     boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
@@ -174,11 +174,11 @@ class AggrInverseSubset : public AggrSubset {
     _map[el].merge(it_lower, it_upper);
   }
 
-  virtual void output(size_t el, uint64_t value, const Query &query, json &writer) override {
+  virtual void output(size_t el, uint64_t value, const Query::clausule &aggr, json &writer) override {
     // TODO fix empty p-digest
     //if (_map[el].empty_pdigest()) return;
 
-    auto clausule = boost::trim_copy_if(query.get_aggr().second, boost::is_any_of("()"));
+    auto clausule = boost::trim_copy_if(aggr.second, boost::is_any_of("()"));
 
     boost::char_separator<char> sep(":");
     boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
@@ -206,8 +206,8 @@ class AggrQuantileRange : public AggrRange {
     _map[value].merge(it_lower, it_upper);
   }
 
-  virtual void output(const Query &query, json &writer) override {
-    auto clausule = boost::trim_copy_if(query.get_aggr().second, boost::is_any_of("()"));
+  virtual void output(const Query::clausule &aggr, json &writer) override {
+    auto clausule = boost::trim_copy_if(aggr.second, boost::is_any_of("()"));
 
     boost::char_separator<char> sep(":");
     boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
@@ -237,8 +237,8 @@ class AggrInverseRange : public AggrRange {
     _map[value].merge(it_lower, it_upper);
   }
 
-  virtual void output(const Query &query, json &writer) override {
-    auto clausule = boost::trim_copy_if(query.get_aggr().second, boost::is_any_of("()"));
+  virtual void output(const Query::clausule &aggr, json &writer) override {
+    auto clausule = boost::trim_copy_if(aggr.second, boost::is_any_of("()"));
 
     boost::char_separator<char> sep(":");
     boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
@@ -276,8 +276,8 @@ class AggrQuantileNone : public AggrNone {
       _pdigest.merge((*it++).pivot);
     }
   }
-  void output(const Query &query, json &writer) override {
-    auto clausule = boost::trim_copy_if(query.get_aggr().second, boost::is_any_of("()"));
+  void output(const Query::clausule &aggr, json &writer) override {
+    auto clausule = boost::trim_copy_if(aggr.second, boost::is_any_of("()"));
 
     boost::char_separator<char> sep(":");
     boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
@@ -311,8 +311,8 @@ class AggrInverseNone : public AggrNone {
       _pdigest.merge((*it++).pivot);
     }
   }
-  void output(const Query &query, json &writer) override {
-    auto clausule = boost::trim_copy_if(query.get_aggr().second, boost::is_any_of("()"));
+  void output(const Query::clausule &aggr, json &writer) override {
+    auto clausule = boost::trim_copy_if(aggr.second, boost::is_any_of("()"));
 
     boost::char_separator<char> sep(":");
     boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);

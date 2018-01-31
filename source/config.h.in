@@ -7,23 +7,24 @@
 
 #include <cmath>
 
-#cmakedefine OPTIMIZE_LEAF
+// nds options
+#cmakedefine NDS_ENABLE_PAYLOAD
 
-#cmakedefine ENABLE_PDIGEST
+// nds tweaks
+#cmakedefine NDS_OPTIMIZE_LEAF
 
-#ifdef ENABLE_PDIGEST
-    #cmakedefine PDIGEST_WEIGHT_LIMIT
-    #cmakedefine PDIGEST_PIECE_WISE_APPROXIMATION
+// nds sharing
+#cmakedefine NDS_SHARE_PIVOT
+#cmakedefine NDS_SHARE_PAYLOAD
 
-    #define PDIGEST_COMPRESSION @PDIGEST_COMPRESSION@
+#ifdef NDS_ENABLE_PAYLOAD
+    #cmakedefine ENABLE_PDIGEST
 
-    #ifdef PDIGEST_WEIGHT_LIMIT
-    // the weight limit approach generates smaller centroids than necessary
-    // that can result in using a bit more memory than expected
-        #define PDIGEST_ARRAY_SIZE (uint32_t)((std::ceil(@PDIGEST_COMPRESSION@) * 2) + 10)
-    #else
+    #ifdef ENABLE_PDIGEST
+        #cmakedefine PDIGEST_PIECE_WISE_APPROXIMATION
+        #define PDIGEST_COMPRESSION @PDIGEST_COMPRESSION@
         #define PDIGEST_ARRAY_SIZE (uint32_t)((std::ceil(@PDIGEST_COMPRESSION@) * 2))
-    #endif
-#endif
+    #endif // ENABLE_PDIGEST
+#endif // ENABLE_PDIGEST
 
 #endif //NDS_CONFIG_H_IN

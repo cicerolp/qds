@@ -1,22 +1,22 @@
 #include "Categorical.h"
 #include "NDS.h"
 
-Categorical::Categorical(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple)
-    : Dimension(tuple), _container(_bin) {}
+Categorical::Categorical(const DimensionSchema &schema)
+    : Dimension(schema), _container(schema.bin) {}
 
 uint32_t Categorical::build(const build_ctn &range,
                             build_ctn &response,
                             const link_ctn &links,
                             link_ctn &share,
                             NDS &nds) {
-  nds.data()->prepareOffset<categorical_t>(_offset);
+  nds.data()->prepareOffset<categorical_t>(_schema.offset);
 
   uint32_t pivots_count = 0;
 
-  std::vector<build_ctn> tmp_ctn(_bin);
+  std::vector<build_ctn> tmp_ctn(_schema.bin);
 
   for (const auto &ptr : range) {
-    std::vector<uint32_t> used(_bin, 0);
+    std::vector<uint32_t> used(_schema.bin, 0);
 
     for (auto i = ptr.front(); i < ptr.back(); ++i) {
       auto value = (*nds.data()->record<categorical_t>(i));
@@ -29,7 +29,7 @@ uint32_t Categorical::build(const build_ctn &range,
     nds.data()->sort(ptr.front(), ptr.back());
 
     uint32_t accum = ptr.front();
-    for (uint32_t i = 0; i < _bin; ++i) {
+    for (uint32_t i = 0; i < _schema.bin; ++i) {
       if (used[i] == 0) continue;
 
       uint32_t first = accum;
@@ -43,28 +43,26 @@ uint32_t Categorical::build(const build_ctn &range,
     }
   }
 
-  for (uint32_t index = 0; index < _bin; ++index) {
+  for (uint32_t index = 0; index < _schema.bin; ++index) {
     _container[index].value = index;
     nds.share(_container[index], tmp_ctn[index], links, share);
   }
-
-  nds.data()->dispose();
 
   return pivots_count;
 }
 
 bool Categorical::query(const Query &query, subset_ctn &subsets) const {
-  auto clausule = query.get_const(std::to_string(_key));
+  auto clausule = query.get_const(_schema.index);
 
   if (clausule != nullptr) {
     auto values = parse(clausule->second);
 
     subset_t subset;
 
-    if (query.group_by(std::to_string(_key))) {
+    if (query.group_by(_schema.index)) {
       subset.option = CopyValueFromSubset;
 
-      if (values.size() == _bin) {
+      if (values.size() == _schema.bin) {
         // all values selected
         for (const auto &el : _container) {
           if (!el.pivots->empty()) {
@@ -73,19 +71,19 @@ bool Categorical::query(const Query &query, subset_ctn &subsets) const {
         }
       } else {
         for (auto &value : values) {
-          if (!_container[value].pivots->empty()) {
+          if (value < _container.size() && !_container[value].pivots->empty()) {
             subset.container.emplace_back(&_container[value]);
           }
         }
       }
 
     } else {
-      if (values.size() == _bin) {
+      if (values.size() == _schema.bin) {
         // all values selected
         return true;
       } else {
         for (auto &value : values) {
-          if (!_container[value].pivots->empty()) {
+          if (value < _container.size() && !_container[value].pivots->empty()) {
             subset.container.emplace_back(&_container[value]);
           }
         }
@@ -106,7 +104,7 @@ std::vector<categorical_t> Categorical::parse(const std::string &str) const {
   auto clausule = boost::trim_copy_if(str, boost::is_any_of("()"));
 
   if (clausule == "all") {
-    std::vector<categorical_t> values(_bin);
+    std::vector<categorical_t> values(_schema.bin);
     std::iota(values.begin(), values.end(), 0);
     return values;
 

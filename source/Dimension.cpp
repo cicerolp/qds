@@ -1,12 +1,6 @@
 #include "Dimension.h"
 
-Dimension::Dimension(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple)
-    : _key(std::get<0>(tuple)),
-      _bin(std::get<1>(tuple)),
-      _offset(std::get<2>(tuple)) {
-  std::cout << "\t\tKey: [" << _key << "], Bin: [" << _bin << "], Offset: ["
-            << _offset << "]" << std::endl;
-}
+Dimension::Dimension(const DimensionSchema &schema) : _schema(schema) {}
 
 void Dimension::restrict(range_ctn &range, range_ctn &response,
                          const subset_t &subset, CopyOption &option) {
@@ -77,77 +71,91 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
 
   if (subsets.size() == 0) {
     if (!root.pivot.empty()) {
-      if (aggr.first == "count") {
-        group_by_none<AggrCountNone>(query, writer, response);
+      for (const auto &clausule : aggr) {
+        // start json
+        writer.StartArray();
 
-      } else if (aggr.first == "quantile") {
+        if (clausule.first == "count") {
+          group_by_none<AggrCountNone>(clausule, writer, response);
+        }
+
 #ifdef ENABLE_PDIGEST
-        group_by_none<AggrQuantileNone>(query, writer, response);
-#endif
-      } else if (aggr.first == "inverse") {
-#ifdef ENABLE_PDIGEST
-        group_by_none<AggrInverseNone>(query, writer, response);
-#endif
+        if (clausule.first == "quantile") {
+          group_by_none<AggrQuantileNone>(clausule, writer, response);
+        } else if (clausule.first == "inverse") {
+          group_by_none<AggrInverseNone>(clausule, writer, response);
+        }
+#endif // ENABLE_PDIGEST
+
+        // end json
+        writer.EndArray();
       }
     }
   } else {
-    for (auto i = 0; i < subsets.size() - 1; ++i)
+    for (auto i = 0; i < subsets.size() - 1; ++i) {
       restrict(range, response, subsets[i], option);
+    }
 
     if (option == DefaultCopy) option = subsets.back().option;
 
     // sort range only when necessary
     swap_and_sort(range, response, option);
 
-    if (aggr.first == "count") {
-      if (query.group_by()) {
-        if (option == CopyValueFromSubset) {
-          // group_by_subset
-          group_by_subset<AggrCountSubset>(query, writer, range, subsets.back().container);
+    for (const auto &clausule : aggr) {
+      // start json
+      writer.StartArray();
+
+      if (clausule.first == "count") {
+        if (query.group_by()) {
+          if (option == CopyValueFromSubset) {
+            // group_by_subset
+            group_by_subset<AggrCountSubset>(clausule, writer, range, subsets.back().container);
+          } else {
+            // group_by_range
+            group_by_range<AggrCountRange>(clausule, writer, range, subsets.back().container);
+          }
         } else {
-          // group_by_range
-          group_by_range<AggrCountRange>(query, writer, range, subsets.back().container);
+          // group_by_none
+          group_by_none<AggrCountNone>(clausule, writer, range, subsets.back().container);
         }
-      } else {
-        // group_by_none
-        group_by_none<AggrCountNone>(query, writer, range, subsets.back().container);
       }
 
-    } else if (aggr.first == "quantile") {
 #ifdef ENABLE_PDIGEST
-      if (query.group_by()) {
-        if (option == CopyValueFromSubset) {
-          // group_by_subset
-          group_by_subset<AggrQuantileSubset>(query, writer, range, subsets.back().container);
+      if (clausule.first == "quantile") {
+        if (query.group_by()) {
+          if (option == CopyValueFromSubset) {
+            // group_by_subset
+            group_by_subset<AggrQuantileSubset>(clausule, writer, range, subsets.back().container);
+          } else {
+            // group_by_range
+            group_by_range<AggrQuantileRange>(clausule, writer, range, subsets.back().container);
+          }
         } else {
-          // group_by_range
-          group_by_range<AggrQuantileRange>(query, writer, range, subsets.back().container);
+          // group_by_none
+          group_by_none<AggrQuantileNone>(clausule, writer, range, subsets.back().container);
         }
-      } else {
-        // group_by_none
-        group_by_none<AggrQuantileNone>(query, writer, range, subsets.back().container);
-      }
-#endif
-    } else if (aggr.first == "inverse") {
-#ifdef ENABLE_PDIGEST
-      if (query.group_by()) {
-        if (option == CopyValueFromSubset) {
-          // group_by_subset
-          group_by_subset<AggrInverseSubset>(query, writer, range, subsets.back().container);
+      } else if (clausule.first == "inverse") {
+        if (query.group_by()) {
+          if (option == CopyValueFromSubset) {
+            // group_by_subset
+            group_by_subset<AggrInverseSubset>(clausule, writer, range, subsets.back().container);
+          } else {
+            // group_by_range
+            group_by_range<AggrInverseRange>(clausule, writer, range, subsets.back().container);
+          }
         } else {
-          // group_by_range
-          group_by_range<AggrInverseRange>(query, writer, range, subsets.back().container);
+          // group_by_none
+          group_by_none<AggrInverseNone>(clausule, writer, range, subsets.back().container);
         }
-      } else {
-        // group_by_none
-        group_by_none<AggrInverseNone>(query, writer, range, subsets.back().container);
       }
-#endif
+#endif // ENABLE_PDIGEST
+
+      // end json
+      writer.EndArray();
     }
   }
 
   // end json
   writer.EndArray();
   return buffer.GetString();
-
 }

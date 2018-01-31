@@ -26,14 +26,12 @@ void Query::parse(const std::string &url) {
 
       } else if (key == "aggr") {
 
-
         const auto equals_idx = value.find_first_of(".");
 
         if (std::string::npos != equals_idx) {
-          _aggr.first = value.substr(0, equals_idx);
-          _aggr.second = value.substr(equals_idx + 1);
+          _aggr.emplace_back(value.substr(0, equals_idx), value.substr(equals_idx + 1));
         } else {
-          _aggr.first = value;
+          _aggr.emplace_back(value, "");
         }
 
       } else if (key == "group") {

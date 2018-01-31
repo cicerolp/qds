@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <name>green_tripdata_2013-08</name>
+    <bytes>42</bytes>
+    <file>green_tripdata_2013-08.nds</file>
+    <schema>
+        <categorical>
+            <index>passenger_count</index>
+            <bin>4</bin>
+            <offset>25</offset>
+        </categorical>
+        <categorical>
+            <index>rate_code_id</index>
+            <bin>6</bin>
+            <offset>8</offset>
+        </categorical>
+        <temporal>
+            <index>pickup_datetime</index>
+            <bin>86400</bin>
+            <offset>0</offset>
+        </temporal>
+        <spatial>
+            <index>pickup</index>
+            <bin>1</bin>
+            <offset>9</offset>
+        </spatial>
+        <payload>
+            <index>total_amount</index>
+            <bin>0</bin>
+            <offset>38</offset>
+        </payload>
+    </schema>
+</config>

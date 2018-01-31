@@ -5,6 +5,7 @@
 
 #include "PDigest.h"
 
+class NDS;
 class RangePivot;
 
 class Pivot {
@@ -21,7 +22,7 @@ class Pivot {
   Pivot &operator=(const Pivot &other) = default;
   Pivot &operator=(Pivot &&other) = default;
 
-#ifdef ENABLE_PDIGEST
+#ifdef NDS_ENABLE_PAYLOAD
   inline payload_t *get_payload() {
     return _payload;
   };
@@ -29,14 +30,16 @@ class Pivot {
     return *_payload;
   };
 
-  inline void copy_payload(Pivot &rhs) {
+  inline void set_payload(Pivot &rhs) {
     assert(_payload == nullptr);
     _payload = rhs._payload;
   }
 
-  inline void create_payload() {
+  inline void create_payload(NDS &nds) {
     assert(_payload == nullptr);
-    _payload = PDigest::get_payload(_first, _second);
+    #ifdef ENABLE_PDIGEST
+    _payload = PDigest::get_payload(_first, _second, nds);
+    #endif // ENABLE_PDIGEST
   }
 
   // called once
@@ -45,7 +48,7 @@ class Pivot {
     delete _payload;
     _payload = nullptr;
   }
-#endif
+#endif // NDS_ENABLE_PAYLOAD
 
   inline bool empty() const { return (back() - front()) == 0; }
   inline uint32_t size() const { return back() - front(); }
@@ -93,33 +96,16 @@ class Pivot {
  protected:
   uint32_t _first, _second;
 
-#ifdef ENABLE_PDIGEST
-  // [0  , N/2 - 1] -> mean of points added to each merged centroid
-  // [N/2,   N - 1] -> number of points that have been added to each merged centroid
+#ifdef NDS_ENABLE_PAYLOAD
   payload_t *_payload{nullptr};
-#endif
+#endif // NDS_ENABLE_PAYLOAD
 
-  //bool proper_payload{false};
 };
 
 struct bined_pivot_t {
  public:
   uint64_t value;
   pivot_ctn *pivots;
-
-  // shared (false) or proper (true) content
-  //bool proper{false};
-
-  /*~bined_pivot_t() {
-    if (proper) {
-      if (proper_payload) {
-        for (auto &pivot : (*pivots)) {
-          pivot.delete_payload();
-        }
-        delete pivots;
-      }
-    }
-  }*/
 
   inline pivot_ctn &ptr() const { return *pivots; }
 };

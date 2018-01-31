@@ -5,7 +5,7 @@
 
 class Spatial : public Dimension {
  public:
-  Spatial(const std::tuple<uint32_t, uint32_t, uint32_t> &tuple);
+  Spatial(const DimensionSchema &schema);
   ~Spatial() = default;
 
   uint32_t build(const build_ctn &range,
