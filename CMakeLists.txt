@@ -1,16 +1,19 @@
 project(nds)
 cmake_minimum_required(VERSION 3.0)
 
+# nds options
+option(NDS_ENABLE_PAYLOAD "Enable Payload" ON)
 
-option(OPTIMIZE_LEAF "Enable Spatial Element Leaf Optimization" ON)
+# nds tweaks
+option(NDS_OPTIMIZE_LEAF "Enable Spatial Element Leaf Optimization" ON)
 
+# nds sharing
+option(NDS_SHARE_PIVOT "Enable Pivot Sharing" ON)
+option(NDS_SHARE_PAYLOAD "Enable Payload Sharing" ON)
+
+# p-digest
 option(ENABLE_PDIGEST "Enable p-digest" ON)
-
-# the weight limit approach generates smaller centroids than necessary
-# that can result in using a bit more memory than expected
-option(PDIGEST_WEIGHT_LIMIT "Enable p-digest Weight Limit" OFF)
 option(PDIGEST_PIECE_WISE_APPROXIMATION "Enable p-digest Piece Wise Approximation" ON)
-
 set(PDIGEST_COMPRESSION "50.f" CACHE STRING "Set p-digest Compression (float)")
 
 configure_file(source/config.h.in config.h)

@@ -85,7 +85,7 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
         } else if (clausule.first == "inverse") {
           group_by_none<AggrInverseNone>(clausule, writer, response);
         }
-#endif
+#endif // ENABLE_PDIGEST
 
         // end json
         writer.EndArray();
@@ -148,7 +148,7 @@ std::string Dimension::serialize(const Query &query, subset_ctn &subsets, const 
           group_by_none<AggrInverseNone>(clausule, writer, range, subsets.back().container);
         }
       }
-#endif
+#endif // ENABLE_PDIGEST
 
       // end json
       writer.EndArray();

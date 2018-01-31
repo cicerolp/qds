@@ -6,6 +6,8 @@
 
 #include "types.h"
 
+#ifdef ENABLE_PDIGEST
+
 class NDS;
 
 class PDigest {
@@ -90,3 +92,5 @@ class PDigest {
   // temporary data - avoid unnecessary memory allocations
   std::vector<float> _buffer_mean, _buffer_weight;
 };
+
+#endif // ENABLE_PDIGEST

@@ -9,6 +9,8 @@
 
 #include "NDS.h"
 
+#ifdef ENABLE_PDIGEST
+
 std::default_random_engine random_engine;
 std::uniform_int_distribution<> uniform_dist(0, 1000);
 
@@ -205,14 +207,7 @@ payload_t *PDigest::get_payload(uint32_t first, uint32_t second, NDS &nds) {
 
     bool addThis = false;
 
-#ifdef PDIGEST_WEIGHT_LIMIT
-    float z = proposedWeight * normalizer;
-    float q0 = wSoFar / totalWeight;
-    float q2 = (wSoFar + proposedWeight) / totalWeight;
-    addThis = z * z <= q0 * (1 - q0) && z * z <= q2 * (1 - q2);
-#else
     addThis = projectedW <= wLimit;
-#endif
 
     if (addThis) {
       // next point will fit
@@ -227,10 +222,8 @@ payload_t *PDigest::get_payload(uint32_t first, uint32_t second, NDS &nds) {
       // didn't fit ... move to next output, copy out first centroid
       wSoFar += weight[lastUsedCell];
 
-#ifndef PDIGEST_WEIGHT_LIMIT
       k1 = integratedLocation(wSoFar / totalWeight);
       wLimit = totalWeight * integratedQ(k1 + 1);
-#endif
 
       lastUsedCell++;
       mean[lastUsedCell] = inMean[ix];
@@ -280,14 +273,7 @@ void PDigest::merge_buffer_data() {
 
     bool addThis = false;
 
-#ifdef PDIGEST_WEIGHT_LIMIT
-    float z = proposedWeight * normalizer;
-    float q0 = wSoFar / totalWeight;
-    float q2 = (wSoFar + proposedWeight) / totalWeight;
-    addThis = z * z <= q0 * (1 - q0) && z * z <= q2 * (1 - q2);
-#else
     addThis = projectedW <= wLimit;
-#endif
 
     if (addThis) {
       // next point will fit
@@ -302,10 +288,8 @@ void PDigest::merge_buffer_data() {
       // didn't fit ... move to next output, copy out first centroid
       wSoFar += _weight[_lastUsedCell];
 
-#ifndef PDIGEST_WEIGHT_LIMIT
       k1 = integratedLocation(wSoFar / totalWeight);
       wLimit = totalWeight * integratedQ(k1 + 1);
-#endif
 
       _lastUsedCell++;
       _mean[_lastUsedCell] = _buffer_mean[ix];
@@ -395,3 +379,5 @@ float PDigest::asinApproximation(float x) {
   return std::asin(x);
 #endif
 }
+
+#endif // ENABLE_PDIGEST
