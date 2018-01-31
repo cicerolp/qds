@@ -13,6 +13,7 @@ var lower_bound = null, upper_bound = null;
 var curr_lower_bound = null, curr_upper_bound = null;
 
 var currTile = 0;
+var currTileValue = null;
 
 function roundtile(v, z) {
     v = Math.floor(v);
@@ -35,8 +36,4 @@ function lon2tilex(lon, z) {
 
 function lat2tiley(lat, z) {
     return ((1.0 - Math.log(Math.tan(lat * Math.PI / 180.0) + 1.0 / Math.cos(lat * Math.PI / 180.0)) / Math.PI) / 2.0 * Math.pow(2.0, z));
-}
-
-function get_id(str) {
-   return str.substring(2, str.length);
 }

@@ -11,7 +11,7 @@ function heatmap_layer(value) {
 
     canvas_layer.drawTile = function (canvas, coords, zoom) {
 
-        currTile = value;
+        currTileValue = value;
 
         var context = canvas.getContext('2d');
         context.globalCompositeOperation = 'lighter';
@@ -21,11 +21,11 @@ function heatmap_layer(value) {
 
         $.ajax({
             type: 'GET',
-            url: _queryURL + "/aggr=count/" + query_map + "/group=" + value,
+            url: _queryURL + "/aggr=count" + query_map + "/group=" + value,
             dataType: "json",
             success: function (data) {
                 var entry = {
-                    data: data,
+                    data: data[0],
                     context: context,
                     tile_x: coords.x,
                     tile_y: coords.y,
@@ -48,6 +48,9 @@ function heatmap_layer(value) {
 }
 
 function color_tile(entry) {
+    if (typeof entry.data == 'undefined')
+        return;
+
     entry.context.clearRect(0, 0, 256, 256);
 
     var fs = pickDrawFuncs();
@@ -70,8 +73,6 @@ function color_tile(entry) {
         var x1 = (lon2tilex(lon1, entry.tile_zoom) - entry.tile_x) * 256;
         var y1 = (lat2tiley(lat1, entry.tile_zoom) - entry.tile_y) * 256;
 
-	debugger
-	
         var datum = {
             data_zoom: d[2],
             count: d[3],
