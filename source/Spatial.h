@@ -8,7 +8,7 @@ class Spatial : public Dimension {
   Spatial(const DimensionSchema &schema);
   ~Spatial() = default;
 
-  uint32_t build(BuildPair<build_ctn> &range, BuildPair<link_ctn> &links, Data &data) override;
+  uint32_t build(NDS &nds, Data &data, BuildPair<build_ctn> &range, BuildPair<link_ctn> &links) override;
   bool query(const Query &query, subset_ctn &subsets) const override;
 
  private:

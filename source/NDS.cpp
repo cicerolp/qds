@@ -15,7 +15,7 @@ NDS::NDS(const Schema &schema) {
 
   Data data(schema.file);
 
-  std::cout << "Buildind NDS: " << std::endl;
+  std::cout << "NDS: " << std::endl;
   std::cout << "\tName: " << schema.name << std::endl;
   std::cout << "\tSize: " << data.size() << std::endl;
   std::cout << std::endl;
@@ -25,11 +25,17 @@ NDS::NDS(const Schema &schema) {
 
 #ifdef NDS_ENABLE_PAYLOAD
   for (const auto &info : schema.payload) {
-    _payload.emplace_back(std::make_unique<Payload>(info));
-
+    switch (info.bin) {
+      case 0: {
+        std::cout << "\tPayload Dimension: \n\t\t" << info << std::endl;
+        _payload.emplace_back(std::make_unique<PDigest>(info));
+      }
+        break;
+    }
     // prepare payload
-    data.preparePayload(info);
+    data.preparePayload(info.offset);
   }
+  std::cout << std::endl;
 
   // create root payload
   NDS::create_payload(data, _root[0]);
@@ -44,17 +50,17 @@ NDS::NDS(const Schema &schema) {
   for (const auto &info : schema.dimension) {
     switch (info.type) {
       case DimensionSchema::Spatial: {
-        std::cout << "\tBuilding Spatial Dimension: \n\t\t" << info << std::endl;
+        std::cout << "\tSpatial Dimension: \n\t\t" << info << std::endl;
         _dimension.emplace_back(std::make_unique<Spatial>(info));
       }
         break;
       case DimensionSchema::Temporal: {
-        std::cout << "\tBuilding Temporal Dimension: \n\t\t" << info << std::endl;
+        std::cout << "\tTemporal Dimension: \n\t\t" << info << std::endl;
         _dimension.emplace_back(std::make_unique<Temporal>(info));
       }
         break;
       case DimensionSchema::Categorical: {
-        std::cout << "\tBuilding Categorical Dimension: \n\t\t" << info << std::endl;
+        std::cout << "\tCategorical Dimension: \n\t\t" << info << std::endl;
         _dimension.emplace_back(std::make_unique<Categorical>(info));
       }
         break;
@@ -63,8 +69,7 @@ NDS::NDS(const Schema &schema) {
         break;
     }
 
-
-    uint32_t curr_count = _dimension.back()->build(range, links, data);
+    uint32_t curr_count = _dimension.back()->build(*this, data, range, links);
     pivots_count += curr_count;
 
     swap_and_clear<link_ctn>(links.input, links.output);

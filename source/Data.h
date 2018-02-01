@@ -27,7 +27,7 @@ class Data {
   void prepareOffset(uint8_t offset);
 
   inline float payload(uint32_t offset, size_t id);
-  inline void preparePayload(const DimensionSchema &info);
+  inline void preparePayload(uint8_t offset);
 
   inline uint32_t size() const;
 
@@ -70,15 +70,15 @@ float Data::payload(uint32_t offset, size_t id) {
   return _payload[offset][_element[id].index];
 }
 
-void Data::preparePayload(const DimensionSchema &info) {
+void Data::preparePayload(uint8_t offset) {
   std::ifstream infile(_path, std::ios::binary);
 
-  if (_payload.find(info.offset) == _payload.end()) {
-    infile.ignore(sizeof(BinaryHeader) + (_header.records * info.offset));
+  if (_payload.find(offset) == _payload.end()) {
+    infile.ignore(sizeof(BinaryHeader) + (_header.records * offset));
 
-    _payload.emplace(info.offset, std::vector<float>(_header.records));
+    _payload.emplace(offset, std::vector<float>(_header.records));
 
-    infile.read(reinterpret_cast<char *>(&_payload[info.offset][0]), sizeof(float) * _header.records);
+    infile.read(reinterpret_cast<char *>(&_payload[offset][0]), sizeof(float) * _header.records);
   }
 
   infile.close();

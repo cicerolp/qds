@@ -3,7 +3,7 @@
 
 Temporal::Temporal(const DimensionSchema &schema) : Dimension(schema) {}
 
-uint32_t Temporal::build(BuildPair<build_ctn> &range, BuildPair<link_ctn> &links, Data &data) {
+uint32_t Temporal::build(NDS &nds, Data &data, BuildPair<build_ctn> &range, BuildPair<link_ctn> &links) {
   data.prepareOffset<temporal_t>(_schema.offset);
 
   uint32_t pivots_count = 0;
@@ -41,7 +41,7 @@ uint32_t Temporal::build(BuildPair<build_ctn> &range, BuildPair<link_ctn> &links
   uint32_t index = 0;
   for (auto &pair : tmp_ctn) {
     _container[index].el.value = pair.first;
-    NDS::share(data, _container[index].el, pair.second, links.input, links.output);
+    nds.share(data, _container[index].el, pair.second, links);
     ++index;
   }
 

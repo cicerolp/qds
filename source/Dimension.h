@@ -15,7 +15,7 @@ class Dimension {
 
   virtual bool query(const Query &query, subset_ctn &subsets) const = 0;
 
-  virtual uint32_t build(BuildPair<build_ctn> &range, BuildPair<link_ctn> &links, Data &data) = 0;
+  virtual uint32_t build(NDS &nds, Data &data, BuildPair<build_ctn> &range, BuildPair<link_ctn> &links) = 0;
 
   static std::string serialize(const Query &query, subset_ctn &subsets, const RangePivot &root);
 
@@ -52,7 +52,8 @@ template<typename _Aggr>
 void Dimension::group_by_subset(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                                 range_ctn &range, const subset_pivot_ctn &subset) {
 
-  _Aggr aggregator(subset.size());
+  // TODO pass correct payload index
+  _Aggr aggregator(0, subset.size());
 
   for (auto el = 0; el < subset.size(); ++el) {
     pivot_it it_lower = subset[el]->ptr().begin(), it_upper;
@@ -71,7 +72,8 @@ template<typename _Aggr>
 void Dimension::group_by_range(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                                range_ctn &range, const subset_pivot_ctn &subset) {
 
-  _Aggr aggregator;
+  // TODO pass correct payload index
+  _Aggr aggregator(0);
 
   for (const auto &el : subset) {
     pivot_it it_lower = el->ptr().begin(), it_upper;
@@ -90,7 +92,8 @@ template<typename _Aggr>
 void Dimension::group_by_none(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                               range_ctn &range, const subset_pivot_ctn &subset) {
 
-  _Aggr aggregator;
+  // TODO pass correct payload index
+  _Aggr aggregator(0);
 
   for (const auto &el : subset) {
     pivot_it it_lower = el->ptr().begin(), it_upper;
@@ -109,7 +112,8 @@ template<typename _Aggr>
 void Dimension::group_by_none(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                               range_ctn &range) {
 
-  _Aggr aggregator;
+  // TODO pass correct payload index
+  _Aggr aggregator(0);
 
   aggregator.merge(range.begin(), range.end());
 

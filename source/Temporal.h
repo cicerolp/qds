@@ -24,7 +24,7 @@ class Temporal : public Dimension {
   Temporal(const DimensionSchema &schema);
   ~Temporal() = default;
 
-  uint32_t build(BuildPair<build_ctn> &range, BuildPair<link_ctn> &links, Data &data) override;
+  uint32_t build(NDS &nds, Data &data, BuildPair<build_ctn> &range, BuildPair<link_ctn> &links) override;
   bool query(const Query &query, subset_ctn &subsets) const override;
 
   inline interval_t get_interval() const {

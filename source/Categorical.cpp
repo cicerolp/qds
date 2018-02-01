@@ -4,7 +4,7 @@
 Categorical::Categorical(const DimensionSchema &schema)
     : Dimension(schema), _container(schema.bin) {}
 
-uint32_t Categorical::build(BuildPair<build_ctn> &range, BuildPair<link_ctn> &links, Data &data) {
+uint32_t Categorical::build(NDS &nds, Data &data, BuildPair<build_ctn> &range, BuildPair<link_ctn> &links) {
   data.prepareOffset<categorical_t>(_schema.offset);
 
   uint32_t pivots_count = 0;
@@ -41,7 +41,7 @@ uint32_t Categorical::build(BuildPair<build_ctn> &range, BuildPair<link_ctn> &li
 
   for (uint32_t index = 0; index < _schema.bin; ++index) {
     _container[index].value = index;
-    NDS::share(data, _container[index], tmp_ctn[index], links.input, links.output);
+    nds.share(data, _container[index], tmp_ctn[index], links);
   }
 
   return pivots_count;

@@ -24,7 +24,7 @@ class NDS {
 
 #ifdef NDS_SHARE_PAYLOAD
   template<class InputIt1, class InputIt2>
-  inline static void share_payload(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2) {
+  inline void share_payload(InputIt1 first1, InputIt1 last1, InputIt2 first2, InputIt2 last2) {
     while (first1 != last1 && first2 != last2) {
       if ((*first1).front() < (*first2).front()) {
         ++first1;
@@ -32,7 +32,7 @@ class NDS {
         if ((*first2).back() < (*first1).back()) {
           ++first2;
         } else {
-          first2->set_payload(first1->get_payload());
+          first2->set_payload_ptr(first1->get_payload_ptr());
           ++first1;
           ++first2;
         }
@@ -41,32 +41,23 @@ class NDS {
   }
 #endif // NDS_SHARE_PAYLOAD
 
-  inline static void create_payload(Data &data, Pivot &pivot) {
-    std::vector<std::vector<float>> payload_buffer;
+  inline void create_payload(Data &data, Pivot &pivot) {
+    payload_ctn *payloads = new payload_ctn(_payload.size());
 
-    auto size = 0;
-    payload_buffer.emplace_back(PDigest::get_payload(data, pivot));
-    size += payload_buffer.back().size();
+    for (auto i = 0; i < _payload.size(); ++i) {
+      auto raw_data = _payload[i]->get_payload(data, pivot);
 
-    // allocate memory
-    size += (payload_buffer.size() - 1);
-    payload_t *payload = new stde::dynarray<float>(size);
+      // allocate memory
+      (*payloads)[i] = new payload_t(raw_data.size());
 
-    auto payload_index = 0;
-    for (auto i = 1; i < payload_buffer.size(); ++i) {
-      (*payload)[payload_index] = (float) payload_buffer[i].size();
-      ++payload_index;
+      // copy data
+      std::memcpy(&(*(*payloads)[i])[0], &raw_data[0], raw_data.size() * sizeof(float));
     }
 
-    for (const auto &ctn : payload_buffer) {
-      std::memcpy(&(*payload)[payload_index], &ctn[0], ctn.size() * sizeof(float));
-      payload_index += ctn.size();
-    }
-
-    pivot.set_payload(payload);
+    pivot.set_payload_ptr(payloads);
   }
 
-  inline static pivot_ctn *create_link(Data &data, bined_pivot_t &binned, const build_ctn &ctn, const link_ctn &links) {
+  inline pivot_ctn *create_link(Data &data, bined_pivot_t &binned, const build_ctn &ctn, const link_ctn &links) {
     pivot_ctn *link = new pivot_ctn(ctn.size());
     std::memcpy(&(*link)[0], &ctn[0], ctn.size() * sizeof(Pivot));
 
@@ -78,7 +69,7 @@ class NDS {
 #endif // NDS_SHARE_PAYLOAD
 
     for (auto &ptr : *link) {
-      if (ptr.get_payload() == nullptr) {
+      if (ptr.get_payload_ptr() == nullptr) {
         create_payload(data, ptr);
       }
     }
@@ -86,7 +77,7 @@ class NDS {
     return link;
   }
 
-  inline static pivot_ctn *get_link(Data &data, bined_pivot_t &binned, const build_ctn &ctn, const link_ctn &links) {
+  inline pivot_ctn *get_link(Data &data, bined_pivot_t &binned, const build_ctn &ctn, const link_ctn &links) {
 #ifdef NDS_SHARE_PIVOT
     pivot_ctn *link = nullptr;
 
@@ -107,12 +98,11 @@ class NDS {
 #endif // NDS_SHARE_PIVOT
   }
 
-  inline static
-  void share(Data &data, bined_pivot_t &binned, const build_ctn &ctn, const link_ctn &links, link_ctn &share) {
-    pivot_ctn *link = get_link(data, binned, ctn, links);
+  inline void share(Data &data, bined_pivot_t &binned, const build_ctn &ctn, BuildPair<link_ctn> &links) {
+    auto *link = get_link(data, binned, ctn, links.input);
 
     binned.pivots = link;
-    share.emplace_back(link);
+    links.output.emplace_back(link);
   }
 
  private:

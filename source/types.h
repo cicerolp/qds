@@ -29,6 +29,7 @@ struct DimensionSchema {
 };
 
 using payload_t = stde::dynarray<float>;
+using payload_ctn = stde::dynarray<payload_t *>;
 
 using pivot_ctn = stde::dynarray<Pivot>;
 using pivot_it = pivot_ctn::const_iterator;

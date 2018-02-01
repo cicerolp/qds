@@ -10,6 +10,9 @@
 using json = rapidjson::Writer<rapidjson::StringBuffer>;
 
 class Aggr {
+ public:
+  Aggr(size_t __index) : _payload_index(__index) {};
+
  protected:
   virtual inline void write_value(uint64_t value, json &writer) const {
     // TODO remove type hack
@@ -23,6 +26,8 @@ class Aggr {
       writer.Uint(value);
     }
   }
+
+  size_t _payload_index{0};
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -31,6 +36,8 @@ class Aggr {
 
 class AggrSubset : public Aggr {
  public:
+  AggrSubset(size_t __index) : Aggr(__index) {};
+
   virtual void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) = 0;
   virtual void output(size_t el, uint64_t value, const Query::clausule &aggr, json &writer) = 0;
 };
@@ -41,6 +48,8 @@ class AggrSubset : public Aggr {
 
 class AggrRange : public Aggr {
  public:
+  AggrRange(size_t __index) : Aggr(__index) {};
+
   virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) = 0;
   virtual void output(const Query::clausule &aggr, json &writer) = 0;
 };
@@ -51,6 +60,8 @@ class AggrRange : public Aggr {
 
 class AggrNone : public Aggr {
  public:
+  AggrNone(size_t __index) : Aggr(__index) {};
+
   virtual void merge(pivot_it &it_lower, pivot_it &it_upper) = 0;
   virtual void merge(const range_it &it_lower, const range_it &it_upper) = 0;
   virtual void output(const Query::clausule &aggr, json &writer) = 0;
@@ -61,7 +72,7 @@ class AggrNone : public Aggr {
 
 class AggrCountSubset : public AggrSubset {
  public:
-  AggrCountSubset(size_t size) : _map(size, 0) {}
+  AggrCountSubset(size_t __index, size_t size) : AggrSubset(__index), _map(size, 0) {}
 
   virtual void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) override {
     while (it_lower != it_upper) {
@@ -86,6 +97,8 @@ class AggrCountSubset : public AggrSubset {
 /////////////////////////////////////////////////////////////////////////////////////////
 class AggrCountRange : public AggrRange {
  public:
+  AggrCountRange(size_t __index) : AggrRange(__index) {}
+
   virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
     while (it_lower != it_upper) {
       _map[value] += (*it_lower++).size();
@@ -109,6 +122,8 @@ class AggrCountRange : public AggrRange {
 /////////////////////////////////////////////////////////////////////////////////////////
 class AggrCountNone : public AggrNone {
  public:
+  AggrCountNone(size_t __index) : AggrNone(__index) {}
+
   void merge(pivot_it &it_lower, pivot_it &it_upper) override {
     while (it_lower != it_upper) {
       _count += (*it_lower++).size();
@@ -134,10 +149,10 @@ class AggrCountNone : public AggrNone {
 /////////////////////////////////////////////////////////////////////////////////////////
 class AggrQuantileSubset : public AggrSubset {
  public:
-  AggrQuantileSubset(size_t size) : _map(size) {}
+  AggrQuantileSubset(size_t __index, size_t size) : AggrSubset(__index), _map(size) {}
 
   virtual void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) override {
-    _map[el].merge(it_lower, it_upper);
+    _map[el].merge(_payload_index, it_lower, it_upper);
   }
 
   virtual void output(size_t el, uint64_t value, const Query::clausule &aggr, json &writer) override {
@@ -161,17 +176,17 @@ class AggrQuantileSubset : public AggrSubset {
   }
 
  protected:
-  std::vector<PDigest> _map;
+  std::vector<PDigestMerge> _map;
 };
 
 // inverse
 /////////////////////////////////////////////////////////////////////////////////////////
 class AggrInverseSubset : public AggrSubset {
  public:
-  AggrInverseSubset(size_t size) : _map(size) {}
+  AggrInverseSubset(size_t __index, size_t size) : AggrSubset(__index), _map(size) {}
 
   virtual void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) override {
-    _map[el].merge(it_lower, it_upper);
+    _map[el].merge(_payload_index, it_lower, it_upper);
   }
 
   virtual void output(size_t el, uint64_t value, const Query::clausule &aggr, json &writer) override {
@@ -195,15 +210,17 @@ class AggrInverseSubset : public AggrSubset {
   }
 
  protected:
-  std::vector<PDigest> _map;
+  std::vector<PDigestMerge> _map;
 };
 
 // quantile
 /////////////////////////////////////////////////////////////////////////////////////////
 class AggrQuantileRange : public AggrRange {
  public:
+  AggrQuantileRange(size_t __index) : AggrRange(__index) {}
+
   virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
-    _map[value].merge(it_lower, it_upper);
+    _map[value].merge(_payload_index, it_lower, it_upper);
   }
 
   virtual void output(const Query::clausule &aggr, json &writer) override {
@@ -226,15 +243,17 @@ class AggrQuantileRange : public AggrRange {
   }
 
  protected:
-  std::map<uint64_t, PDigest> _map;
+  std::map<uint64_t, PDigestMerge> _map;
 };
 
 // inverse
 /////////////////////////////////////////////////////////////////////////////////////////
 class AggrInverseRange : public AggrRange {
  public:
+  AggrInverseRange(size_t __index) : AggrRange(__index) {}
+
   virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
-    _map[value].merge(it_lower, it_upper);
+    _map[value].merge(_payload_index, it_lower, it_upper);
   }
 
   virtual void output(const Query::clausule &aggr, json &writer) override {
@@ -257,23 +276,25 @@ class AggrInverseRange : public AggrRange {
   }
 
  protected:
-  std::map<uint64_t, PDigest> _map;
+  std::map<uint64_t, PDigestMerge> _map;
 };
 
 // quantile
 /////////////////////////////////////////////////////////////////////////////////////////
 class AggrQuantileNone : public AggrNone {
  public:
+  AggrQuantileNone(size_t __index) : AggrNone(__index) {}
+
   void merge(pivot_it &it_lower, pivot_it &it_upper) override {
     while (it_lower != it_upper) {
-      _pdigest.merge(it_lower, it_upper);
+      _pdigest.merge(_payload_index, it_lower, it_upper);
     }
   }
   void merge(const range_it &it_lower, const range_it &it_upper) override {
     auto it = it_lower;
 
     while (it != it_upper) {
-      _pdigest.merge((*it++).pivot);
+      _pdigest.merge(_payload_index, (*it++).pivot);
     }
   }
   void output(const Query::clausule &aggr, json &writer) override {
@@ -292,23 +313,25 @@ class AggrQuantileNone : public AggrNone {
     }
   }
  protected:
-  PDigest _pdigest;
+  PDigestMerge _pdigest;
 };
 
 // inverse
 /////////////////////////////////////////////////////////////////////////////////////////
 class AggrInverseNone : public AggrNone {
  public:
+  AggrInverseNone(size_t __index) : AggrNone(__index) {}
+
   void merge(pivot_it &it_lower, pivot_it &it_upper) override {
     while (it_lower != it_upper) {
-      _pdigest.merge(it_lower, it_upper);
+      _pdigest.merge(_payload_index, it_lower, it_upper);
     }
   }
   void merge(const range_it &it_lower, const range_it &it_upper) override {
     auto it = it_lower;
 
     while (it != it_upper) {
-      _pdigest.merge((*it++).pivot);
+      _pdigest.merge(_payload_index, (*it++).pivot);
     }
   }
   void output(const Query::clausule &aggr, json &writer) override {
@@ -327,7 +350,7 @@ class AggrInverseNone : public AggrNone {
     }
   }
  protected:
-  PDigest _pdigest;
+  PDigestMerge _pdigest;
 };
 
 #endif
