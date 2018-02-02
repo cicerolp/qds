@@ -7,6 +7,7 @@
 class Query {
  public:
   using clausule = std::pair<std::string, std::string>;
+  using aggr_expr = std::pair<std::string, clausule>;
 
   Query(const std::string &url);
 
@@ -14,7 +15,7 @@ class Query {
     return _dataset;
   }
 
-  inline const std::vector<std::pair<std::string, clausule>> &get_aggr() const {
+  inline const std::vector<aggr_expr> &get_aggr() const {
     return _aggr;
   }
 
@@ -52,6 +53,6 @@ class Query {
   std::string _group_by;
 
   // [aggr type, dimension, values]
-  std::vector<std::pair<std::string, clausule>> _aggr;
+  std::vector<aggr_expr> _aggr;
 };
 

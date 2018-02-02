@@ -144,22 +144,20 @@ class NDS {
   }
 
   template<typename _Aggr>
-  void group_by_subset(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+  void group_by_subset(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                        range_ctn &range, const subset_pivot_ctn &subset) const;
 
   template<typename _Aggr>
-  void group_by_range(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+  void group_by_range(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                       range_ctn &range, const subset_pivot_ctn &subset) const;
 
   template<typename _Aggr>
-  void group_by_none(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+  void group_by_none(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                      range_ctn &range, const subset_pivot_ctn &subset) const;
 
   template<typename _Aggr>
-  void group_by_none(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+  void group_by_none(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                      range_ctn &range) const;
-
-
 
   pivot_ctn _root;
   std::vector<std::unique_ptr<Payload>> _payload;
@@ -169,9 +167,9 @@ class NDS {
 };
 
 template<typename _Aggr>
-void NDS::group_by_subset(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+void NDS::group_by_subset(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                           range_ctn &range, const subset_pivot_ctn &subset) const {
-  _Aggr aggregator(get_payload_index(clausule), subset.size());
+  _Aggr aggregator(expr, get_payload_index(expr.second), subset.size());
 
   for (auto el = 0; el < subset.size(); ++el) {
     pivot_it it_lower = subset[el]->ptr().begin(), it_upper;
@@ -182,14 +180,14 @@ void NDS::group_by_subset(const Query::clausule &clausule, rapidjson::Writer<rap
       ++it_range;
     }
 
-    aggregator.output(el, subset[el]->value, clausule, writer);
+    aggregator.output(el, subset[el]->value, writer);
   }
 }
 
 template<typename _Aggr>
-void NDS::group_by_range(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+void NDS::group_by_range(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                          range_ctn &range, const subset_pivot_ctn &subset) const {
-  _Aggr aggregator(get_payload_index(clausule));
+  _Aggr aggregator(expr, get_payload_index(expr.second));
 
   for (const auto &el : subset) {
     pivot_it it_lower = el->ptr().begin(), it_upper;
@@ -201,13 +199,13 @@ void NDS::group_by_range(const Query::clausule &clausule, rapidjson::Writer<rapi
     }
   }
 
-  aggregator.output(clausule, writer);
+  aggregator.output(writer);
 }
 
 template<typename _Aggr>
-void NDS::group_by_none(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+void NDS::group_by_none(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                         range_ctn &range, const subset_pivot_ctn &subset) const {
-  _Aggr aggregator(get_payload_index(clausule));
+  _Aggr aggregator(expr, get_payload_index(expr.second));
 
   for (const auto &el : subset) {
     pivot_it it_lower = el->ptr().begin(), it_upper;
@@ -219,15 +217,15 @@ void NDS::group_by_none(const Query::clausule &clausule, rapidjson::Writer<rapid
     }
   }
 
-  aggregator.output(clausule, writer);
+  aggregator.output(writer);
 }
 
 template<typename _Aggr>
-void NDS::group_by_none(const Query::clausule &clausule, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+void NDS::group_by_none(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                         range_ctn &range) const {
-  _Aggr aggregator(get_payload_index(clausule));
+  _Aggr aggregator(expr, get_payload_index(expr.second));
 
   aggregator.merge(range.begin(), range.end());
 
-  aggregator.output(clausule, writer);
+  aggregator.output(writer);
 }

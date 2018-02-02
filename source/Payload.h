@@ -15,10 +15,10 @@ class Payload {
   const DimensionSchema _schema;
 };
 
-class PayloadMerge {
+class AgrrPayload {
  public:
-  PayloadMerge() = default;
-  virtual ~PayloadMerge() = default;
+  AgrrPayload() = default;
+  virtual ~AgrrPayload() = default;
 
   virtual void merge(size_t payload_index, const Pivot &pivot) = 0;
   virtual void merge(size_t payload_index, pivot_it &it_lower, pivot_it &it_upper) = 0;

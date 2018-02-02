@@ -4,9 +4,7 @@
 
 #include "stdafx.h"
 #include "PDigest.h"
-
 #include "Pivot.h"
-
 #include "NDS.h"
 
 #ifdef ENABLE_PDIGEST
@@ -20,12 +18,7 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
   inMean.reserve(pivot.back() - pivot.front());
 
   for (auto p = pivot.front(); p < pivot.back(); ++p) {
-    // TODO refactor code
-    if (data.has_payload()) {
-      inMean.emplace_back(data.payload(_schema.offset, p));
-    } else {
-      inMean.emplace_back(uniform_dist(random_engine));
-    }
+    inMean.emplace_back(data.payload(_schema.offset, p));
   }
 
   // TODO payload weight
@@ -188,7 +181,7 @@ float PDigest::asinApproximation(float x) {
 #endif
 }
 
-void PDigestMerge::merge(size_t payload_index, const Pivot &pivot) {
+void AgrrPDigest::merge(size_t payload_index, const Pivot &pivot) {
   _buffer_mean.clear();
   _buffer_weight.clear();
 
@@ -209,7 +202,7 @@ void PDigestMerge::merge(size_t payload_index, const Pivot &pivot) {
   merge_buffer_data();
 }
 
-void PDigestMerge::merge(size_t payload_index, pivot_it &it_lower, pivot_it &it_upper) {
+void AgrrPDigest::merge(size_t payload_index, pivot_it &it_lower, pivot_it &it_upper) {
   _buffer_mean.clear();
   _buffer_weight.clear();
 
@@ -242,7 +235,7 @@ void PDigestMerge::merge(size_t payload_index, pivot_it &it_lower, pivot_it &it_
   merge_buffer_data();
 }
 
-float PDigestMerge::quantile(float q) const {
+float AgrrPDigest::quantile(float q) const {
   if (_lastUsedCell == 0 && _weight[_lastUsedCell] == 0) {
     // no centroids means no data, no way to get a quantile
     return std::numeric_limits<float>::quiet_NaN();
@@ -289,7 +282,7 @@ float PDigestMerge::quantile(float q) const {
   return PDigest::weightedAverage(_mean[n - 1], z1, _max, z2);
 }
 
-float PDigestMerge::inverse(float value) const {
+float AgrrPDigest::inverse(float value) const {
   if (_lastUsedCell == 0 && _weight[_lastUsedCell] == 0) {
     // no centroids means no data, no way to get a quantile
     return std::numeric_limits<float>::quiet_NaN();
@@ -326,7 +319,7 @@ float PDigestMerge::inverse(float value) const {
   return weightSoFar / totalWeight;
 }
 
-void PDigestMerge::merge_buffer_data() {
+void AgrrPDigest::merge_buffer_data() {
   int32_t incomingCount = _buffer_mean.size();
 
   auto inOrder = PDigest::sort_indexes(_buffer_mean);

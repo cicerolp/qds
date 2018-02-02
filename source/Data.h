@@ -17,10 +17,6 @@ class Data {
   void sort(size_t fromIndex, size_t toIndex);
   void setHash(size_t id, uint32_t value);
 
-  inline bool has_payload() const {
-    return _payload.size() != 0;
-  }
-
   template<typename T>
   T *record(size_t id);
   template<typename T>

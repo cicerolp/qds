@@ -7,6 +7,9 @@
 #include "Spatial.h"
 #include "Temporal.h"
 
+#include "PDigest.h"
+#include "Gaussian.h"
+
 NDS::NDS(const Schema &schema) {
   std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
   start = std::chrono::high_resolution_clock::now();
@@ -35,7 +38,7 @@ NDS::NDS(const Schema &schema) {
         break;
       case 1: {
         std::cout << "\tPayload Dimension: Gaussian\n\t\t" << info << std::endl;
-        _payload.emplace_back(std::make_unique<PDigest>(info));
+        _payload.emplace_back(std::make_unique<Gaussian>(info));
       }
         break;
     }
@@ -137,16 +140,20 @@ std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangeP
         writer.StartArray();
 
         if (expr.first == "count") {
-          group_by_none<AggrCountNone>(expr.second, writer, response);
+          group_by_none<AggrCountNone>(expr, writer, response);
         }
 
 #ifdef ENABLE_PDIGEST
-        if (expr.first == "quantile") {
-          group_by_none<AggrQuantileNone>(expr.second, writer, response);
-        } else if (expr.first == "inverse") {
-          group_by_none<AggrInverseNone>(expr.second, writer, response);
+        if (expr.first == "quantile" || expr.first == "inverse") {
+          group_by_none<AggrPDigestNone>(expr, writer, response);
         }
 #endif // ENABLE_PDIGEST
+
+#ifdef ENABLE_GAUSSIAN
+        if (expr.first == "variance" || expr.first == "average") {
+          group_by_none<AggrGaussianNone>(expr, writer, response);
+        }
+#endif // ENABLE_GAUSSIAN
 
         // end json
         writer.EndArray();
@@ -170,46 +177,50 @@ std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangeP
         if (query.group_by()) {
           if (option == CopyValueFromSubset) {
             // group_by_subset
-            group_by_subset<AggrCountSubset>(expr.second, writer, range, subsets.back().container);
+            group_by_subset<AggrCountSubset>(expr, writer, range, subsets.back().container);
           } else {
             // group_by_range
-            group_by_range<AggrCountRange>(expr.second, writer, range, subsets.back().container);
+            group_by_range<AggrCountRange>(expr, writer, range, subsets.back().container);
           }
         } else {
           // group_by_none
-          group_by_none<AggrCountNone>(expr.second, writer, range, subsets.back().container);
+          group_by_none<AggrCountNone>(expr, writer, range, subsets.back().container);
         }
       }
 
 #ifdef ENABLE_PDIGEST
-      if (expr.first == "quantile") {
+      if (expr.first == "quantile" || expr.first == "inverse") {
         if (query.group_by()) {
           if (option == CopyValueFromSubset) {
             // group_by_subset
-            group_by_subset<AggrQuantileSubset>(expr.second, writer, range, subsets.back().container);
+            group_by_subset<AggrPDigestSubset>(expr, writer, range, subsets.back().container);
           } else {
             // group_by_range
-            group_by_range<AggrQuantileRange>(expr.second, writer, range, subsets.back().container);
+            group_by_range<AggrPDigestRange>(expr, writer, range, subsets.back().container);
           }
         } else {
           // group_by_none
-          group_by_none<AggrQuantileNone>(expr.second, writer, range, subsets.back().container);
-        }
-      } else if (expr.first == "inverse") {
-        if (query.group_by()) {
-          if (option == CopyValueFromSubset) {
-            // group_by_subset
-            group_by_subset<AggrInverseSubset>(expr.second, writer, range, subsets.back().container);
-          } else {
-            // group_by_range
-            group_by_range<AggrInverseRange>(expr.second, writer, range, subsets.back().container);
-          }
-        } else {
-          // group_by_none
-          group_by_none<AggrInverseNone>(expr.second, writer, range, subsets.back().container);
+          group_by_none<AggrPDigestNone>(expr, writer, range, subsets.back().container);
         }
       }
 #endif // ENABLE_PDIGEST
+
+#ifdef ENABLE_GAUSSIAN
+      if (expr.first == "quantile" || expr.first == "inverse") {
+        if (query.group_by()) {
+          if (option == CopyValueFromSubset) {
+            // group_by_subset
+            group_by_subset<AggrGaussianSubset>(expr, writer, range, subsets.back().container);
+          } else {
+            // group_by_range
+            group_by_range<AggrGaussianRange>(expr, writer, range, subsets.back().container);
+          }
+        } else {
+          // group_by_none
+          group_by_none<AggrGaussianNone>(expr, writer, range, subsets.back().container);
+        }
+      }
+#endif // ENABLE_GAUSSIAN
 
       // end json
       writer.EndArray();

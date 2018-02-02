@@ -12,11 +12,11 @@
 #ifdef ENABLE_PDIGEST
 
 class NDS;
-class PDigestMerge;
+class AgrrPDigest;
 
 class PDigest : public Payload {
  public:
-  friend class PDigestMerge;
+  friend class AgrrPDigest;
 
   PDigest(const DimensionSchema &schema) : Payload(schema) {}
 
@@ -80,7 +80,7 @@ class PDigest : public Payload {
 
 };
 
-class PDigestMerge : public PayloadMerge {
+class AgrrPDigest : public AgrrPayload {
  public:
   void merge(size_t payload_index, const Pivot &pivot) override;
   void merge(size_t payload_index, pivot_it &it_lower, pivot_it &it_upper) override;
