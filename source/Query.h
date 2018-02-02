@@ -14,7 +14,7 @@ class Query {
     return _dataset;
   }
 
-  inline const std::vector<clausule> &get_aggr() const {
+  inline const std::vector<std::pair<std::string, clausule>> &get_aggr() const {
     return _aggr;
   }
 
@@ -51,7 +51,7 @@ class Query {
   // [dimesion name] -> group_by
   std::string _group_by;
 
-  // [aggr]
-  std::vector<clausule> _aggr;
+  // [aggr type, dimension, values]
+  std::vector<std::pair<std::string, clausule>> _aggr;
 };
 

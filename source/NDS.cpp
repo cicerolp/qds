@@ -24,14 +24,25 @@ NDS::NDS(const Schema &schema) {
   _root[0] = Pivot(0, data.size());
 
 #ifdef NDS_ENABLE_PAYLOAD
-  for (const auto &info : schema.payload) {
+  for (auto i = 0; i < schema.payload.size(); ++i) {
+    const auto &info = schema.payload[i];
+
     switch (info.bin) {
       case 0: {
-        std::cout << "\tPayload Dimension: \n\t\t" << info << std::endl;
+        std::cout << "\tPayload Dimension: PDigest\n\t\t" << info << std::endl;
+        _payload.emplace_back(std::make_unique<PDigest>(info));
+      }
+        break;
+      case 1: {
+        std::cout << "\tPayload Dimension: Gaussian\n\t\t" << info << std::endl;
         _payload.emplace_back(std::make_unique<PDigest>(info));
       }
         break;
     }
+
+    // store payload index
+    _payload_index[info.index] = i;
+
     // prepare payload
     data.preparePayload(info.offset);
   }
@@ -100,5 +111,209 @@ std::string NDS::query(const Query &query) {
     }
   }
 
-  return Dimension::serialize(query, subsets, root);
+  return serialize(query, subsets, root);
+}
+
+std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangePivot &root) const {
+  // get aggregation clausule
+  auto &aggr = query.get_aggr();
+
+  CopyOption option = DefaultCopy;
+  range_ctn range, response;
+
+  response.emplace_back(root);
+
+  // serialization
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
+  // start json
+  writer.StartArray();
+
+  if (subsets.size() == 0) {
+    if (!root.pivot.empty()) {
+      for (const auto &expr : aggr) {
+        // start json
+        writer.StartArray();
+
+        if (expr.first == "count") {
+          group_by_none<AggrCountNone>(expr.second, writer, response);
+        }
+
+#ifdef ENABLE_PDIGEST
+        if (expr.first == "quantile") {
+          group_by_none<AggrQuantileNone>(expr.second, writer, response);
+        } else if (expr.first == "inverse") {
+          group_by_none<AggrInverseNone>(expr.second, writer, response);
+        }
+#endif // ENABLE_PDIGEST
+
+        // end json
+        writer.EndArray();
+      }
+    }
+  } else {
+    for (auto i = 0; i < subsets.size() - 1; ++i) {
+      restrict(range, response, subsets[i], option);
+    }
+
+    if (option == DefaultCopy) option = subsets.back().option;
+
+    // sort range only when necessary
+    swap_and_sort(range, response, option);
+
+    for (const auto &expr : aggr) {
+      // start json
+      writer.StartArray();
+
+      if (expr.first == "count") {
+        if (query.group_by()) {
+          if (option == CopyValueFromSubset) {
+            // group_by_subset
+            group_by_subset<AggrCountSubset>(expr.second, writer, range, subsets.back().container);
+          } else {
+            // group_by_range
+            group_by_range<AggrCountRange>(expr.second, writer, range, subsets.back().container);
+          }
+        } else {
+          // group_by_none
+          group_by_none<AggrCountNone>(expr.second, writer, range, subsets.back().container);
+        }
+      }
+
+#ifdef ENABLE_PDIGEST
+      if (expr.first == "quantile") {
+        if (query.group_by()) {
+          if (option == CopyValueFromSubset) {
+            // group_by_subset
+            group_by_subset<AggrQuantileSubset>(expr.second, writer, range, subsets.back().container);
+          } else {
+            // group_by_range
+            group_by_range<AggrQuantileRange>(expr.second, writer, range, subsets.back().container);
+          }
+        } else {
+          // group_by_none
+          group_by_none<AggrQuantileNone>(expr.second, writer, range, subsets.back().container);
+        }
+      } else if (expr.first == "inverse") {
+        if (query.group_by()) {
+          if (option == CopyValueFromSubset) {
+            // group_by_subset
+            group_by_subset<AggrInverseSubset>(expr.second, writer, range, subsets.back().container);
+          } else {
+            // group_by_range
+            group_by_range<AggrInverseRange>(expr.second, writer, range, subsets.back().container);
+          }
+        } else {
+          // group_by_none
+          group_by_none<AggrInverseNone>(expr.second, writer, range, subsets.back().container);
+        }
+      }
+#endif // ENABLE_PDIGEST
+
+      // end json
+      writer.EndArray();
+    }
+  }
+
+  // end json
+  writer.EndArray();
+  return buffer.GetString();
+}
+
+void NDS::restrict(range_ctn &range, range_ctn &response, const subset_t &subset, CopyOption &option) const {
+  if (option == DefaultCopy) option = subset.option;
+
+  // sort range only when necessary
+  swap_and_sort(range, response, option);
+
+  pivot_it it_lower, it_upper;
+  range_it it_range;
+
+  switch (option) {
+    case CopyValueFromRange:
+      for (const auto &el : subset.container) {
+        it_lower = el->ptr().begin();
+        it_range = range.begin();
+        while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+          while (it_lower != it_upper) {
+            response.emplace_back((*it_lower++), (*it_range).value);
+          }
+          ++it_range;
+        }
+      }
+      break;
+    case CopyValueFromSubset:
+      for (const auto &el : subset.container) {
+        it_lower = el->ptr().begin();
+        it_range = range.begin();
+        while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+          while (it_lower != it_upper) {
+            response.emplace_back((*it_lower++), el->value);
+          }
+          ++it_range;
+        }
+      }
+      break;
+    default:
+      for (const auto &el : subset.container) {
+        it_lower = el->ptr().begin();
+        it_range = range.begin();
+        while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+          response.insert(response.end(), it_lower, it_upper);
+          it_lower = it_upper;
+          ++it_range;
+        }
+      }
+      break;
+  }
+
+  if (option == CopyValueFromSubset) option = CopyValueFromRange;
+}
+
+bool NDS::search_iterators(range_it &it_range, const range_ctn &range,
+                           pivot_it &it_lower, pivot_it &it_upper, const pivot_ctn &subset) const {
+  if (it_lower == subset.end() || it_range == range.end()) return false;
+
+  if ((*it_range).pivot.ends_before(*it_lower)) {
+    // binary search to find range iterator
+    it_range = std::lower_bound(it_range, range.end(), (*it_lower), RangePivot::upper_bound_comp);
+
+    if (it_range == range.end()) return false;
+  }
+
+  if ((*it_range).pivot.begins_after(*it_lower)) {
+    if (it_lower == std::prev(subset.end())) return false;
+
+    // binnary search to find lower subset iterator
+    it_lower = std::lower_bound(it_lower, subset.end(), (*it_range).pivot, Pivot::lower_bound_comp);
+
+    if (it_lower == subset.end()) return false;
+  }
+
+  it_upper = std::upper_bound(it_lower, subset.end(), (*it_range).pivot, Pivot::upper_bound_comp);
+
+  return true;
+}
+
+void NDS::compactation(range_ctn &input, range_ctn &output, CopyOption option) const {
+  output.emplace_back(input.front());
+
+  if (option == DefaultCopy || option == CopyValueFromSubset) {
+    for (size_t i = 1; i < input.size(); ++i) {
+      if (Pivot::is_sequence(output.back().pivot, input[i].pivot)) {
+        output.back().pivot.append(input[i].pivot);
+      } else {
+        output.emplace_back(input[i]);
+      }
+    }
+  } else { // CopyValueFromRange
+    for (size_t i = 1; i < input.size(); ++i) {
+      if (RangePivot::is_sequence(output.back(), input[i])) {
+        output.back().pivot.append(input[i].pivot);
+      } else {
+        output.emplace_back(input[i]);
+      }
+    }
+  }
 }

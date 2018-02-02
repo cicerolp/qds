@@ -36,7 +36,6 @@ add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
         source/mongoose.c
         source/Categorical.cpp
         source/Data.cpp
-        source/Dimension.cpp
         source/main.cpp
         source/NDS.cpp
         source/NDSInstances.cpp
