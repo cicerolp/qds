@@ -16,7 +16,10 @@ std::vector<float> Gaussian::get_payload(Data &data, const Pivot &pivot) const {
   for (auto p = pivot.front(); p < pivot.back(); ++p) {
     auto elt = data.payload(_schema.offset, p);
 
+    // sum
     payload[0] += elt;
+
+    // sum_square
     payload[1] += elt * elt;
   }
 
@@ -46,15 +49,20 @@ void AggrGaussian::merge(size_t payload_index, pivot_it &it_lower, pivot_it &it_
 }
 
 float AggrGaussian::variance() const {
-  // somatorio(x_i^2) - 2*media(x)*somatrio(x_i) + n* media(x)^2
+  // sum(xi ^ 2) / n - average(xi) ^ 2
+  float count = 0.f;
+  float sum_square = 0.f;
+  float average_square = 0.f;
+  for (auto i = 0; i < count_i.size(); ++i) {
+    count += count_i[i];
+    sum_square += sum_square_i[i];
 
-  float count = std::accumulate(count_i.begin(), count_i.end(), 0);
-  float sum = std::accumulate(sum_i.begin(), sum_i.end(), 0);
-  float sum_square = std::accumulate(sum_square_i.begin(), sum_square_i.end(), 0);
+    float average_i = sum_i[i] / count_i[i];
 
-  float average = sum / count;
+    average_square += average_i * average_i;
+  }
 
-  return sum_square - 2 * average * sum + count * (average * average);
+  return sum_square / count - average_square;
 }
 
 float AggrGaussian::average() const {
