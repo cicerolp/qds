@@ -8,11 +8,11 @@ extern uint32_t g_Quadtree_Depth;
 
 class SpatialElement {
  public:
-  SpatialElement(const spatial_t &tile, const build_ctn &container, const link_ctn &links, link_ctn &share, NDS &nds);
-  SpatialElement(const spatial_t &tile, const build_ctn &container, const link_ctn &links, NDS &nds);
+  SpatialElement(NDS &nds, Data &data, BuildPair<build_ctn> &range, BuildPair<link_ctn> &links, const spatial_t &tile);
+  SpatialElement(NDS &nds, Data &data, const build_ctn &container, const link_ctn &links, const spatial_t &tile);
   ~SpatialElement() = default;
 
-  uint32_t expand(build_ctn &response, uint32_t bin, link_ctn &share, NDS &nds);
+  uint32_t expand(NDS &nds, Data &data, BuildPair<build_ctn> &range, BuildPair<link_ctn> &links, uint32_t bin);
 
   void query_tile(const spatial_t &tile, uint64_t resolution, subset_pivot_ctn &subset, uint64_t zoom) const;
   void query_region(const region_t &region, subset_pivot_ctn &subset, uint64_t zoom) const;
@@ -25,7 +25,7 @@ class SpatialElement {
   void aggregate_tile(uint64_t resolution, subset_pivot_ctn &subset, uint64_t zoom) const;
   inline bool count_expand(uint32_t bin) const;
 
-  inline static std::pair<uint32_t, uint32_t> get_tile(uint32_t x, uint32_t y, uint32_t index) {
+  inline static spatial_t get_tile(uint32_t x, uint32_t y, uint32_t z, uint32_t index) {
     if (index == 1) {
       ++y;
     } else if (index == 2) {
@@ -34,7 +34,7 @@ class SpatialElement {
       ++y;
       ++x;
     }
-    return {x, y};
+    return spatial_t(x, y, z);
   }
 
   bined_pivot_t _el;

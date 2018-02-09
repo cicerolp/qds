@@ -21,18 +21,11 @@ std::string NDSInstances::schema(const std::string &instance) const {
 
   if (!cube) return ("[]");
 
-  interval_t interval = cube->get_interval();
-
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
 
   writer.StartObject();
-  writer.String("totalcount");
-  writer.Int(cube->size());
-  writer.String("mindate");
-  writer.Uint(interval.bound[0]);
-  writer.String("maxdate");
-  writer.Uint(interval.bound[1]);
+  // TODO return schema from cube
   writer.EndObject();
 
   return buffer.GetString();

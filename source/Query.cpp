@@ -9,6 +9,8 @@ Query::Query(const std::string &url) : _url(url) {
 }
 
 void Query::parse(const std::string &url) {
+  // TODO refactor code
+
   boost::char_separator<char> sep("/");
   boost::tokenizer<boost::char_separator<char> > tokens(url, sep);
 
@@ -25,13 +27,24 @@ void Query::parse(const std::string &url) {
         _dataset = value;
 
       } else if (key == "aggr") {
+        // [type, [dimension, values]]
 
-        const auto equals_idx = value.find_first_of(".");
+        auto equals_idx = value.find_first_of(".");
 
         if (std::string::npos != equals_idx) {
-          _aggr.emplace_back(value.substr(0, equals_idx), value.substr(equals_idx + 1));
+
+          std::string type = value.substr(0, equals_idx);
+
+          std::string expr = value.substr(equals_idx + 1);
+          equals_idx = expr.find_first_of(".");
+
+          if (std::string::npos != equals_idx) {
+            _aggr.emplace_back(type, std::make_pair(expr.substr(0, equals_idx), expr.substr(equals_idx + 1)));
+          } else {
+            _aggr.emplace_back(type, std::make_pair(expr, ""));
+          }
         } else {
-          _aggr.emplace_back(value, "");
+          _aggr.emplace_back(value, clausule());
         }
 
       } else if (key == "group") {

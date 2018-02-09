@@ -6,10 +6,14 @@
 
 #include "Pivot.h"
 #include "PDigest.h"
+#include "Gaussian.h"
 
 using json = rapidjson::Writer<rapidjson::StringBuffer>;
 
 class Aggr {
+ public:
+  Aggr(const Query::aggr_expr &expr, size_t __index) : _expr(expr), _payload_index(__index) {};
+
  protected:
   virtual inline void write_value(uint64_t value, json &writer) const {
     // TODO remove type hack
@@ -23,6 +27,9 @@ class Aggr {
       writer.Uint(value);
     }
   }
+
+  size_t _payload_index{0};
+  const Query::aggr_expr _expr;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -31,8 +38,10 @@ class Aggr {
 
 class AggrSubset : public Aggr {
  public:
+  AggrSubset(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
+
   virtual void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) = 0;
-  virtual void output(size_t el, uint64_t value, const Query::clausule &aggr, json &writer) = 0;
+  virtual void output(size_t el, uint64_t value, json &writer) = 0;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -41,8 +50,10 @@ class AggrSubset : public Aggr {
 
 class AggrRange : public Aggr {
  public:
+  AggrRange(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
+
   virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) = 0;
-  virtual void output(const Query::clausule &aggr, json &writer) = 0;
+  virtual void output(json &writer) = 0;
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -51,9 +62,11 @@ class AggrRange : public Aggr {
 
 class AggrNone : public Aggr {
  public:
+  AggrNone(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
+
   virtual void merge(pivot_it &it_lower, pivot_it &it_upper) = 0;
   virtual void merge(const range_it &it_lower, const range_it &it_upper) = 0;
-  virtual void output(const Query::clausule &aggr, json &writer) = 0;
+  virtual void output(json &writer) = 0;
 };
 
 // count
@@ -61,7 +74,8 @@ class AggrNone : public Aggr {
 
 class AggrCountSubset : public AggrSubset {
  public:
-  AggrCountSubset(size_t size) : _map(size, 0) {}
+  AggrCountSubset(const Query::aggr_expr &expr, size_t __index, size_t size) :
+      AggrSubset(expr, __index), _map(size, 0) {}
 
   virtual void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) override {
     while (it_lower != it_upper) {
@@ -69,7 +83,7 @@ class AggrCountSubset : public AggrSubset {
     }
   }
 
-  virtual void output(size_t el, uint64_t value, const Query::clausule &aggr, json &writer) override {
+  virtual void output(size_t el, uint64_t value, json &writer) override {
     if (_map[el] == 0) return;
 
     writer.StartArray();
@@ -86,13 +100,16 @@ class AggrCountSubset : public AggrSubset {
 /////////////////////////////////////////////////////////////////////////////////////////
 class AggrCountRange : public AggrRange {
  public:
+  AggrCountRange(const Query::aggr_expr &expr, size_t __index) :
+      AggrRange(expr, __index) {}
+
   virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
     while (it_lower != it_upper) {
       _map[value] += (*it_lower++).size();
     }
   }
 
-  virtual void output(const Query::clausule &aggr, json &writer) override {
+  virtual void output(json &writer) override {
     for (const auto &pair : _map) {
       writer.StartArray();
       write_value(pair.first, writer);
@@ -109,6 +126,9 @@ class AggrCountRange : public AggrRange {
 /////////////////////////////////////////////////////////////////////////////////////////
 class AggrCountNone : public AggrNone {
  public:
+  AggrCountNone(const Query::aggr_expr &expr, size_t __index) :
+      AggrNone(expr, __index) {}
+
   void merge(pivot_it &it_lower, pivot_it &it_upper) override {
     while (it_lower != it_upper) {
       _count += (*it_lower++).size();
@@ -121,213 +141,253 @@ class AggrCountNone : public AggrNone {
       _count += (*it++).pivot.size();
     }
   }
-  void output(const Query::clausule &aggr, json &writer) override {
+  void output(json &writer) override {
     writer.Uint(_count);
   }
  protected:
   uint32_t _count{0};
 };
 
+#ifdef NDS_ENABLE_PAYLOAD
+template<typename T>
+class AggrPayloadSubset : public AggrSubset {
+ public:
+  AggrPayloadSubset(const Query::aggr_expr &expr, size_t __index, size_t size) :
+      AggrSubset(expr, __index), _map(size) {}
+
+  void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) override {
+    _map[el].merge(_payload_index, it_lower, it_upper);
+  }
+
+ protected:
+  std::vector<T> _map;
+};
+
+template<typename T>
+class AggrPayloadRange : public AggrRange {
+ public:
+  AggrPayloadRange(const Query::aggr_expr &expr, size_t __index) :
+      AggrRange(expr, __index) {}
+
+  void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
+    _map[value].merge(_payload_index, it_lower, it_upper);
+  }
+
+ protected:
+  std::map<uint64_t, T> _map;
+};
+
+template<typename T>
+class AggrPayloadNone : public AggrNone {
+ public:
+  AggrPayloadNone(const Query::aggr_expr &expr, size_t __index) :
+      AggrNone(expr, __index) {}
+
+  void merge(pivot_it &it_lower, pivot_it &it_upper) override {
+    while (it_lower != it_upper) {
+      _map.merge(_payload_index, it_lower, it_upper);
+    }
+  }
+
+  void merge(const range_it &it_lower, const range_it &it_upper) override {
+    auto it = it_lower;
+    while (it != it_upper) {
+      _map.merge(_payload_index, (*it++).pivot);
+    }
+  }
+
+ protected:
+  T _map;
+};
+#endif // NDS_ENABLE_PAYLOAD
+
 #ifdef ENABLE_PDIGEST
-
-// quantile
-/////////////////////////////////////////////////////////////////////////////////////////
-class AggrQuantileSubset : public AggrSubset {
+class AggrPDigestSubset : public AggrPayloadSubset<AgrrPDigest> {
  public:
-  AggrQuantileSubset(size_t size) : _map(size) {}
+  AggrPDigestSubset(const Query::aggr_expr &expr, size_t __index, size_t size) :
+      AggrPayloadSubset(expr, __index, size) {}
 
-  virtual void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) override {
-    _map[el].merge(it_lower, it_upper);
-  }
-
-  virtual void output(size_t el, uint64_t value, const Query::clausule &aggr, json &writer) override {
+  void output(size_t el, uint64_t value, json &writer) override {
     // TODO fix empty p-digest
     //if (_map[el].empty_pdigest()) return;
 
-    auto clausule = boost::trim_copy_if(aggr.second, boost::is_any_of("()"));
+    auto clausule = boost::trim_copy_if(_expr.second.second, boost::is_any_of("()"));
 
     boost::char_separator<char> sep(":");
     boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
 
-    for (auto &q : tokens) {
-      auto quantile = std::stof(q);
-
-      writer.StartArray();
-      write_value(value, writer);
-      writer.Double(quantile);
-      writer.Double(_map[el].quantile(quantile));
-      writer.EndArray();
-    }
-  }
-
- protected:
-  std::vector<PDigest> _map;
-};
-
-// inverse
-/////////////////////////////////////////////////////////////////////////////////////////
-class AggrInverseSubset : public AggrSubset {
- public:
-  AggrInverseSubset(size_t size) : _map(size) {}
-
-  virtual void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) override {
-    _map[el].merge(it_lower, it_upper);
-  }
-
-  virtual void output(size_t el, uint64_t value, const Query::clausule &aggr, json &writer) override {
-    // TODO fix empty p-digest
-    //if (_map[el].empty_pdigest()) return;
-
-    auto clausule = boost::trim_copy_if(aggr.second, boost::is_any_of("()"));
-
-    boost::char_separator<char> sep(":");
-    boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
-
-    for (auto &q : tokens) {
-      auto quantile = std::stof(q);
-
-      writer.StartArray();
-      write_value(value, writer);
-      writer.Double(quantile);
-      writer.Double(_map[el].inverse(quantile));
-      writer.EndArray();
-    }
-  }
-
- protected:
-  std::vector<PDigest> _map;
-};
-
-// quantile
-/////////////////////////////////////////////////////////////////////////////////////////
-class AggrQuantileRange : public AggrRange {
- public:
-  virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
-    _map[value].merge(it_lower, it_upper);
-  }
-
-  virtual void output(const Query::clausule &aggr, json &writer) override {
-    auto clausule = boost::trim_copy_if(aggr.second, boost::is_any_of("()"));
-
-    boost::char_separator<char> sep(":");
-    boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
-
-    for (const auto &pair : _map) {
+    if (_expr.first == "quantile") {
       for (auto &q : tokens) {
-        auto quantile = std::stof(q);
+        auto parameter = std::stof(q);
 
         writer.StartArray();
-        write_value(pair.first, writer);
-        writer.Double(quantile);
-        writer.Double(pair.second.quantile(quantile));
+        write_value(value, writer);
+        writer.Double(parameter);
+        writer.Double(_map[el].quantile(parameter));
+        writer.EndArray();
+      }
+
+    } else if (_expr.first == "inverse") {
+      for (auto &q : tokens) {
+        auto parameter = std::stof(q);
+
+        writer.StartArray();
+        write_value(value, writer);
+        writer.Double(parameter);
+        writer.Double(_map[el].inverse(parameter));
         writer.EndArray();
       }
     }
   }
-
- protected:
-  std::map<uint64_t, PDigest> _map;
 };
 
-// inverse
-/////////////////////////////////////////////////////////////////////////////////////////
-class AggrInverseRange : public AggrRange {
+class AggrPDigestRange : public AggrPayloadRange<AgrrPDigest> {
  public:
-  virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
-    _map[value].merge(it_lower, it_upper);
-  }
+  AggrPDigestRange(const Query::aggr_expr &expr, size_t __index) :
+      AggrPayloadRange(expr, __index) {}
 
-  virtual void output(const Query::clausule &aggr, json &writer) override {
-    auto clausule = boost::trim_copy_if(aggr.second, boost::is_any_of("()"));
+  void output(json &writer) override {
+    auto clausule = boost::trim_copy_if(_expr.second.second, boost::is_any_of("()"));
 
     boost::char_separator<char> sep(":");
     boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
 
-    for (const auto &pair : _map) {
+    if (_expr.first == "quantile") {
+      for (const auto &pair : _map) {
+        for (auto &q : tokens) {
+          auto parameter = std::stof(q);
+
+          writer.StartArray();
+          write_value(pair.first, writer);
+          writer.Double(parameter);
+          writer.Double(pair.second.quantile(parameter));
+          writer.EndArray();
+        }
+      }
+
+    } else if (_expr.first == "inverse") {
+      for (const auto &pair : _map) {
+        for (auto &q : tokens) {
+          auto parameter = std::stof(q);
+
+          writer.StartArray();
+          write_value(pair.first, writer);
+          writer.Double(parameter);
+          writer.Double(pair.second.inverse(parameter));
+          writer.EndArray();
+        }
+      }
+    }
+  }
+};
+
+class AggrPDigestNone : public AggrPayloadNone<AgrrPDigest> {
+ public:
+  AggrPDigestNone(const Query::aggr_expr &expr, size_t __index) :
+      AggrPayloadNone(expr, __index) {}
+
+  void output(json &writer) override {
+    auto clausule = boost::trim_copy_if(_expr.second.second, boost::is_any_of("()"));
+
+    boost::char_separator<char> sep(":");
+    boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
+
+    if (_expr.first == "quantile") {
       for (auto &q : tokens) {
-        auto quantile = std::stof(q);
+        auto parameter = std::stof(q);
 
         writer.StartArray();
-        write_value(pair.first, writer);
-        writer.Double(quantile);
-        writer.Double(pair.second.inverse(quantile));
+        writer.Double(parameter);
+        writer.Double(_map.quantile(parameter));
+        writer.EndArray();
+      }
+
+    } else if (_expr.first == "inverse") {
+      for (auto &q : tokens) {
+        auto parameter = std::stof(q);
+
+        writer.StartArray();
+        writer.Double(parameter);
+        writer.Double(_map.inverse(parameter));
         writer.EndArray();
       }
     }
   }
+};
+#endif // ENABLE_PDIGEST
 
- protected:
-  std::map<uint64_t, PDigest> _map;
+#ifdef ENABLE_GAUSSIAN
+class AggrGaussianSubset : public AggrPayloadSubset<AggrGaussian> {
+ public:
+  AggrGaussianSubset(const Query::aggr_expr &expr, size_t __index, size_t size) :
+      AggrPayloadSubset(expr, __index, size) {}
+
+  void output(size_t el, uint64_t value, json &writer) override {
+    if (_expr.first == "variance") {
+      writer.StartArray();
+      write_value(value, writer);
+      writer.Double(_map[el].variance());
+      writer.EndArray();
+
+    } else if (_expr.first == "average") {
+      writer.StartArray();
+      write_value(value, writer);
+      writer.EndArray();
+    }
+  }
 };
 
-// quantile
-/////////////////////////////////////////////////////////////////////////////////////////
-class AggrQuantileNone : public AggrNone {
+class AggrGaussianRange : public AggrPayloadRange<AggrGaussian> {
  public:
-  void merge(pivot_it &it_lower, pivot_it &it_upper) override {
-    while (it_lower != it_upper) {
-      _pdigest.merge(it_lower, it_upper);
-    }
-  }
-  void merge(const range_it &it_lower, const range_it &it_upper) override {
-    auto it = it_lower;
+  AggrGaussianRange(const Query::aggr_expr &expr, size_t __index) :
+      AggrPayloadRange(expr, __index) {}
 
-    while (it != it_upper) {
-      _pdigest.merge((*it++).pivot);
-    }
-  }
-  void output(const Query::clausule &aggr, json &writer) override {
-    auto clausule = boost::trim_copy_if(aggr.second, boost::is_any_of("()"));
+  void output(json &writer) override {
+    auto clausule = boost::trim_copy_if(_expr.second.second, boost::is_any_of("()"));
 
     boost::char_separator<char> sep(":");
     boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
 
-    for (auto &q : tokens) {
-      auto quantile = std::stof(q);
+    if (_expr.first == "variance") {
+      for (const auto &pair : _map) {
+        writer.StartArray();
+        write_value(pair.first, writer);
+        writer.Double(pair.second.variance());
+        writer.EndArray();
+      }
 
-      writer.StartArray();
-      writer.Double(quantile);
-      writer.Double(_pdigest.quantile(quantile));
-      writer.EndArray();
+    } else if (_expr.first == "average") {
+      for (const auto &pair : _map) {
+        writer.StartArray();
+        write_value(pair.first, writer);
+        writer.Double(pair.second.average());
+        writer.EndArray();
+      }
     }
   }
- protected:
-  PDigest _pdigest;
 };
 
-// inverse
-/////////////////////////////////////////////////////////////////////////////////////////
-class AggrInverseNone : public AggrNone {
+class AggrGaussianNone : public AggrPayloadNone<AggrGaussian> {
  public:
-  void merge(pivot_it &it_lower, pivot_it &it_upper) override {
-    while (it_lower != it_upper) {
-      _pdigest.merge(it_lower, it_upper);
-    }
-  }
-  void merge(const range_it &it_lower, const range_it &it_upper) override {
-    auto it = it_lower;
+  AggrGaussianNone(const Query::aggr_expr &expr, size_t __index) :
+      AggrPayloadNone(expr, __index) {}
 
-    while (it != it_upper) {
-      _pdigest.merge((*it++).pivot);
-    }
-  }
-  void output(const Query::clausule &aggr, json &writer) override {
-    auto clausule = boost::trim_copy_if(aggr.second, boost::is_any_of("()"));
+  void output(json &writer) override {
+    auto clausule = boost::trim_copy_if(_expr.second.second, boost::is_any_of("()"));
 
     boost::char_separator<char> sep(":");
     boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
 
-    for (auto &q : tokens) {
-      auto quantile = std::stof(q);
-
+    if (_expr.first == "variance") {
       writer.StartArray();
-      writer.Double(quantile);
-      writer.Double(_pdigest.inverse(quantile));
+      writer.Double(_map.variance());
+      writer.EndArray();
+
+    } else if (_expr.first == "average") {
+      writer.StartArray();
+      writer.Double(_map.average());
       writer.EndArray();
     }
   }
- protected:
-  PDigest _pdigest;
 };
-
-#endif
+#endif // ENABLE_GAUSSIAN

@@ -7,11 +7,7 @@ class Categorical : public Dimension {
   Categorical(const DimensionSchema &schema);
   ~Categorical() = default;
 
-  uint32_t build(const build_ctn &range,
-                 build_ctn &response,
-                 const link_ctn &links,
-                 link_ctn &share,
-                 NDS &nds) override;
+  uint32_t build(NDS &nds, Data &data, BuildPair<build_ctn> &range, BuildPair<link_ctn> &links) override;
   bool query(const Query &query, subset_ctn &subsets) const override;
 
  private:

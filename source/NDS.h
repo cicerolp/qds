@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Data.h"
+#include "Payload.h"
 #include "Dimension.h"
 #include "Pivot.h"
 #include "Query.h"
@@ -14,12 +15,6 @@ class NDS {
   NDS &operator=(NDS const &) = delete;
 
   std::string query(const Query &query);
-
-  interval_t get_interval() const;
-
-  inline uint32_t size() const { return _root[0].back(); }
-
-  inline Data *data() const { return _data_ptr.get(); }
 
   template<typename Container>
   inline static void swap_and_clear(Container &lhs, Container &rhs) {
@@ -37,7 +32,7 @@ class NDS {
         if ((*first2).back() < (*first1).back()) {
           ++first2;
         } else {
-          first2->set_payload(*first1);
+          first2->set_payload_ptr(first1->get_payload_ptr());
           ++first1;
           ++first2;
         }
@@ -46,57 +41,191 @@ class NDS {
   }
 #endif // NDS_SHARE_PAYLOAD
 
-  inline pivot_ctn *create_link(bined_pivot_t &binned, const build_ctn &container, const link_ctn &links) {
-    pivot_ctn *link = new pivot_ctn(container.size());
-    std::memcpy(&(*link)[0], &container[0], container.size() * sizeof(Pivot));
+  inline void create_payload(Data &data, Pivot &pivot) {
+    payload_ctn *payloads = new payload_ctn(_payload.size());
+
+    for (auto i = 0; i < _payload.size(); ++i) {
+      auto raw_data = _payload[i]->get_payload(data, pivot);
+
+      // allocate memory
+      (*payloads)[i] = new payload_t(raw_data.size());
+
+      // copy data
+      std::memcpy(&(*(*payloads)[i])[0], &raw_data[0], raw_data.size() * sizeof(float));
+    }
+
+    pivot.set_payload_ptr(payloads);
+  }
+
+  inline pivot_ctn *create_link(Data &data, bined_pivot_t &binned, const build_ctn &ctn, const link_ctn &links) {
+    pivot_ctn *link = new pivot_ctn(ctn.size());
+    std::memcpy(&(*link)[0], &ctn[0], ctn.size() * sizeof(Pivot));
 
 #ifdef NDS_ENABLE_PAYLOAD
-    #ifdef NDS_SHARE_PAYLOAD
+#ifdef NDS_SHARE_PAYLOAD
     for (auto &link_ctn : links) {
       share_payload(link_ctn->begin(), link_ctn->end(), link->begin(), link->end());
     }
-    #endif // NDS_SHARE_PAYLOAD
+#endif // NDS_SHARE_PAYLOAD
 
     for (auto &ptr : *link) {
-      if (ptr.get_payload() == nullptr) {
-        ptr.create_payload(*this);
+      if (ptr.get_payload_ptr() == nullptr) {
+        create_payload(data, ptr);
       }
     }
 #endif // NDS_ENABLE_PAYLOAD
     return link;
   }
 
-  inline pivot_ctn *get_link(bined_pivot_t &binned, const build_ctn &container, const link_ctn &links) {
+  inline pivot_ctn *get_link(Data &data, bined_pivot_t &binned, const build_ctn &ctn, const link_ctn &links) {
 #ifdef NDS_SHARE_PIVOT
     pivot_ctn *link = nullptr;
 
     for (auto &ptr : links) {
-      if (ptr->size() == container.size() && std::equal(container.begin(), container.end(), (*ptr).begin())) {
+      if (ptr->size() == ctn.size() && std::equal(ctn.begin(), ctn.end(), (*ptr).begin())) {
         link = ptr;
         break;
       }
     }
 
     if (link == nullptr) {
-      return create_link(binned, container, links);
+      return create_link(data, binned, ctn, links);
     } else {
       return link;
     }
 #else
-    return create_link(binned, container, links);
+    return create_link(data, binned, container, links);
 #endif // NDS_SHARE_PIVOT
   }
 
-  inline
-  void share(bined_pivot_t &binned, const build_ctn &container, const link_ctn &links, link_ctn &share) {
-    pivot_ctn *link = get_link(binned, container, links);
+  inline void share(Data &data, bined_pivot_t &binned, const build_ctn &ctn, BuildPair<link_ctn> &links) {
+    auto *link = get_link(data, binned, ctn, links.input);
 
     binned.pivots = link;
-    share.emplace_back(link);
+    links.output.emplace_back(link);
   }
 
  private:
+  std::string serialize(const Query &query, subset_ctn &subsets, const RangePivot &root) const;
+
+  void restrict(range_ctn &range, range_ctn &response, const subset_t &subset, CopyOption &option) const;
+
+  bool search_iterators(range_it &it_range, const range_ctn &range,
+                        pivot_it &it_lower, pivot_it &it_upper, const pivot_ctn &subset) const;
+
+  void compactation(range_ctn &input, range_ctn &output, CopyOption option) const;
+
+  inline void swap_and_sort(range_ctn &range, range_ctn &response, CopyOption option) const {
+    // according to benchmark, this is a bit slower than std::sort() on randomized
+    // sequences,  but much faster on partially - sorted sequences
+    gfx::timsort(response.begin(), response.end());
+
+    range.clear();
+
+    // compaction (and swap) phase
+    compactation(response, range, option);
+
+    response.clear();
+  }
+
+  inline size_t get_payload_index(const Query::clausule &clausule) const {
+    size_t index = 0;
+
+    if (_payload_index.size() != 0) {
+      try {
+        if (!clausule.first.empty()) {
+          index = _payload_index.at(clausule.first);
+        }
+      } catch (std::out_of_range) {
+        std::cerr << "error: invalid aggr" << std::endl;
+      }
+    }
+    return index;
+  }
+
+  template<typename _Aggr>
+  void group_by_subset(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                       range_ctn &range, const subset_pivot_ctn &subset) const;
+
+  template<typename _Aggr>
+  void group_by_range(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                      range_ctn &range, const subset_pivot_ctn &subset) const;
+
+  template<typename _Aggr>
+  void group_by_none(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                     range_ctn &range, const subset_pivot_ctn &subset) const;
+
+  template<typename _Aggr>
+  void group_by_none(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                     range_ctn &range) const;
+
   pivot_ctn _root;
-  std::unique_ptr<Data> _data_ptr;
-  std::vector<std::pair<Dimension::Type, std::unique_ptr<Dimension>>> _dimension;
+  std::vector<std::unique_ptr<Payload>> _payload;
+  std::unordered_map<std::string, size_t> _payload_index;
+
+  std::vector<std::unique_ptr<Dimension>> _dimension;
 };
+
+template<typename _Aggr>
+void NDS::group_by_subset(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                          range_ctn &range, const subset_pivot_ctn &subset) const {
+  _Aggr aggregator(expr, get_payload_index(expr.second), subset.size());
+
+  for (auto el = 0; el < subset.size(); ++el) {
+    pivot_it it_lower = subset[el]->ptr().begin(), it_upper;
+    range_it it_range = range.begin();
+
+    while (search_iterators(it_range, range, it_lower, it_upper, subset[el]->ptr())) {
+      aggregator.merge(el, it_lower, it_upper);
+      ++it_range;
+    }
+
+    aggregator.output(el, subset[el]->value, writer);
+  }
+}
+
+template<typename _Aggr>
+void NDS::group_by_range(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                         range_ctn &range, const subset_pivot_ctn &subset) const {
+  _Aggr aggregator(expr, get_payload_index(expr.second));
+
+  for (const auto &el : subset) {
+    pivot_it it_lower = el->ptr().begin(), it_upper;
+    range_it it_range = range.begin();
+
+    while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+      aggregator.merge((*it_range).value, it_lower, it_upper);
+      ++it_range;
+    }
+  }
+
+  aggregator.output(writer);
+}
+
+template<typename _Aggr>
+void NDS::group_by_none(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                        range_ctn &range, const subset_pivot_ctn &subset) const {
+  _Aggr aggregator(expr, get_payload_index(expr.second));
+
+  for (const auto &el : subset) {
+    pivot_it it_lower = el->ptr().begin(), it_upper;
+    range_it it_range = range.begin();
+
+    while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+      aggregator.merge(it_lower, it_upper);
+      ++it_range;
+    }
+  }
+
+  aggregator.output(writer);
+}
+
+template<typename _Aggr>
+void NDS::group_by_none(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                        range_ctn &range) const {
+  _Aggr aggregator(expr, get_payload_index(expr.second));
+
+  aggregator.merge(range.begin(), range.end());
+
+  aggregator.output(writer);
+}

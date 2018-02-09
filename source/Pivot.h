@@ -4,6 +4,7 @@
 #include "types.h"
 
 #include "PDigest.h"
+#include "Data.h"
 
 class NDS;
 class RangePivot;
@@ -23,31 +24,18 @@ class Pivot {
   Pivot &operator=(Pivot &&other) = default;
 
 #ifdef NDS_ENABLE_PAYLOAD
-  inline payload_t *get_payload() {
+  inline payload_ctn *get_payload_ptr() {
     return _payload;
   };
-  inline const payload_t &get_payload() const {
-    return *_payload;
+  inline void set_payload_ptr(payload_ctn *rhs) {
+    assert(rhs != nullptr);
+    _payload = rhs;
+  }
+
+  inline const payload_t &get_payload(size_t index) const {
+    assert(index < _payload->size());
+    return (*(*_payload)[index]);
   };
-
-  inline void set_payload(Pivot &rhs) {
-    assert(_payload == nullptr);
-    _payload = rhs._payload;
-  }
-
-  inline void create_payload(NDS &nds) {
-    assert(_payload == nullptr);
-    #ifdef ENABLE_PDIGEST
-    _payload = PDigest::get_payload(_first, _second, nds);
-    #endif // ENABLE_PDIGEST
-  }
-
-  // called once
-  inline void delete_payload() {
-    assert(_payload != nullptr);
-    delete _payload;
-    _payload = nullptr;
-  }
 #endif // NDS_ENABLE_PAYLOAD
 
   inline bool empty() const { return (back() - front()) == 0; }
@@ -97,7 +85,7 @@ class Pivot {
   uint32_t _first, _second;
 
 #ifdef NDS_ENABLE_PAYLOAD
-  payload_t *_payload{nullptr};
+  payload_ctn *_payload{nullptr};
 #endif // NDS_ENABLE_PAYLOAD
 
 };

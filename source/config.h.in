@@ -18,6 +18,8 @@
 #cmakedefine NDS_SHARE_PAYLOAD
 
 #ifdef NDS_ENABLE_PAYLOAD
+    #cmakedefine ENABLE_GAUSSIAN
+
     #cmakedefine ENABLE_PDIGEST
 
     #ifdef ENABLE_PDIGEST

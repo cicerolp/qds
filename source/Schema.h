@@ -11,7 +11,7 @@ struct Schema {
       boost::property_tree::read_xml(filename, pt);
 
       name = pt.get<std::string>("config.name");
-      bytes = pt.get<uint8_t>("config.bytes");
+      //bytes = pt.get<uint8_t>("config.bytes");
       file = std::string(std::getenv("NDS_DATA")) + "/" + pt.get<std::string>("config.file");
 
       for (auto &v : pt.get_child("config.schema")) {
@@ -19,16 +19,14 @@ struct Schema {
         uint32_t bin = v.second.get<uint32_t>("bin");
         uint32_t offset = v.second.get<uint32_t>("offset");
 
-        Dimension::DimensionSchema attr(index, bin, offset);
-
         if (v.first == "spatial") {
-          dimension.emplace_back(std::make_tuple(Dimension::Spatial, attr));
+          dimension.emplace_back(DimensionSchema::Spatial, index, bin, offset);
         } else if (v.first == "categorical") {
-          dimension.emplace_back(std::make_tuple(Dimension::Categorical, attr));
+          dimension.emplace_back(DimensionSchema::Categorical, index, bin, offset);
         } else if (v.first == "temporal") {
-          dimension.emplace_back(std::make_tuple(Dimension::Temporal, attr));
+          dimension.emplace_back(DimensionSchema::Temporal, index, bin, offset);
         } else if (v.first == "payload") {
-          payload.emplace_back(attr);
+          payload.emplace_back(DimensionSchema::Payload, index, bin, offset);
         }
       }
     } catch (...) {
@@ -37,12 +35,11 @@ struct Schema {
     }
   }
 
-  uint8_t bytes;
   std::string name, file;
 
   // payload [index, bin, offset]
-  std::vector<Dimension::DimensionSchema> payload;
+  std::vector<DimensionSchema> payload;
 
   // dimension_e, index, bin, offset
-  std::vector<std::tuple<Dimension::Type, Dimension::DimensionSchema>> dimension;
+  std::vector<DimensionSchema> dimension;
 };

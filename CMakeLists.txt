@@ -16,6 +16,9 @@ option(ENABLE_PDIGEST "Enable p-digest" ON)
 option(PDIGEST_PIECE_WISE_APPROXIMATION "Enable p-digest Piece Wise Approximation" ON)
 set(PDIGEST_COMPRESSION "50.f" CACHE STRING "Set p-digest Compression (float)")
 
+# gaussian
+option(ENABLE_GAUSSIAN "Enable Gaussian" ON)
+
 configure_file(source/config.h.in config.h)
 include_directories("${CMAKE_CURRENT_BINARY_DIR}") # To find the .h
 
@@ -36,7 +39,6 @@ add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
         source/mongoose.c
         source/Categorical.cpp
         source/Data.cpp
-        source/Dimension.cpp
         source/main.cpp
         source/NDS.cpp
         source/NDSInstances.cpp
@@ -46,7 +48,7 @@ add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
         source/SpatialElement.cpp
         source/string_util.cpp
         source/Temporal.cpp
-        source/PDigest.cpp)
+        source/PDigest.cpp source/Gaussian.cpp source/Gaussian.h)
 
 find_package(Threads REQUIRED)
 

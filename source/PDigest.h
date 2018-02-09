@@ -5,24 +5,24 @@
 #pragma once
 
 #include "types.h"
+#include "Data.h"
+
+#include "Payload.h"
 
 #ifdef ENABLE_PDIGEST
 
 class NDS;
+class AgrrPDigest;
 
-class PDigest {
+class PDigest : public Payload {
  public:
-  void merge(const Pivot &pivot);
-  void merge(pivot_it &it_lower, pivot_it &it_upper);
+  friend class AgrrPDigest;
 
-  float quantile(float q) const;
-  float inverse(float value) const;
+  PDigest(const DimensionSchema &schema) : Payload(schema) {}
 
-  static payload_t *get_payload(uint32_t first, uint32_t second, NDS &nds);
+  std::vector<float> get_payload(Data &data, const Pivot &pivot) const override;
 
  private:
-  void merge_buffer_data();
-
   template<typename T>
   static std::vector<size_t> sort_indexes(const std::vector<T> &v) {
 
@@ -77,6 +77,19 @@ class PDigest {
     const float x = (x1 * w1 + x2 * w2) / (w1 + w2);
     return std::max(x1, std::min(x, x2));
   }
+
+};
+
+class AgrrPDigest : public AgrrPayload {
+ public:
+  void merge(size_t payload_index, const Pivot &pivot) override;
+  void merge(size_t payload_index, pivot_it &it_lower, pivot_it &it_upper) override;
+
+  float quantile(float q) const;
+  float inverse(float value) const;
+
+ protected:
+  void merge_buffer_data();
 
   // points to the first unused centroid
   uint32_t _lastUsedCell{0};

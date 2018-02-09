@@ -3,14 +3,12 @@
 Spatial::Spatial(const DimensionSchema &schema)
     : Dimension(schema) {}
 
-uint32_t Spatial::build(const build_ctn &range, build_ctn &response, const link_ctn &links, link_ctn &share, NDS &nds) {
-  nds.data()->prepareOffset<coordinates_t>(_schema.offset);
+uint32_t Spatial::build(NDS &nds, Data &data, BuildPair<build_ctn> &range, BuildPair<link_ctn> &links) {
+  data.prepareOffset<coordinates_t>(_schema.offset);
 
-  _tree = std::make_unique<SpatialElement>(spatial_t(0, 0, 0), range, links, share, nds);
+  _tree = std::make_unique<SpatialElement>(nds, data, range, links, spatial_t(0, 0, 0));
 
-  uint32_t pivots_count = _tree->expand(response, _schema.bin, share, nds);
-
-  std::sort(response.begin(), response.end());
+  uint32_t pivots_count = _tree->expand(nds, data, range, links, _schema.bin);
 
   return pivots_count;
 }

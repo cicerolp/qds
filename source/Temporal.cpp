@@ -3,25 +3,21 @@
 
 Temporal::Temporal(const DimensionSchema &schema) : Dimension(schema) {}
 
-uint32_t Temporal::build(const build_ctn &range,
-                         build_ctn &response,
-                         const link_ctn &links,
-                         link_ctn &share,
-                         NDS &nds) {
-  nds.data()->prepareOffset<temporal_t>(_schema.offset);
+uint32_t Temporal::build(NDS &nds, Data &data, BuildPair<build_ctn> &range, BuildPair<link_ctn> &links) {
+  data.prepareOffset<temporal_t>(_schema.offset);
 
   uint32_t pivots_count = 0;
 
   std::map<temporal_t, std::vector<Pivot>> tmp_ctn;
 
-  for (const auto &ptr : range) {
+  for (const auto &ptr : range.input) {
     std::map<temporal_t, uint32_t> used;
 
     for (auto i = ptr.front(); i < ptr.back(); ++i) {
-      auto value = (*nds.data()->record<temporal_t>(i));
+      auto value = (*data.record<temporal_t>(i));
       value = static_cast<temporal_t>(value / static_cast<float>(_schema.bin)) * _schema.bin;
 
-      nds.data()->setHash(i, value);
+      data.setHash(i, value);
       ++used[value];
     }
 
@@ -31,13 +27,13 @@ uint32_t Temporal::build(const build_ctn &range,
       accum += entry.second;
       uint32_t second = accum;
 
-      response.emplace_back(first, second);
-      tmp_ctn[entry.first].emplace_back(response.back());
+      range.output.emplace_back(first, second);
+      tmp_ctn[entry.first].emplace_back(range.output.back());
 
       pivots_count++;
     }
 
-    nds.data()->sort(ptr.front(), ptr.back());
+    data.sort(ptr.front(), ptr.back());
   }
 
   _container = stde::dynarray<TemporalElement>(tmp_ctn.size());
@@ -45,7 +41,7 @@ uint32_t Temporal::build(const build_ctn &range,
   uint32_t index = 0;
   for (auto &pair : tmp_ctn) {
     _container[index].el.value = pair.first;
-    nds.share(_container[index].el, pair.second, links, share);
+    nds.share(data, _container[index].el, pair.second, links);
     ++index;
   }
 

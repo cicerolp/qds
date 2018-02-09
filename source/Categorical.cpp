@@ -4,29 +4,25 @@
 Categorical::Categorical(const DimensionSchema &schema)
     : Dimension(schema), _container(schema.bin) {}
 
-uint32_t Categorical::build(const build_ctn &range,
-                            build_ctn &response,
-                            const link_ctn &links,
-                            link_ctn &share,
-                            NDS &nds) {
-  nds.data()->prepareOffset<categorical_t>(_schema.offset);
+uint32_t Categorical::build(NDS &nds, Data &data, BuildPair<build_ctn> &range, BuildPair<link_ctn> &links) {
+  data.prepareOffset<categorical_t>(_schema.offset);
 
   uint32_t pivots_count = 0;
 
   std::vector<build_ctn> tmp_ctn(_schema.bin);
 
-  for (const auto &ptr : range) {
+  for (const auto &ptr : range.input) {
     std::vector<uint32_t> used(_schema.bin, 0);
 
     for (auto i = ptr.front(); i < ptr.back(); ++i) {
-      auto value = (*nds.data()->record<categorical_t>(i));
+      auto value = (*data.record<categorical_t>(i));
 
-      nds.data()->setHash(i, value);
+      data.setHash(i, value);
       ++used[value];
     }
 
     // sort before tdigesting...
-    nds.data()->sort(ptr.front(), ptr.back());
+    data.sort(ptr.front(), ptr.back());
 
     uint32_t accum = ptr.front();
     for (uint32_t i = 0; i < _schema.bin; ++i) {
@@ -36,8 +32,8 @@ uint32_t Categorical::build(const build_ctn &range,
       accum += used[i];
       uint32_t second = accum;
 
-      response.emplace_back(first, second);
-      tmp_ctn[i].emplace_back(response.back());
+      range.output.emplace_back(first, second);
+      tmp_ctn[i].emplace_back(range.output.back());
 
       ++pivots_count;
     }
@@ -45,7 +41,7 @@ uint32_t Categorical::build(const build_ctn &range,
 
   for (uint32_t index = 0; index < _schema.bin; ++index) {
     _container[index].value = index;
-    nds.share(_container[index], tmp_ctn[index], links, share);
+    nds.share(data, _container[index], tmp_ctn[index], links);
   }
 
   return pivots_count;
