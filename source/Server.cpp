@@ -36,7 +36,7 @@ void Server::handler(mg_connection* conn, int ev, void* p) {
 
     } else if (tokens[1] == "api" && tokens.size() >= 4) {
       if (tokens[2] == "schema") {
-        printJson(conn, NDSInstances::getInstance().schema(tokens[3]));
+        printJson(conn, NDSInstances::getInstance().schema(uri));
       } else if (tokens[2] == "query") {
         printJson(conn, NDSInstances::getInstance().query(Query(uri)));
       } else {

@@ -11,6 +11,10 @@ class Payload {
 
   virtual std::vector<float> get_payload(Data &data, const Pivot &pivot) const = 0;
 
+  void get_schema(rapidjson::Writer<rapidjson::StringBuffer> &writer) const {
+    _schema.get_json(writer);
+  };
+
  protected:
   const DimensionSchema _schema;
 };

@@ -17,6 +17,15 @@ class Dimension {
 
   virtual uint32_t build(NDS &nds, Data &data, BuildPair<build_ctn> &range, BuildPair<link_ctn> &links) = 0;
 
+  void get_schema(rapidjson::Writer<rapidjson::StringBuffer> &writer) const {
+    _schema.get_json(writer);
+    get_schema_hint(writer);
+  };
+
+  virtual void get_schema_hint(rapidjson::Writer<rapidjson::StringBuffer> &writer) const {
+    // nothing
+  }
+
  protected:
   const DimensionSchema _schema;
 };

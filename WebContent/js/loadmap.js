@@ -18,19 +18,28 @@ function onReady(callback) {
         if (ready == false) {
             $.ajax({
                 type: 'GET',
-                url: root + "schema/" + _schema,
+                url: root + "schema/dataset=" + _schema,
                 dataType: "json",
-                success: function (target) {
-                    if (!jQuery.isEmptyObject(target)) {
+                success: function (data) {
+                    if (!jQuery.isEmptyObject(data)) {
                         ready = true;
 
-                        total_count = target.totalcount;
+                        for (ptr of data.index_dimensions) {
+                            if (ptr.type  == "temporal") {
+                                var date = ptr.hint.split("|");
 
-                        lower_bound = new Date(target.mindate * 1000);
-                        upper_bound = new Date(target.maxdate * 1000);
+                                lower_bound = new Date(date[0] * 1000);
+                                upper_bound = new Date(date[1] * 1000);
 
-                        curr_lower_bound = lower_bound.getTime();
-                        curr_upper_bound = upper_bound.getTime();
+                                curr_lower_bound = lower_bound.getTime();
+                                curr_upper_bound = upper_bound.getTime();
+
+                                break;
+                            }
+
+                        }
+
+                        total_count = data.count;
 
                         window.clearInterval(intervalID);
                         callback.call(this);
@@ -114,33 +123,37 @@ function updateDataRestrictions() {
     heatmap_resolution = curr_heatmap_resolution;
 
     curr_region = "";
-    for (var i = 0; i < marker.length; i++) {
-        if (marker[i] == null) continue;
+    if (marker != null) {
 
-        var b = L.latLngBounds(tiles[i].p0, tiles[i].p1);
 
-        var lat0 = b._northEast.lat;
-        var lon0 = b._southWest.lng;
-        var lat1 = b._southWest.lat;
-        var lon1 = b._northEast.lng;
+        for (var i = 0; i < marker.length; i++) {
+            if (marker[i] == null) continue;
 
-        var z = map.getZoom() + 8;
+            var b = L.latLngBounds(tiles[i].p0, tiles[i].p1);
 
-        var x0 = roundtile(lon2tilex(lon0, z), z);
-        var x1 = roundtile(lon2tilex(lon1, z), z);
+            var lat0 = b._northEast.lat;
+            var lon0 = b._southWest.lng;
+            var lat1 = b._southWest.lat;
+            var lon1 = b._northEast.lng;
 
-        if (x0 > x1) {
-            x0 = 0;
-            x1 = Math.pow(2, z);
+            var z = map.getZoom() + 8;
+
+            var x0 = roundtile(lon2tilex(lon0, z), z);
+            var x1 = roundtile(lon2tilex(lon1, z), z);
+
+            if (x0 > x1) {
+                x0 = 0;
+                x1 = Math.pow(2, z);
+            }
+
+            // [dimension_name].region.([x0]:[y0]:[x1]:[y1]:[z])
+            curr_region += "/const=" + currTileValue + ".region.("
+                + x0 + ":"
+                + roundtile(lat2tiley(lat0, z), z) + ":"
+                + x1 + ":"
+                + roundtile(lat2tiley(lat1, z), z) + ":"
+                + z + ")"
         }
-
-        // [dimension_name].region.([x0]:[y0]:[x1]:[y1]:[z])
-        curr_region += "/const=" + currTileValue + ".region.("
-            + x0 + ":"
-            + roundtile(lat2tiley(lat0, z), z) + ":"
-            + x1 + ":"
-            + roundtile(lat2tiley(lat1, z), z) + ":"
-            + z + ")"
     }
 
     if (curr_region != region) {

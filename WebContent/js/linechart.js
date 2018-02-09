@@ -133,7 +133,7 @@ function loadLineChart(data, entry) {
     }
     function update_linechart() {
         curr_lower_bound = xAxis.scale().domain()[0].getTime();
-        curr_upper_bound = xAxis.scale().domain()[2].getTime();
+        curr_upper_bound = xAxis.scale().domain()[1].getTime();
 
         a_getQuery();
     }

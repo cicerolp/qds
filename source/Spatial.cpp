@@ -71,3 +71,8 @@ region_t Spatial::parse_region(const std::string &str) const {
                   std::stoi(tokens[3]),
                   std::stoi(tokens[4]));
 }
+
+void Spatial::get_schema_hint(rapidjson::Writer<rapidjson::StringBuffer> &writer) const {
+  writer.Key("hint");
+  writer.Int(g_Quadtree_Depth);
+}
