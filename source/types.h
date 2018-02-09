@@ -22,6 +22,26 @@ struct DimensionSchema {
     return os;
   }
 
+  void get_json(rapidjson::Writer<rapidjson::StringBuffer> &writer) const {
+    writer.Key("type");
+    switch (type) {
+      case DimensionSchema::Spatial:writer.String("spatial");
+        break;
+      case DimensionSchema::Temporal:writer.String("temporal");
+        break;
+      case DimensionSchema::Categorical:writer.String("categorical");
+        break;
+      case DimensionSchema::Payload:writer.String("payload");
+        break;
+    }
+
+    writer.Key("index");
+    writer.String(index.c_str());
+
+    writer.Key("bin");
+    writer.Int(bin);
+  };
+
   Type type;
   uint32_t bin;
   uint32_t offset;

@@ -2,7 +2,7 @@ var view_schemas = {
      "brightkite": {
         PLOTTING: "black",
         PLOTTING_MODE: "rect",
-        PLOTTING_COLOR_SCALE: "ryw",
+        PLOTTING_COLOR_SCALE: "bbb",
         PLOTTING_TRANSFORM: "density_scaling",
         title: "Brightkite Checkins",
         tile: [{

@@ -11,7 +11,7 @@ class NDSInstances : public Singleton<NDSInstances> {
   static void run(const std::vector<Schema> &args);
 
   std::string query(const Query &query);
-  std::string schema(const std::string &instance) const;
+  std::string schema(const std::string &url) const;
 
  private:
   inline std::shared_ptr<NDS> get_instance(const std::string &instance) const {

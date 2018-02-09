@@ -139,3 +139,8 @@ sequence_t Temporal::parse_sequence(const std::string &str) const {
 
   return sequence_t(std::stoi(tokens[0]), std::stoi(tokens[1]), std::stoi(tokens[2]), std::stoi(tokens[3]));
 }
+
+void Temporal::get_schema_hint(rapidjson::Writer<rapidjson::StringBuffer> &writer) const {
+  writer.Key("hint");
+  writer.String((std::to_string(_container.front().el.value) + "|" +  std::to_string(_container.back().el.value)).c_str());
+}

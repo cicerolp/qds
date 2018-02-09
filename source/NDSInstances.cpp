@@ -16,17 +16,27 @@ std::string NDSInstances::query(const Query &query) {
   }
 }
 
-std::string NDSInstances::schema(const std::string &instance) const {
-  auto cube = get_instance(instance);
+std::string NDSInstances::schema(const std::string &url) const {
+  boost::char_separator<char> sep("/");
+  boost::tokenizer<boost::char_separator<char> > tokens(url, sep);
 
-  if (!cube) return ("[]");
+  for (auto &it : tokens) {
+    std::vector<std::string> clausules;
+    boost::split(clausules, it, boost::is_any_of("="));
 
-  rapidjson::StringBuffer buffer;
-  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+    if (clausules.size() == 2) {
 
-  writer.StartObject();
-  // TODO return schema from cube
-  writer.EndObject();
+      auto &key = clausules[0];
+      auto &value = clausules[1];
 
-  return buffer.GetString();
+      if (key == "dataset") {
+
+        auto cube = get_instance(value);
+
+        if (!cube) return ("[]");
+
+        return cube->schema();
+      }
+    }
+  }
 }

@@ -27,9 +27,7 @@ class Temporal : public Dimension {
   uint32_t build(NDS &nds, Data &data, BuildPair<build_ctn> &range, BuildPair<link_ctn> &links) override;
   bool query(const Query &query, subset_ctn &subsets) const override;
 
-  inline interval_t get_interval() const {
-    return interval_t(_container.front().el.value, _container.back().el.value);
-  }
+  void get_schema_hint(rapidjson::Writer<rapidjson::StringBuffer> &writer) const override;
 
  private:
   interval_t parse_interval(const std::string &str) const;

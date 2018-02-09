@@ -328,3 +328,36 @@ void NDS::compactation(range_ctn &input, range_ctn &output, CopyOption option) c
     }
   }
 }
+
+std::string NDS::schema() const {
+
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
+  writer.StartObject();
+
+  writer.Key("count");
+  writer.Int(_root[0].size());
+
+  writer.Key("index_dimensions");
+  writer.StartArray();
+  for (const auto &ptr : _dimension) {
+    writer.StartObject();
+    ptr->get_schema(writer);
+    writer.EndObject();
+  }
+  writer.EndArray();
+
+  writer.Key("index_payloads");
+  writer.StartArray();
+  for (const auto &ptr : _payload) {
+    writer.StartObject();
+    ptr->get_schema(writer);
+    writer.EndObject();
+  }
+  writer.EndArray();
+
+  writer.EndObject();
+
+  return buffer.GetString();
+}

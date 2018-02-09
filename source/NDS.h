@@ -15,6 +15,7 @@ class NDS {
   NDS &operator=(NDS const &) = delete;
 
   std::string query(const Query &query);
+  std::string schema() const;
 
   template<typename Container>
   inline static void swap_and_clear(Container &lhs, Container &rhs) {
@@ -41,6 +42,7 @@ class NDS {
   }
 #endif // NDS_SHARE_PAYLOAD
 
+#ifdef NDS_ENABLE_PAYLOAD
   inline void create_payload(Data &data, Pivot &pivot) {
     payload_ctn *payloads = new payload_ctn(_payload.size());
 
@@ -56,6 +58,7 @@ class NDS {
 
     pivot.set_payload_ptr(payloads);
   }
+#endif // NDS_ENABLE_PAYLOAD
 
   inline pivot_ctn *create_link(Data &data, bined_pivot_t &binned, const build_ctn &ctn, const link_ctn &links) {
     pivot_ctn *link = new pivot_ctn(ctn.size());
