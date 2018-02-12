@@ -12,6 +12,7 @@ using json = rapidjson::Writer<rapidjson::StringBuffer>;
 
 class Aggr {
  public:
+  Aggr() = default;
   Aggr(const Query::aggr_expr &expr, size_t __index) : _expr(expr), _payload_index(__index) {};
 
  protected:
@@ -40,7 +41,7 @@ class AggrSubset : public Aggr {
  public:
   AggrSubset(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
 
-  virtual void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) = 0;
+  virtual void merge(size_t el, const pivot_it &it_lower, const pivot_it &it_upper) = 0;
   virtual void output(size_t el, uint64_t value, json &writer) = 0;
 };
 
@@ -52,7 +53,7 @@ class AggrRange : public Aggr {
  public:
   AggrRange(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
 
-  virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) = 0;
+  virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) = 0;
   virtual void output(json &writer) = 0;
 };
 
@@ -64,10 +65,14 @@ class AggrNone : public Aggr {
  public:
   AggrNone(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
 
-  virtual void merge(pivot_it &it_lower, pivot_it &it_upper) = 0;
+  virtual void merge(const pivot_it &it_lower, const pivot_it &it_upper) = 0;
   virtual void merge(const range_it &it_lower, const range_it &it_upper) = 0;
   virtual void output(json &writer) = 0;
 };
+
+using aggrs_subset_t = std::vector<std::unique_ptr<AggrSubset>>;
+using aggrs_range_t = std::vector<std::unique_ptr<AggrRange>>;
+using aggrs_none_t = std::vector<std::unique_ptr<AggrNone>>;
 
 // count
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -77,9 +82,10 @@ class AggrCountSubset : public AggrSubset {
   AggrCountSubset(const Query::aggr_expr &expr, size_t __index, size_t size) :
       AggrSubset(expr, __index), _map(size, 0) {}
 
-  virtual void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) override {
-    while (it_lower != it_upper) {
-      _map[el] += (*it_lower++).size();
+  virtual void merge(size_t el, const pivot_it &it_lower, const pivot_it &it_upper) override {
+    auto it = it_lower;
+    while (it != it_upper) {
+      _map[el] += (*it++).size();
     }
   }
 
@@ -103,9 +109,10 @@ class AggrCountRange : public AggrRange {
   AggrCountRange(const Query::aggr_expr &expr, size_t __index) :
       AggrRange(expr, __index) {}
 
-  virtual void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
-    while (it_lower != it_upper) {
-      _map[value] += (*it_lower++).size();
+  virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) override {
+    auto it = it_lower;
+    while (it != it_upper) {
+      _map[value] += (*it++).size();
     }
   }
 
@@ -129,9 +136,10 @@ class AggrCountNone : public AggrNone {
   AggrCountNone(const Query::aggr_expr &expr, size_t __index) :
       AggrNone(expr, __index) {}
 
-  void merge(pivot_it &it_lower, pivot_it &it_upper) override {
-    while (it_lower != it_upper) {
-      _count += (*it_lower++).size();
+  void merge(const pivot_it &it_lower, const pivot_it &it_upper) override {
+    auto it = it_lower;
+    while (it != it_upper) {
+      _count += (*it++).size();
     }
   }
   void merge(const range_it &it_lower, const range_it &it_upper) override {
@@ -155,7 +163,7 @@ class AggrPayloadSubset : public AggrSubset {
   AggrPayloadSubset(const Query::aggr_expr &expr, size_t __index, size_t size) :
       AggrSubset(expr, __index), _map(size) {}
 
-  void merge(size_t el, pivot_it &it_lower, pivot_it &it_upper) override {
+  void merge(size_t el, const pivot_it &it_lower, const pivot_it &it_upper) override {
     _map[el].merge(_payload_index, it_lower, it_upper);
   }
 
@@ -169,7 +177,7 @@ class AggrPayloadRange : public AggrRange {
   AggrPayloadRange(const Query::aggr_expr &expr, size_t __index) :
       AggrRange(expr, __index) {}
 
-  void merge(uint64_t value, pivot_it &it_lower, pivot_it &it_upper) override {
+  void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) override {
     _map[value].merge(_payload_index, it_lower, it_upper);
   }
 
@@ -183,10 +191,8 @@ class AggrPayloadNone : public AggrNone {
   AggrPayloadNone(const Query::aggr_expr &expr, size_t __index) :
       AggrNone(expr, __index) {}
 
-  void merge(pivot_it &it_lower, pivot_it &it_upper) override {
-    while (it_lower != it_upper) {
-      _map.merge(_payload_index, it_lower, it_upper);
-    }
+  void merge(const pivot_it &it_lower, const pivot_it &it_upper) override {
+    _map.merge(_payload_index, it_lower, it_upper);
   }
 
   void merge(const range_it &it_lower, const range_it &it_upper) override {

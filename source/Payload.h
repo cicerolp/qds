@@ -25,5 +25,5 @@ class AgrrPayload {
   virtual ~AgrrPayload() = default;
 
   virtual void merge(size_t payload_index, const Pivot &pivot) = 0;
-  virtual void merge(size_t payload_index, pivot_it &it_lower, pivot_it &it_upper) = 0;
+  virtual void merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) = 0;
 };

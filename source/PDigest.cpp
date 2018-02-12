@@ -202,7 +202,7 @@ void AgrrPDigest::merge(size_t payload_index, const Pivot &pivot) {
   merge_buffer_data();
 }
 
-void AgrrPDigest::merge(size_t payload_index, pivot_it &it_lower, pivot_it &it_upper) {
+void AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) {
   _buffer_mean.clear();
   _buffer_weight.clear();
 
@@ -217,15 +217,16 @@ void AgrrPDigest::merge(size_t payload_index, pivot_it &it_lower, pivot_it &it_u
   _buffer_mean.reserve(_lastUsedCell + sum_payload_size_size);
   _buffer_weight.reserve(_lastUsedCell + sum_payload_size_size);
 
+  auto it = it_lower;
   // insert payload data
-  while (it_lower != it_upper) {
-    auto &payload = (*it_lower).get_payload(payload_index);
+  while (it != it_upper) {
+    auto &payload = (*it).get_payload(payload_index);
     uint32_t payload_size = payload.size() / 2;
 
     _buffer_mean.insert(_buffer_mean.end(), payload.begin(), payload.begin() + payload_size);    // mean
     _buffer_weight.insert(_buffer_weight.end(), payload.begin() + payload_size, payload.end());  // weight
 
-    ++it_lower;
+    ++it;
   }
 
   // insert p-digest data

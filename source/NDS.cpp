@@ -135,30 +135,30 @@ std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangeP
 
   if (subsets.size() == 0) {
     if (!root.pivot.empty()) {
-      for (const auto &expr : aggr) {
-        // start json
-        writer.StartArray();
+      // initialize aggregators
+      std::vector<std::unique_ptr<AggrNone>> aggregators;
 
+      for (const auto &expr : aggr) {
         if (expr.first == "count") {
-          group_by_none<AggrCountNone>(expr, writer, response);
+          aggregators.emplace_back(std::make_unique<AggrCountNone>(expr, get_payload_index(expr.second)));
         }
 
 #ifdef ENABLE_PDIGEST
         if (expr.first == "quantile" || expr.first == "inverse") {
-          group_by_none<AggrPDigestNone>(expr, writer, response);
+          aggregators.emplace_back(std::make_unique<AggrPDigestNone>(expr, get_payload_index(expr.second)));
         }
 #endif // ENABLE_PDIGEST
 
 #ifdef ENABLE_GAUSSIAN
         if (expr.first == "variance" || expr.first == "average") {
-          group_by_none<AggrGaussianNone>(expr, writer, response);
+          aggregators.emplace_back(std::make_unique<AggrGaussianNone>(expr, get_payload_index(expr.second)));
         }
 #endif // ENABLE_GAUSSIAN
-
-        // end json
-        writer.EndArray();
       }
+
+      group_by_none(aggregators, writer, response);
     }
+
   } else {
     for (auto i = 0; i < subsets.size() - 1; ++i) {
       restrict(range, response, subsets[i], option);
@@ -169,52 +169,84 @@ std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangeP
     // sort range only when necessary
     swap_and_sort(range, response, option);
 
-    for (const auto &expr : aggr) {
-      // start json
-      writer.StartArray();
+    if (query.group_by()) {
+      if (option == CopyValueFromSubset) {
+        // initialize aggregators
+        std::vector<std::unique_ptr<AggrSubset>> aggregators;
 
-      if (expr.first == "count") {
-        if (query.group_by()) {
-          if (option == CopyValueFromSubset) {
-            group_by_subset<AggrCountSubset>(expr, writer, range, subsets.back().container);
-          } else {
-            group_by_range<AggrCountRange>(expr, writer, range, subsets.back().container);
+        for (const auto &expr : aggr) {
+          if (expr.first == "count") {
+            aggregators.emplace_back(std::make_unique<AggrCountSubset>(expr,
+                                                                       get_payload_index(expr.second),
+                                                                       subsets.back().container.size()));
           }
-        } else {
-          group_by_none<AggrCountNone>(expr, writer, range, subsets.back().container);
-        }
-      }
 
 #ifdef ENABLE_PDIGEST
-      if (expr.first == "quantile" || expr.first == "inverse") {
-        if (query.group_by()) {
-          if (option == CopyValueFromSubset) {
-            group_by_subset<AggrPDigestSubset>(expr, writer, range, subsets.back().container);
-          } else {
-            group_by_range<AggrPDigestRange>(expr, writer, range, subsets.back().container);
+          if (expr.first == "quantile" || expr.first == "inverse") {
+            aggregators.emplace_back(std::make_unique<AggrPDigestSubset>(expr,
+                                                                         get_payload_index(expr.second),
+                                                                         subsets.back().container.size()));
           }
-        } else {
-          group_by_none<AggrPDigestNone>(expr, writer, range, subsets.back().container);
-        }
-      }
 #endif // ENABLE_PDIGEST
 
 #ifdef ENABLE_GAUSSIAN
-      if (expr.first == "variance" || expr.first == "average") {
-        if (query.group_by()) {
-          if (option == CopyValueFromSubset) {
-            group_by_subset<AggrGaussianSubset>(expr, writer, range, subsets.back().container);
-          } else {
-            group_by_range<AggrGaussianRange>(expr, writer, range, subsets.back().container);
+          if (expr.first == "variance" || expr.first == "average") {
+            aggregators.emplace_back(std::make_unique<AggrGaussianSubset>(expr,
+                                                                          get_payload_index(expr.second),
+                                                                          subsets.back().container.size()));
           }
-        } else {
-          group_by_none<AggrGaussianNone>(expr, writer, range, subsets.back().container);
-        }
-      }
 #endif // ENABLE_GAUSSIAN
+        }
+        group_by_subset(aggregators, writer, range, subsets.back().container);
 
-      // end json
-      writer.EndArray();
+        // Range
+      } else {
+        // initialize aggregators
+        std::vector<std::unique_ptr<AggrRange>> aggregators;
+
+        for (const auto &expr : aggr) {
+          if (expr.first == "count") {
+            aggregators.emplace_back(std::make_unique<AggrCountRange>(expr, get_payload_index(expr.second)));
+          }
+
+#ifdef ENABLE_PDIGEST
+          if (expr.first == "quantile" || expr.first == "inverse") {
+            aggregators.emplace_back(std::make_unique<AggrPDigestRange>(expr, get_payload_index(expr.second)));
+          }
+#endif // ENABLE_PDIGEST
+
+#ifdef ENABLE_GAUSSIAN
+          if (expr.first == "variance" || expr.first == "average") {
+            aggregators.emplace_back(std::make_unique<AggrGaussianRange>(expr, get_payload_index(expr.second)));
+          }
+#endif // ENABLE_GAUSSIAN
+        }
+        group_by_range(aggregators, writer, range, subsets.back().container);
+
+      }
+      // None
+    } else {
+      // initialize aggregators
+      std::vector<std::unique_ptr<AggrNone>> aggregators;
+
+      for (const auto &expr : aggr) {
+        if (expr.first == "count") {
+          aggregators.emplace_back(std::make_unique<AggrCountNone>(expr, get_payload_index(expr.second)));
+        }
+
+#ifdef ENABLE_PDIGEST
+        if (expr.first == "quantile" || expr.first == "inverse") {
+          aggregators.emplace_back(std::make_unique<AggrPDigestNone>(expr, get_payload_index(expr.second)));
+        }
+#endif // ENABLE_PDIGEST
+
+#ifdef ENABLE_GAUSSIAN
+        if (expr.first == "variance" || expr.first == "average") {
+          aggregators.emplace_back(std::make_unique<AggrGaussianNone>(expr, get_payload_index(expr.second)));
+        }
+#endif // ENABLE_GAUSSIAN
+      }
+      group_by_none(aggregators, writer, range, subsets.back().container);
     }
   }
 
