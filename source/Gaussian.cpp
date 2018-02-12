@@ -49,7 +49,7 @@ void AggrGaussian::merge(size_t payload_index, pivot_it &it_lower, pivot_it &it_
 }
 
 float AggrGaussian::variance() const {
-  // sum(xi ^ 2) / n - average(xi) ^ 2
+  // sum(xi ^ 2) / n - average(x) ^ 2
 
   float sum = 0.f;
   float count = 0.f;
