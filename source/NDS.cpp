@@ -176,14 +176,11 @@ std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangeP
       if (expr.first == "count") {
         if (query.group_by()) {
           if (option == CopyValueFromSubset) {
-            // group_by_subset
             group_by_subset<AggrCountSubset>(expr, writer, range, subsets.back().container);
           } else {
-            // group_by_range
             group_by_range<AggrCountRange>(expr, writer, range, subsets.back().container);
           }
         } else {
-          // group_by_none
           group_by_none<AggrCountNone>(expr, writer, range, subsets.back().container);
         }
       }
@@ -192,31 +189,25 @@ std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangeP
       if (expr.first == "quantile" || expr.first == "inverse") {
         if (query.group_by()) {
           if (option == CopyValueFromSubset) {
-            // group_by_subset
             group_by_subset<AggrPDigestSubset>(expr, writer, range, subsets.back().container);
           } else {
-            // group_by_range
             group_by_range<AggrPDigestRange>(expr, writer, range, subsets.back().container);
           }
         } else {
-          // group_by_none
           group_by_none<AggrPDigestNone>(expr, writer, range, subsets.back().container);
         }
       }
 #endif // ENABLE_PDIGEST
 
 #ifdef ENABLE_GAUSSIAN
-      if (expr.first == "quantile" || expr.first == "inverse") {
+      if (expr.first == "variance" || expr.first == "average") {
         if (query.group_by()) {
           if (option == CopyValueFromSubset) {
-            // group_by_subset
             group_by_subset<AggrGaussianSubset>(expr, writer, range, subsets.back().container);
           } else {
-            // group_by_range
             group_by_range<AggrGaussianRange>(expr, writer, range, subsets.back().container);
           }
         } else {
-          // group_by_none
           group_by_none<AggrGaussianNone>(expr, writer, range, subsets.back().container);
         }
       }
