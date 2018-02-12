@@ -8,32 +8,32 @@
 			<index>passenger_count</index>
 			<bin>4</bin>
 			<offset>0</offset>
-		</categorical>
+		</categorical>>
+		
 		<categorical>
 			<index>payment_type</index>
 			<bin>6</bin>
 			<offset>2</offset>
 		</categorical>
+
 		<temporal>
 			<index>pickup_datetime</index>
 			<bin>86400</bin>
 			<offset>19</offset>
 		</temporal>
+
 		<spatial>
 			<index>pickup</index>
 			<bin>1</bin>
 			<offset>3</offset>
 		</spatial>
+		
 		<payload>
 			<index>trip_distance</index>
 			<bin>0</bin>
 			<offset>27</offset>
 		</payload>
-		<payload>
-			<index>tip_amount</index>
-			<bin>0</bin>
-			<offset>35</offset>
-		</payload>
+		
 		<payload>
 			<index>total_amount</index>
 			<bin>0</bin>

@@ -51,6 +51,53 @@ var view_schemas = {
         ]
     },
 
+    "green_tripdata_2013": {
+        PLOTTING: "black",
+        PLOTTING_MODE: "circle",
+        PLOTTING_COLOR_SCALE: "bbb",
+        PLOTTING_TRANSFORM: "density_scaling",
+        title: "Brightkite Checkins",
+        tile: [{
+            title: "Pickup Location",
+            value: "pickup",
+            color: "#ffffff"
+        },],
+        views: [
+            {
+                type: "histogram",
+                title: "Passenger Count",
+                on_menu: true,
+                div: "#section",
+                size: 25,
+                field: {
+                    name: "passenger_count",
+                    values: ["1", "2", "3", "4+"]
+                }
+            },
+            {
+                type: "time-series",
+                title: "Pickup Datetime",
+                on_menu: false,
+                div: "#section",
+                size: 50,
+                field: {
+                    name: "pickup_datetime",
+                }
+            },
+            {
+                type: "histogram",
+                title: "Payment Type",
+                on_menu: true,
+                div: "#section",
+                size: 25,
+                field: {
+                    name: "payment_type",
+                    values: ["Credit", "Cash", "No Charge", "Dispute", "Voided Trip", "Unknown"]
+                }
+            }
+        ]
+    },
+
     // old config
     /*"twitter-small": {
         PLOTTING: "black",
