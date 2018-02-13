@@ -29,14 +29,20 @@
 		</spatial>
 		
 		<payload>
-			<index>trip_distance</index>
-			<bin>0</bin>
-			<offset>27</offset>
+		  <index>trip_distance_t</index>
+		  <bin>0</bin>
+		  <offset>27</offset>
+		</payload>
+
+		<payload>
+		  <index>trip_distance_g</index>
+		  <bin>1</bin>
+		  <offset>27</offset>
 		</payload>
 		
 		<payload>
 			<index>total_amount</index>
-			<bin>0</bin>
+			<bin>1</bin>
 			<offset>39</offset>
 		</payload>
 	</schema>

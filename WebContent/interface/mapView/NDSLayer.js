@@ -81,7 +81,7 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 
 	//
 	var fCallback = function(result,myQ){
-	    
+	    debugger
 	    if(layer.options.state == "count"){
 		tile.data = result;
 	    }

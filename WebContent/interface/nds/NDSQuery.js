@@ -1,13 +1,17 @@
 class NDSQuery{
-    constructor(datasetName,aggregation,group,callback){
-	this.queryID     = NDSQuery.getNextID();
-	this.datasetName = datasetName;
-	this.aggregation = aggregation;
-	this.group       = group;
-	this.callback    = callback;
-	this.constraints = [];
+    constructor(datasetName,group,callback){
+	this.queryID      = NDSQuery.getNextID();
+	this.datasetName  = datasetName;
+	this.aggregations = [];
+	this.group        = group;
+	this.callback     = callback;
+	this.constraints  = [];
     }
 
+    addAggregation(aggregation,aggregationDimension){
+	this.aggregations.push({"aggr":aggregation,"dim":aggregationDimension})
+    }
+    
     //TODO: Remove parameter type and make it a member of constraint in all cases
     addConstraint(type,dimensionId,payload){
 	var newConstraint = {"type":type, "dimensionId":dimensionId,"payload":payload};
@@ -63,18 +67,25 @@ class NDSQuery{
     }
 
     getAggregationString(){
-	if(this.aggregation == "quantile"){
-	    return "aggr=quantile.(" + this.payload.quantiles.join(":")   + ")"
-	}
-	else if(this.aggregation == "inverse_quantile"){
-	    return "aggr=inverse.(" + this.payload.inverse_quantile   + ")"
-	}
-	else if(this.aggregation == "count"){
-	    return  "aggr=count";
-	}
-	else{
-	    return undefined;
-	}
+	var resultStr = "";
+	var query = this;
+	this.aggregations.forEach(function(aggr){
+	    if(aggr.aggr == "quantile"){
+		resultStr += ("/aggr=quantile." + aggr.dim + ".(" + query.payload.quantiles.join(":")   + ")/")
+	    }
+	    else if(aggr.aggr == "inverse_quantile"){
+		//return "aggr=inverse.(" + query.payload.inverse_quantile   + ")"
+	    }
+	    else if(aggr.aggr == "count"){
+		resultStr += "/aggr=count/";
+	    }
+	    else{
+		//return undefined;
+	    }
+
+	});
+	
+	return resultStr;
     }
 
     getDatasetString(){

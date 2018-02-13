@@ -7,6 +7,17 @@ class EquiDepthHistogram {
 	var legendWidth = Math.ceil(d3.min([renderingWidth *0.6,100]));
 	var plotWidth = totalWidth - legendWidth;
 
+	//
+	var widget = this;
+	this.transform = d3.zoomTransform(container);
+	var zoom = d3.zoom()
+	    .scaleExtent([1, 40])
+	//.translateExtent([[-100, -100], [width + 90, height + 100]])
+	    .on("zoom", function(){
+		widget.zoomed(widget,d3.event);
+	    });
+
+	container.call(zoom);
 	
 	//
 	this.renderingArea = {x:screenX,y:screenY,width:plotWidth,height:totalHeight};
@@ -36,7 +47,7 @@ class EquiDepthHistogram {
 	this.plotGroup
 	    .append("g")
 	    .attr("class","xAxis")
-	    .attr("transform","translate(0," + (this.canvasHeight)  + ")");
+	    .attr("transform","translate(0," + (this.canvasHeight+5)  + ")");
 
 	//
 	this.yScale = d3.scaleLinear().range([this.canvasHeight,0]);
@@ -82,7 +93,13 @@ class EquiDepthHistogram {
 	    .attr("y",(canvasHeight + this.margins.top + 20))
 	    .style("text-anchor", "middle")
 	    .text(this.xLabel);
+
 	//text label for the y axis
+	var yScale = this.transform.rescaleY(this.yScale);
+	this.yAxis.scale(yScale);
+	this.canvas.selectAll(".yAxis").call(this.yAxis);
+
+
 	this.yAxis(this.plotGroup.select(".yAxis"));
 	this.plotGroup.select("#" + this.widgetID + "_labelYAxis")
 	    .attr("transform", "rotate(-90)")
@@ -96,6 +113,9 @@ class EquiDepthHistogram {
     setData(newData){ //[{"label":label,"bins":[{"lower":0,"upper":0.1,"density":0.1}]}]
 	//
 	this.data = newData;
+	//
+	var domain = d3.extent([].concat.apply([],newData.map(d=>d.bins) ),d=>d.density)
+        this.colorScale.domain(domain);
 	//
 	this.xScale.domain(this.data.map(d=>d.label));
 	//
@@ -128,18 +148,20 @@ class EquiDepthHistogram {
 	var rectangles = allHistograms
 	    .selectAll("rect")
 	    .data(d=>d.bins.map(bin=>{bin.label = d.label;return bin}));
-
+	
 	//
+	var yScale = this.transform.rescaleY(this.yScale);
 	rectangles.exit().remove();
 	rectangles
 	    .enter()
 	    .append("rect")
 	    .merge(rectangles)
 	    .attr("x",(d=>this.xScale(d.label)).bind(this))
-	    .attr("y",(d=>this.yScale(d.upper)).bind(this))
+	    .attr("y",(d=>yScale(d.upper)).bind(this))
 	    .attr("width",(d=>(this.xScale.bandwidth())).bind(this))
-	    .attr("height",(d=>(this.yScale(d.lower)-this.yScale(d.upper))).bind(this))
+	    .attr("height",(d=>(yScale(d.lower)-yScale(d.upper))).bind(this))
 	    .attr("stroke","black")
+	    .attr("stroke-width",0.1)
 	    .attr("fill",(d=>this.colorScale(d.density)).bind(this));
     }
 
@@ -195,26 +217,17 @@ class EquiDepthHistogram {
 	    .attr("x",(function(){return (this.legendArea.x+2*xSlack + rectWidth)}).bind(this))
 	    .attr("alignment-baseline","middle")
 	    .text((d,i)=>(i*binWidth).toFixed(2) + " -- " + ((i+1)*binWidth).toFixed(2));
-	    
-	
-	//
-	// var rects = this.legendGroup.selectAll("rect").data(colorScale.range());
-	// rects.exit().remove();
-	// rects.enter()
-	//     .append("rect")
-	//     .merge(rects)
-	//     .attr("y",function(d,i){return (rectHeight + ySlack)*i;})
-	//     .attr("width",rectWidth)
-	//     .attr("height",rectHeight)
-	//     .attr("fill",d=>d)
-	//     .style("stroke-width","1")
-	//     .style("stroke","black");
     }
     
     updatePlot(){
 	this.updateAxis();
 	this.updateLegend();
 	this.updateBars();
+    }
+
+    zoomed(widget,event){
+	widget.transform = event.transform;
+	widget.updatePlot();
     }
 }
 

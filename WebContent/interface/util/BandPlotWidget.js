@@ -7,6 +7,8 @@ class BandPlotWidget {
 	this.timeSelectionCallback = timeSelectionCallback;
         var controlsContainer = this.container.append("div")
             .attr("class","widgetControls");
+
+	
 	var timeSelectionLabel = controlsContainer.append("label").attr("id","timeSeriesSelectionLabel").attr("name","timeSeriesSelectionLabel").text("Select a time range");
 
 	
