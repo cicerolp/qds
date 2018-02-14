@@ -60,19 +60,25 @@
   <body>
     <div id="modeDiv">
       <text>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<text>
-      <input name="modeRadioButton" type="radio" value="count" id="mapModeCount" checked><label for="mapModeCount"> Count</label>
-      <input name="modeRadioButton" type="radio" value="quantile" id="mapModeQuantile"><label for="mapModeQuantile"> Quantile</label>
-      <input name="modeRadioButton" type="radio" value="quantile_range" id="mapModeQuantileRange"><label for="mapModeQuantileRange"> Quantile Range</label>
-      <input name="modeRadioButton" type="radio" value="inverse_quantile" id="mapModeInverseQuantile"><label for="mapModeInverseQuantile"> Inverse Quantile</label>      
-      <text>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<text>
-      Quantile:
-      <input type="range" id="quantileSlider" min="0" max="100" step="1" value="50">
-      <label for="quantileSlider" id="quantileLabel">0.50</label>      
-      <text>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<text>
+	  <input name="modeRadioButton" type="radio" value="count" id="mapModeCount" checked><label for="mapModeCount"> Count</label>
+	  <input name="modeRadioButton" type="radio" value="average" id="mapModeAverage"><label for="mapModeAverage"> Average</label>
+	  <input name="modeRadioButton" type="radio" value="quantile" id="mapModeQuantile"><label for="mapModeQuantile"> Quantile</label>
+	  <input name="modeRadioButton" type="radio" value="quantile_range" id="mapModeQuantileRange"><label for="mapModeQuantileRange"> Quantile Range</label>
+	  <input name="modeRadioButton" type="radio" value="inverse_quantile" id="mapModeInverseQuantile"><label for="mapModeInverseQuantile"> Inverse Quantile</label>      
+	  <text>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<text>
+	  Quantile:
+	  <input type="range" id="quantileSlider" min="0" max="100" step="1" value="50">
+	  <label for="quantileSlider" id="quantileLabel">0.50</label>      
+	  <text>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<text>
       Inverse Quantile:
       <input type="range" id="inverseQuantileSlider" min="0" max="1000" step="10" value="100">
       <label for="inverseQuantileSlider" id="inverseQuantileLabel">100</label>      
 
+      <!---->
+      <text>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<text>
+      Payload Dimension:
+      <select id="payloadCombobox">
+      </select>
     </div>
 
   </body>

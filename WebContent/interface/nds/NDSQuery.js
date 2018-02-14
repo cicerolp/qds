@@ -73,6 +73,9 @@ class NDSQuery{
 	    if(aggr.aggr == "quantile"){
 		resultStr += ("/aggr=quantile." + aggr.dim + ".(" + query.payload.quantiles.join(":")   + ")/")
 	    }
+	    else if(aggr.aggr == "average"){
+		resultStr += ("/aggr=average." + aggr.dim + "/")
+	    }
 	    else if(aggr.aggr == "inverse_quantile"){
 		resultStr += ("/aggr=inverse." + aggr.dim + ".(" + query.payload.inverse_quantile   + ")/")
 	    }

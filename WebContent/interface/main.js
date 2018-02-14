@@ -34,8 +34,6 @@ function queryEquiDepthPlot(){
     var q = new NDSQuery(datasetInfo.datasetName,activeCategoricalDimension,
 			 function(queryReturn){
 			     var counts = {};
-			     debugger
-			     console.log("LÇKDJFLSDKJ");
 			     queryReturn[1].forEach(d=>{counts[d[0]]=d[1]});
 			     console.log("totalcounts",counts);
 			     var result = queryReturn[0];
@@ -78,17 +76,14 @@ function queryEquiDepthPlot(){
 	q.addConstraint("region",activeSpatialDimension,{"zoom":myMap.map.getZoom(),"geometry":[geoConstraints[0].geometry[0], geoConstraints[0].geometry[1],geoConstraints[0].geometry[4],geoConstraints[0].geometry[5]]});
     }
     //
-    console.log(q.toString());
     ndsInterface.query(q);
 
 }
 
 function queryBandPlot(){
-    return;
     //http://localhost:7000/api/query/dataset=green_tripdata_2013/aggr=count/const=pickup_datetime.interval.(1375315200:1388534400)/group=pickup_datetime
     var q = new NDSQuery(datasetInfo.datasetName,activeTemporalDimension,
 			 function(queryReturn){
-			     debugger			 
 			     var result = queryReturn[0];
 			     var numEntries = result.length;
 			     //{"lower":0,"upper":0.1  ,"density":0.25}
@@ -126,13 +121,12 @@ function queryBandPlot(){
 	q.addConstraint("region",spatialDimension,{"zoom":myMap.map.getZoom(),"geometry":[geoConstraints[0].geometry[0], geoConstraints[0].geometry[1],geoConstraints[0].geometry[4],geoConstraints[0].geometry[5]]});
     }
     //
-    console.log(q.toString());
     ndsInterface.query(q);
 
 }
 
 function updateSystem(){
-    queryBoxPlot();
+    //queryBoxPlot();
 }
 
 /*************************
@@ -179,7 +173,7 @@ function setTemporalConstraint(constraint){
     console.log("constraint",constraint);
     
     //
-    queryBoxPlot();
+    //queryBoxPlot();
     queryEquiDepthPlot();
     var ndsLayer = myMap.getLayer("ndsLayer");
     ndsLayer.repaint();
@@ -200,8 +194,8 @@ function initializeSystem(){
     };
     myMap = new GLLeafletMap(mapID,[-14.408656850000002,-51.31668], 4, tileURL, tileLayerProperties);
     myMap.setCallback("selectionChanged",mapSelectionChanged);
-    //var ndsLayer = new NDSLayer(myMap.map,ndsInterface);
-    //myMap.addLayer(ndsLayer,"ndsLayer");
+    var ndsLayer = new NDSLayer(myMap.map,ndsInterface);
+    myMap.addLayer(ndsLayer,"ndsLayer");
     d3.select("#legend").style("display", "none");
     d3.select("#legendSeq").style("display", "none");
     
@@ -219,6 +213,18 @@ function initializeSystem(){
     });
 
     //
+    d3.select("#payloadCombobox")
+	.selectAll("option")
+	.on("change",function(d){
+	    activePayloadDimension = d3.event.target.selectedOptions[0].text;
+	    updateSystem();
+	})
+	.data(datasetInfo.payloads)
+	.enter()
+	.append("option")
+	.text(d=>d);
+    
+    //
     var modeOptions = d3.select("#modeDiv")
 	.selectAll("input")
 	.on("change",changeMapMode);
@@ -226,9 +232,12 @@ function initializeSystem(){
     //
      d3.select("#quantileSlider").on("change",function(d){
 	 var newValue = +d3.event.target.value;
-	 d3.select("#quantileLabel").text(newValue/100.0);
 	 ndsLayer.setQuantileMapQuantile((newValue/100.0));
-    });
+     }) .on("input",function(d){
+     	 var newValue = +d3.event.target.value;
+     	 d3.select("#quantileLabel").text(newValue/100.0);
+     });
+    
     //
     d3.select("#inverseQuantileSlider").on("change",function(d){
 	var newValue = +d3.event.target.value;
@@ -262,7 +271,7 @@ function initializeSystem(){
     //
     // queryBoxPlot();
     queryEquiDepthPlot();
-    //queryBandPlot();
+    queryBandPlot();
 }
 
 /*******************
