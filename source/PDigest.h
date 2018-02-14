@@ -83,7 +83,7 @@ class PDigest : public Payload {
 class AgrrPDigest : public AgrrPayload {
  public:
   void merge(size_t payload_index, const Pivot &pivot) override;
-  void merge(size_t payload_index, pivot_it &it_lower, pivot_it &it_upper) override;
+  void merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) override;
 
   float quantile(float q) const;
   float inverse(float value) const;

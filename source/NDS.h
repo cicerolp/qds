@@ -146,21 +146,17 @@ class NDS {
     return index;
   }
 
-  template<typename _Aggr>
-  void group_by_subset(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                       range_ctn &range, const subset_pivot_ctn &subset) const;
+  inline void group_by_subset(aggrs_subset_t &aggrs, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                              range_ctn &range, const subset_pivot_ctn &subset) const;
 
-  template<typename _Aggr>
-  void group_by_range(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                      range_ctn &range, const subset_pivot_ctn &subset) const;
+  inline void group_by_range(aggrs_range_t &aggrs, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                             range_ctn &range, const subset_pivot_ctn &subset) const;
 
-  template<typename _Aggr>
-  void group_by_none(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                     range_ctn &range, const subset_pivot_ctn &subset) const;
+  inline void group_by_none(aggrs_none_t &aggrs, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                            range_ctn &range, const subset_pivot_ctn &subset) const;
 
-  template<typename _Aggr>
-  void group_by_none(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                     range_ctn &range) const;
+  inline void group_by_none(aggrs_none_t &aggrs, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+                            range_ctn &range) const;
 
   pivot_ctn _root;
   std::vector<std::unique_ptr<Payload>> _payload;
@@ -169,66 +165,77 @@ class NDS {
   std::vector<std::unique_ptr<Dimension>> _dimension;
 };
 
-template<typename _Aggr>
-void NDS::group_by_subset(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+void NDS::group_by_subset(aggrs_subset_t &aggrs, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                           range_ctn &range, const subset_pivot_ctn &subset) const {
-  _Aggr aggregator(expr, get_payload_index(expr.second), subset.size());
 
   for (auto el = 0; el < subset.size(); ++el) {
     pivot_it it_lower = subset[el]->ptr().begin(), it_upper;
     range_it it_range = range.begin();
 
     while (search_iterators(it_range, range, it_lower, it_upper, subset[el]->ptr())) {
-      aggregator.merge(el, it_lower, it_upper);
+      for (auto &aggr : aggrs) {
+        aggr->merge(el, it_lower, it_upper);
+      }
+      it_lower = it_upper;
       ++it_range;
     }
+  }
 
-    aggregator.output(el, subset[el]->value, writer);
+  for (auto el = 0; el < subset.size(); ++el) {
+    for (auto &aggr : aggrs) {
+      aggr->output(el, subset[el]->value, writer);
+    }
   }
 }
 
-template<typename _Aggr>
-void NDS::group_by_range(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+void NDS::group_by_range(aggrs_range_t &aggrs, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                          range_ctn &range, const subset_pivot_ctn &subset) const {
-  _Aggr aggregator(expr, get_payload_index(expr.second));
-
   for (const auto &el : subset) {
     pivot_it it_lower = el->ptr().begin(), it_upper;
     range_it it_range = range.begin();
 
     while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-      aggregator.merge((*it_range).value, it_lower, it_upper);
+      for (auto &aggr : aggrs) {
+        aggr->merge((*it_range).value, it_lower, it_upper);
+      }
+      it_lower = it_upper;
       ++it_range;
     }
   }
 
-  aggregator.output(writer);
+  for (auto &aggr : aggrs) {
+    aggr->output(writer);
+  }
 }
 
-template<typename _Aggr>
-void NDS::group_by_none(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+void NDS::group_by_none(aggrs_none_t &aggrs, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                         range_ctn &range, const subset_pivot_ctn &subset) const {
-  _Aggr aggregator(expr, get_payload_index(expr.second));
-
   for (const auto &el : subset) {
     pivot_it it_lower = el->ptr().begin(), it_upper;
     range_it it_range = range.begin();
 
     while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-      aggregator.merge(it_lower, it_upper);
+      for (auto &aggr : aggrs) {
+        aggr->merge(it_lower, it_upper);
+      }
+      it_lower = it_upper;
       ++it_range;
     }
   }
 
-  aggregator.output(writer);
+  for (auto &aggr : aggrs) {
+    aggr->output(writer);
+  }
 }
 
-template<typename _Aggr>
-void NDS::group_by_none(const Query::aggr_expr &expr, rapidjson::Writer<rapidjson::StringBuffer> &writer,
+void NDS::group_by_none(aggrs_none_t &aggrs, rapidjson::Writer<rapidjson::StringBuffer> &writer,
                         range_ctn &range) const {
-  _Aggr aggregator(expr, get_payload_index(expr.second));
 
-  aggregator.merge(range.begin(), range.end());
+  for (auto &aggr : aggrs) {
+    aggr->merge(range.begin(), range.end());
+  }
 
-  aggregator.output(writer);
+  for (auto &aggr : aggrs) {
+    aggr->output(writer);
+  }
 }

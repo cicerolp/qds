@@ -12,7 +12,6 @@ var geoConstraints = [];
 var currentDataset = "green_cabs"
 var datasetInfo    = undefined;
 var ndsInterface   = undefined;
-var datasetName    = undefined;
 
 //
 var activeCategoricalDimension = undefined;
@@ -35,6 +34,8 @@ function queryEquiDepthPlot(){
     var q = new NDSQuery(datasetInfo.datasetName,activeCategoricalDimension,
 			 function(queryReturn){
 			     var counts = {};
+			     debugger
+			     console.log("LÇKDJFLSDKJ");
 			     queryReturn[1].forEach(d=>{counts[d[0]]=d[1]});
 			     console.log("totalcounts",counts);
 			     var result = queryReturn[0];
@@ -83,9 +84,11 @@ function queryEquiDepthPlot(){
 }
 
 function queryBandPlot(){
+    return;
     //http://localhost:7000/api/query/dataset=green_tripdata_2013/aggr=count/const=pickup_datetime.interval.(1375315200:1388534400)/group=pickup_datetime
     var q = new NDSQuery(datasetInfo.datasetName,activeTemporalDimension,
 			 function(queryReturn){
+			     debugger			 
 			     var result = queryReturn[0];
 			     var numEntries = result.length;
 			     //{"lower":0,"upper":0.1  ,"density":0.25}
@@ -259,7 +262,7 @@ function initializeSystem(){
     //
     // queryBoxPlot();
     queryEquiDepthPlot();
-    queryBandPlot();
+    //queryBandPlot();
 }
 
 /*******************

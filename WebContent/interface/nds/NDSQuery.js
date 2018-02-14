@@ -74,7 +74,7 @@ class NDSQuery{
 		resultStr += ("/aggr=quantile." + aggr.dim + ".(" + query.payload.quantiles.join(":")   + ")/")
 	    }
 	    else if(aggr.aggr == "inverse_quantile"){
-		//return "aggr=inverse.(" + query.payload.inverse_quantile   + ")"
+		resultStr += ("/aggr=inverse." + aggr.dim + ".(" + query.payload.inverse_quantile   + ")/")
 	    }
 	    else if(aggr.aggr == "count"){
 		resultStr += "/aggr=count/";

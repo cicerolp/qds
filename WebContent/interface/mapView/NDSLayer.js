@@ -68,7 +68,7 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
     createTile: function (coords,done) {
 	var layer = this;
         var tile = document.createElement('canvas');
-	tile.data = undefined;
+	tile.data = [];
 	//
         var tileSize = layer.getTileSize();
         tile.setAttribute('width', tileSize.x);
@@ -80,12 +80,16 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	var tileInTotalResolution = [lon2tilex(tileLatLng[0],totalResolution),lat2tiley(tileLatLng[1],totalResolution)];
 
 	//
-	var fCallback = function(result,myQ){
-	    debugger
+	var fCallback = function(queryReturn,myQ){
+	    var result = [];
+	    //TODO: remove this fix when cicero fix the result standard
+	    if(queryReturn.length > 0)
+		result = queryReturn[0];
+	    
 	    if(layer.options.state == "count"){
 		tile.data = result;
 	    }
-	    if(layer.options.state == "quantile"){
+	    else if(layer.options.state == "quantile"){
 		result = result.map(entry=>[entry[0],entry[1],entry[2],entry[4]]);
 		tile.data = result;
 		//TODO: set proper scale
@@ -110,6 +114,10 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 		tile.data = consolidatedData;
 		//TODO: set proper scale		
 	    }
+	    else{
+		console.log("not here", layer.options.state);
+		debugger
+	    }
 	    
 	    layer.colorTile(tile,tileInTotalResolution);	    	    
             done(null, tile);	// Syntax is 'done(error, tile)'
@@ -117,31 +125,37 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	//
 	var query = undefined;
 	if(layer.options.state == "count"){
-	    query = new NDSQuery(datasetName,"count",spatialDimension,fCallback);
-	    query.addConstraint("time_interval",temporalDimension,timeConstraint);
-	    query.addConstraint("tile",spatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
+	    query = new NDSQuery(datasetInfo.datasetName,activeSpatialDimension,fCallback);
+	    query.addAggregation("count");
+	    query.addConstraint("time_interval",activeTemporalDimension,timeConstraint);
+	    query.addConstraint("tile",activeSpatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
 	}
 	else if(layer.options.state == "quantile"){
-	    query = new NDSQuery(datasetName,"quantile",spatialDimension,fCallback);
-	    query.addConstraint("time_interval",temporalDimension,timeConstraint);	    
-	    query.addConstraint("tile",spatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
+	    query = new NDSQuery(datasetInfo.datasetName,activeSpatialDimension,fCallback);
+	    query.addAggregation("quantile",activePayloadDimension);
+	    query.addConstraint("time_interval",activeTemporalDimension,timeConstraint);	   
+	    query.addConstraint("tile",activeSpatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
 	    query.setPayload({"quantiles":[layer.options.quantileQuery]});
 	}
 	else if(layer.options.state == "quantile_range"){
-	    query = new NDSQuery(datasetName,"quantile",spatialDimension,fCallback);
-	    query.addConstraint("time_interval",temporalDimension,timeConstraint);	    
-	    query.addConstraint("tile",spatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
+	    query = new NDSQuery(datasetInfo.datasetName,activeSpatialDimension,fCallback);
+	    query.addAggregation("quantile",activePayloadDimension);
+	    query.addConstraint("time_interval",activeTemporalDimension,timeConstraint);	   
+	    query.addConstraint("tile",activeSpatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
 	    query.setPayload({"quantiles":[0.25,0.75]});
 	}
 	else if(layer.options.state == "inverse_quantile"){
-	    query = new NDSQuery(datasetName,"inverse_quantile",spatialDimension,fCallback);
-	    query.addConstraint("time_interval",temporalDimension,timeConstraint);	    
-	    query.addConstraint("tile",spatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
+	    query = new NDSQuery(datasetInfo.datasetName,activeSpatialDimension,fCallback);
+	    query.addAggregation("inverse_quantile",activePayloadDimension);
+	    query.addConstraint("time_interval",activeTemporalDimension,timeConstraint);	   
+	    query.addConstraint("tile",activeSpatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
 	    query.setPayload({"inverse_quantile":layer.options.inverseQuantileQuery});
 	}
 
 	//
 	query.tile = [tileInTotalResolution[0],tileInTotalResolution[1],totalResolution];
+	console.log(query.toString());
+	
 	ndsInterface.query(query);
 	
         return tile;

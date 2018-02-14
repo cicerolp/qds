@@ -34,35 +34,37 @@ void AggrGaussian::merge(size_t payload_index, const Pivot &pivot) {
   sum_square_i.emplace_back(payload[1]);
 }
 
-void AggrGaussian::merge(size_t payload_index, pivot_it &it_lower, pivot_it &it_upper) {
+void AggrGaussian::merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) {
+  auto it = it_lower;
 
   // insert payload data
-  while (it_lower != it_upper) {
-    auto &payload = (*it_lower).get_payload(payload_index);
+  while (it != it_upper) {
+    auto &payload = (*it).get_payload(payload_index);
 
-    count_i.emplace_back((*it_lower).size());
+    count_i.emplace_back((*it).size());
     sum_i.emplace_back(payload[0]);
     sum_square_i.emplace_back(payload[1]);
 
-    ++it_lower;
+    ++it;
   }
 }
 
 float AggrGaussian::variance() const {
-  // sum(xi ^ 2) / n - average(xi) ^ 2
+  // sum(xi ^ 2) / n - average(x) ^ 2
+
+  float sum = 0.f;
   float count = 0.f;
   float sum_square = 0.f;
-  float average_square = 0.f;
+
   for (auto i = 0; i < count_i.size(); ++i) {
+    sum += sum_i[i];
     count += count_i[i];
     sum_square += sum_square_i[i];
-
-    float average_i = sum_i[i] / count_i[i];
-
-    average_square += average_i * average_i;
   }
 
-  return sum_square / count - average_square;
+  float average = sum / count;
+
+  return sum_square / count - (average * average);
 }
 
 float AggrGaussian::average() const {
