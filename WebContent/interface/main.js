@@ -1,33 +1,42 @@
-console.log("EVV");
-
 //widgets
 var myMap           = undefined;
 var boxPlotWidget   = undefined;
 var equidepthWidget = undefined;
 
 //constraints
-var initialTimeConstraint = {"lower":1205971200,"upper":1287014400};
-var timeConstraint = {"lower":1205971200,"upper":1287014400};
+var initialTimeConstraint ={ "lower":1375315200,"upper":1388534400};
+var timeConstraint = {"lower":1375315200,"upper":1388534400};
 var geoConstraints = [];
 
 //vars
-var xmlFile        = "data/example.xml";
+var currentDataset = "green_cabs"
+var datasetInfo    = undefined;
 var ndsInterface   = undefined;
-var datasetName    = undefined;
-var datasetSchema  = {};
-var mapIndexToName = {};
 
-var temporalDimension = 3;
-var spatialDimension  = 0; 
+//
+var activeCategoricalDimension = undefined;
+var activeTemporalDimension    = undefined; 
+var activeSpatialDimension     = undefined;
+var activePayloadDimension     = undefined;
+
+
+function getAlias(dimension,value){
+    return datasetInfo.aliases[dimension][value];
+}
 
 /*******************
  * Query Functions *
  *******************/
 
 function queryEquiDepthPlot(){
-    //http://localhost:7000/api/query/dataset=brightkite/aggr=quantile.(0:0.25:0.5:0.75:1.0)/const=1.values.(all)/group=1
-    var q = new NDSQuery(datasetName,"quantile",1,
-			 function(result){
+    //http://localhost:7000/api/query/dataset=green_tripdata_2013/aggr=count/aggr=quantile.(0.5)/const=payment_type.values.(all)/group=payment_type
+    //[[[0,354622],[1,728901],[2,4475],[3,3180]],[[0,5.0,29.94832992553711],[1,5.0,32.01000213623047],[2,5.0,35.29999923706055],[3,5.0,31.049999237060548]]]
+    var q = new NDSQuery(datasetInfo.datasetName,activeCategoricalDimension,
+			 function(queryReturn){
+			     var counts = {};
+			     queryReturn[1].forEach(d=>{counts[d[0]]=d[1]});
+			     console.log("totalcounts",counts);
+			     var result = queryReturn[0];
 			     var numEntries = result.length;
 			     //{"lower":0,"upper":0.1  ,"density":0.25}
 			     var data = [];
@@ -38,7 +47,8 @@ function queryEquiDepthPlot(){
 				 for(var i = 1 ; i < numEntries ; ++i){
 				     var entry = result[i];
 				     if(prevEntry[0] == entry[0]){
-					 bins.push({"lower":prevEntry[2],"upper":entry[2],"density":(entry[1]-prevEntry[1])});
+					 var totalCount = counts[entry[0]];
+					 bins.push({"lower":prevEntry[2],"upper":entry[2],"density":(entry[1]-prevEntry[1])*totalCount});
 				     }
 				     else{
 					 data.push({"label":prevEntry[0],"bins":bins});
@@ -51,13 +61,19 @@ function queryEquiDepthPlot(){
 
 				 //TODO:normalize
 			     }
+			     data = data.map(d=>{
+				 d.label = getAlias(activeCategoricalDimension,d.label);
+				 return d;
+			     })
 			     equidepthWidget.setData(data);
 			 });
+    q.addAggregation("quantile",activePayloadDimension);
+    q.addAggregation("count");
     q.setPayload({"quantiles":d3.range(11).map(d=>0.1*d)});
     //
-    q.addConstraint("categorical",1,{"values":["all"]});
+    q.addConstraint("categorical",activeCategoricalDimension,{"values":["all"]});
     if(geoConstraints.length > 0){
-	q.addConstraint("region",spatialDimension,{"zoom":myMap.map.getZoom(),"geometry":[geoConstraints[0].geometry[0], geoConstraints[0].geometry[1],geoConstraints[0].geometry[4],geoConstraints[0].geometry[5]]});
+	q.addConstraint("region",activeSpatialDimension,{"zoom":myMap.map.getZoom(),"geometry":[geoConstraints[0].geometry[0], geoConstraints[0].geometry[1],geoConstraints[0].geometry[4],geoConstraints[0].geometry[5]]});
     }
     //
     ndsInterface.query(q);
@@ -65,10 +81,10 @@ function queryEquiDepthPlot(){
 }
 
 function queryBandPlot(){
-    //http://localhost:7000/api/query/dataset=brightkite/aggr=quantile.(0:0.25:0.5:0.75:1.0)/const=1.values.(all)/group=1
-    var q = new NDSQuery(datasetName,"quantile",temporalDimension,
-			 function(result){
-			     console.log(result);
+    //http://localhost:7000/api/query/dataset=green_tripdata_2013/aggr=count/const=pickup_datetime.interval.(1375315200:1388534400)/group=pickup_datetime
+    var q = new NDSQuery(datasetInfo.datasetName,activeTemporalDimension,
+			 function(queryReturn){
+			     var result = queryReturn[0];
 			     var numEntries = result.length;
 			     //{"lower":0,"upper":0.1  ,"density":0.25}
 			     var numQuantiles = this.payload.quantiles.length;
@@ -96,9 +112,11 @@ function queryBandPlot(){
 			     //
 			     bandPlotWidget.setData(bands,data[Math.floor(numCurves/2)]);
 			 });
+    //
+    q.addAggregation("quantile",activePayloadDimension);
     q.setPayload({"quantiles":[0,0.25,0.5,0.75,1.0]});
     //
-    q.addConstraint("time_interval",temporalDimension,timeConstraint);
+    q.addConstraint("time_interval",activeTemporalDimension,timeConstraint);
     if(geoConstraints.length > 0){
 	q.addConstraint("region",spatialDimension,{"zoom":myMap.map.getZoom(),"geometry":[geoConstraints[0].geometry[0], geoConstraints[0].geometry[1],geoConstraints[0].geometry[4],geoConstraints[0].geometry[5]]});
     }
@@ -108,7 +126,7 @@ function queryBandPlot(){
 }
 
 function updateSystem(){
-    queryBoxPlot();
+    //queryBoxPlot();
 }
 
 /*************************
@@ -155,7 +173,7 @@ function setTemporalConstraint(constraint){
     console.log("constraint",constraint);
     
     //
-    queryBoxPlot();
+    //queryBoxPlot();
     queryEquiDepthPlot();
     var ndsLayer = myMap.getLayer("ndsLayer");
     ndsLayer.repaint();
@@ -195,41 +213,31 @@ function initializeSystem(){
     });
 
     //
+    d3.select("#payloadCombobox")
+	.selectAll("option")
+	.on("change",function(d){
+	    activePayloadDimension = d3.event.target.selectedOptions[0].text;
+	    updateSystem();
+	})
+	.data(datasetInfo.payloads)
+	.enter()
+	.append("option")
+	.text(d=>d);
+    
+    //
     var modeOptions = d3.select("#modeDiv")
 	.selectAll("input")
 	.on("change",changeMapMode);
-    
-    //
-    // var formQueryPlaceDiv = d3.select("body").append("div").attr("class","placeForm").attr("id","placeFeaturesDiv");
-    // var optionsDiv = formQueryPlaceDiv.append("div").attr("id","optionsDiv");
-    // var divFunctions = [{"id":"Quantile","screenName":"Quantile"}];
-    // var divs = formQueryPlaceDiv
-    // 	.selectAll("div")
-    // 	.data(divFunctions)
-    // 	.enter()
-    // 	.append("div")
-    // 	.attr("id",d=>("funcDiv" + d.id));
-    // divs.append("label")
-    // 	.attr("for",d=>("funcDiv" + d.id))
-    // 	.text(d=>(d.screenName + ":  "));
-    // divs.append("input")
-    // 	.attr("type","range")
-    // 	.attr("min",0)
-    // 	.attr("max",100)
-    // 	.attr("step",10)
-    // 	.attr("value",50)
-    // 	.attr("id",d=>("input" + d.id))
-    // 	.on("change",function(e){
-    // 	    var newValue = +d3.event.target.value;
-    // 	    ndsLayer.setQuantileMapQuantile((newValue/100.0));
-    // 	});
 
     //
      d3.select("#quantileSlider").on("change",function(d){
 	 var newValue = +d3.event.target.value;
-	 d3.select("#quantileLabel").text(newValue/100.0);
 	 ndsLayer.setQuantileMapQuantile((newValue/100.0));
-    });
+     }) .on("input",function(d){
+     	 var newValue = +d3.event.target.value;
+     	 d3.select("#quantileLabel").text(newValue/100.0);
+     });
+    
     //
     d3.select("#inverseQuantileSlider").on("change",function(d){
 	var newValue = +d3.event.target.value;
@@ -245,11 +253,15 @@ function initializeSystem(){
 
     //add equidepth histogram
     var equidepthWidgetDiv = d3.select("body").append("div").attr("id","equidepthWidget");
-    equidepthWidget = new EquidepthWidget(equidepthWidgetDiv,"equidepthWidgetDiv");
-
+    equidepthWidget = new EquidepthWidget(equidepthWidgetDiv,"equidepthWidgetDiv",datasetInfo);
+    equidepthWidget.setDimensionSelectionCallback(function(newDimension){
+	activeCategoricalDimension = newDimension;
+	queryEquiDepthPlot();
+    });
+    
     //add equidepth histogram
     var bandWidgetDiv = d3.select("body").append("div").attr("id","bandWidget");
-    bandPlotWidget = new BandPlotWidget(bandWidgetDiv,"bandWidgetDiv",setTemporalConstraint);
+    bandPlotWidget = new BandPlotWidget(bandWidgetDiv,"bandWidgetDiv",setTemporalConstraint,datasetInfo);
 
     
     //
@@ -257,7 +269,7 @@ function initializeSystem(){
     // timeSeriesWidget = new TimeSeriesWidget(equidepthWidgetDiv,"equidepthWidgetDiv");
     
     //
-    queryBoxPlot();
+    // queryBoxPlot();
     queryEquiDepthPlot();
     queryBandPlot();
 }
@@ -265,132 +277,16 @@ function initializeSystem(){
 /*******************
  * Start Execution *
  *******************/
-
-d3.xml(xmlFile, function(error, data) {
-
-    var schemaOBJ = xmlToJson(data);
-    datasetName = schemaOBJ.config.output["#text"];
-    datasetName = "brightkite";
-
-    //process schema
-    schemaOBJ.config.schema.categorical.forEach(dimension=>{
-	var attributes = dimension["@attributes"];
-	if(attributes.type == "discrete"){
-	    attributes["bins"] = dimension.bins.bin.map(function(d,i){ return {"key":d.key,"index":i} });
-	}
-	else if(attributes.type == "sequential"){
-	    attributes["bins"] = dimension.bins.bin;
-	}
-	datasetSchema[attributes.name] = attributes;
-	mapIndexToName[attributes.index] = attributes.name;
-    });
-
-    //temporal
-    var temporalAttributes = schemaOBJ.config.schema.temporal["@attributes"];
-    temporalAttributes["min"] = schemaOBJ.config.schema.temporal.bins.bin.min;
-    temporalAttributes["max"] = schemaOBJ.config.schema.temporal.bins.bin.min;
-    datasetSchema[temporalAttributes.name] = temporalAttributes;
-    mapIndexToName[temporalAttributes.index] = temporalAttributes.name;
-
-    //spatial
-    var spatialAttributes = schemaOBJ.config.schema.spatial["@attributes"];   
-    datasetSchema[spatialAttributes.name] = spatialAttributes;
-    mapIndexToName[spatialAttributes.index] = spatialAttributes.name;
-
+(function(){
+    //
+    console.log("EVV");
+    datasetInfo = datasets[currentDataset];
+    activeCategoricalDimension = datasetInfo.categoricalDimension[0];
+    activeTemporalDimension    = datasetInfo.temporalDimension[0];
+    activeSpatialDimension     = datasetInfo.spatialDimension[0];
+    activePayloadDimension     = datasetInfo.payloads[0];
+    
     //
     ndsInterface = new NDSInterface("localhost",7000,d=>{console.log("creation of NDS interface done!")});
     initializeSystem();
-
-});
-
-
-
-/******************
- * test functions *
- ******************/
-
-
-function test(){
-    var q = new NDSQuery(datasetName,"count","",(d,q)=>{console.log(d,q);});
-
-    ndsInterface.query(q);
-
-    var myDate0 = new Date(2018,1,1);
-    var myDate1 = new Date(2018,10,1);
-    q.addConstraint("time_interval","time",{"lower":myDate0.getTime()/1000,"upper":myDate1.getTime()/1000});
-    ndsInterface.query(q);
-}
-
-// 
-function testBoxPlot(){
-    var data = [["entry1",0,1,2,4,5],
-		["entry2",0.5,1.5,2,4,10],
-		["entry3",3,4,9,9.5,15]];
-
-    boxPlotWidget.setData(data);
-}
-
-//
-function testEquiDepth(){
-
-    var data = [{"label":"entry1","bins":[{"lower":0,"upper":0.1  ,"density":0.25},
-					  {"lower":0.1,"upper":0.5,"density":0.25},
-					  {"lower":0.5,"upper":0.9,"density":0.25},
-					  {"lower":0.9,"upper":1.0,"density":0.25}]},
-		
-		{"label":"entry2","bins":[{"lower":0.1,"upper":0.2,"density":0.4},
-					  {"lower":0.2,"upper":0.3,"density":0.05},
-					  {"lower":0.3,"upper":0.4,"density":0.1},
-					  {"lower":0.4,"upper":0.5,"density":0.05},
-					  {"lower":0.5,"upper":0.6,"density":0.4},
-					 ]
-		},	    
-		{"label":"entry3","bins":[{"lower":0.5,"upper":1.0,"density":0.75},
-					  {"lower":1.0,"upper":2.0,"density":0.15},
-					  {"lower":2.0,"upper":2.5,"density":0.1}
-					 ]
-		}
-	       ];
-    
-    equidepthWidget.setData(data);
-}
-
-/***********
- * scratch *
- ***********/
-
-function queryBoxPlot(){
-    //http://localhost:7000/api/query/dataset=brightkite/aggr=quantile.(0:0.25:0.5:0.75:1.0)/const=3.interval.(1205971200:1287014400)/group=3
-    if(boxPlotWidget == undefined)
-	return;
-    
-    var q = new NDSQuery(datasetName,"quantile",temporalDimension,
-			 function(result){
-			     var prevValue = undefined;
-			     var currentEntry = [];
-			     var data = [];
-			     result.forEach(function(entry){
-				 
-				 if(entry[0] == prevValue){
-				     currentEntry.push(entry[2]);
-				 }
-				 else{
-				     if(prevValue != undefined){
-					 data.push(currentEntry);
-				     }
-
-				     //
-				     currentEntry = [entry[0],entry[2]];
-				     prevValue = entry[0];
-				 }
-			     });
-			     data.push(currentEntry);
-			     boxPlotWidget.setData(data);
-			 });
-    q.setPayload({"quantiles":[0,0.25,0.5,0.75,1.0]});
-    console.log("======>",timeConstraint);
-    q.addConstraint("time_interval",temporalDimension,timeConstraint);
-    console.log(q.toString());
-    ndsInterface.query(q);
-
-}
+})()
