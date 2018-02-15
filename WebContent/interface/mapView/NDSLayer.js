@@ -25,7 +25,7 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
     },
     myColorScale:function(value){
 	var opacity = this.options.opacity
-	var lc = Math.log(value + 1) / Math.log(100);
+	var lc = Math.log(value + 1) / Math.log(10);
         var r = Math.floor(255 * Math.min(1, lc));
 	var g = Math.floor(255 * Math.min(1, Math.max(0, lc - 1)));
 	var b = Math.floor(255 * Math.min(1, Math.max(0, lc - 2)));
@@ -34,7 +34,7 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
     },
     normalizedColorScale:function(value){
 	var opacity = this.options.opacity
-	var scale = d3.scaleLinear().range(["rgba(255,255,255,"+opacity+")","rgba(255,0,0,"+opacity+")"]);
+	var scale = d3.scaleLinear().range(["rgba(255,0,0,"+opacity+")","rgba(0,0,255,"+opacity+")"]);
 	return scale(value);
     },
     colorTile: function(tile, coords,totalResolution){
@@ -175,8 +175,6 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 
 	//
 	query.tile = [tileInTotalResolution[0],tileInTotalResolution[1],totalResolution];
-	console.log(query.toString());
-	
 	ndsInterface.query(query);
 	
         return tile;
@@ -199,7 +197,6 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	    ctx.clearRect(0, 0, tileSize.x,tileSize.y);
 
 	    //
-	    console.log("totalResolution",totalResolution);
 	    layer.colorTile(canvas,tileInTotalResolution,totalResolution);
 	}
     }
@@ -271,8 +268,8 @@ class NDSLayer{
 	this.tileLayer = L.gridLayer.canvasCircles({"ndsInterface":ndsInterface, "parent":that, "resolution":5,"opacity":1.0,"quantileQuery":0.5,"inverseQuantileQuery":100,"state":"count"});
 	this.tileLayer.addTo(this.containerMap);
 	//
-	this.debugLayer = L.gridLayer.debugCoords();
-	this.debugLayer.addTo(this.containerMap);
+	// this.debugLayer = L.gridLayer.debugCoords();
+	// this.debugLayer.addTo(this.containerMap);
     }
 
     setMode(newState){

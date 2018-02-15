@@ -64,8 +64,8 @@ class TimeSeriesBandPlot{
 		    myCallback(null)
 		else{
 		    var limits = d3.event.selection.map(d=>scale.invert(d));
-		    limits[0] = Math.floor(limits[0]);
-		    limits[1] = Math.ceil(limits[1]);
+		    limits[0] = Math.floor(limits[0]/1000);
+		    limits[1] = Math.ceil(limits[1]/1000);
 		    moveCallback({"widgetID":this.widgetID,"constraints":limits});
 		}
 	    }).bind(this));
@@ -78,8 +78,8 @@ class TimeSeriesBandPlot{
 		    myCallback(null)
 		else{
 		    var limits = d3.event.selection.map(d=>scale.invert(d));
-		    limits[0] = Math.floor(limits[0]);
-		    limits[1] = Math.ceil(limits[1]);
+		    limits[0] = Math.floor(limits[0]/1000);
+		    limits[1] = Math.ceil(limits[1]/1000);
 		    myCallback({"widgetID":this.widgetID,"constraints":limits});
 		}
 	    }).bind(this));
@@ -153,7 +153,7 @@ class TimeSeriesBandPlot{
 	    .merge(curves)
 	    .attr("class","medianCurve")
 	    .attr("d", function(d){
-		console.log("data",d);
+		//console.log("data",d);
 		return valueline(d);
 	    })
 	    .attr("fill","none")
@@ -179,7 +179,7 @@ class TimeSeriesBandPlot{
 	//
 	var xExtent = d3.extent(xExtents);
 	//xExtent = [new Date("2017-01-01"), new Date("2017-12-31")]
-	console.log("x extent", xExtent);
+	//console.log("x extent", xExtent);
 	this.xScale.domain( xExtent );
 	this.xAxis.scale(this.xScale);
 	//

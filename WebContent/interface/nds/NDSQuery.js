@@ -36,14 +36,32 @@ class NDSQuery{
 		myStr = ("const=" + constraint["dimensionId"] + ".interval.(" + constraint.payload.lower+ ":" + constraint.payload.upper + ")/");		
 	    }
 	    if(constraint.type == "region"){
+		// //
+		// var lat0 = b._northEast.lat;
+		// var lon0 = b._southWest.lng;
+		// var lat1 = b._southWest.lat;
+		// var lon1 = b._northEast.lng;
+		//
+		var lat0 = constraint.payload.geometry[0];
+		var lon0 = constraint.payload.geometry[1];
+		var lat1 = constraint.payload.geometry[2];
+		var lon1 = constraint.payload.geometry[3];
+
+		var z = constraint.payload.zoom;
+
+		var x0 = roundtile(lon2tilex(lon0, z), z);
+		var x1 = roundtile(lon2tilex(lon1, z), z);
+
+		if (x0 > x1) {
+                    x0 = 0;
+                    x1 = Math.pow(2, z);
+		}
+
 		//
 		var zoom = constraint.payload.zoom;
 		//         
-		var aux = [Math.floor(lon2tilex(constraint.payload.geometry[1],zoom)),
-			   Math.floor(lat2tiley(constraint.payload.geometry[0],zoom)),
-			   Math.ceil(lon2tilex(constraint.payload.geometry[3],zoom)),
-			   Math.ceil(lat2tiley(constraint.payload.geometry[2],zoom)),
-			   zoom];
+		var aux = [x0,roundtile(lat2tiley(lat0, z), z),
+			   x1,roundtile(lat2tiley(lat1, z), z),z];
 		//
 		//const=0.region.(0:0:1:1:0)
 		myStr = ("const=" + constraint["dimensionId"] + ".region.(" + aux.join(":")  + ")/");		

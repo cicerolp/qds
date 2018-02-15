@@ -34,6 +34,11 @@ function queryEquiDepthPlot(){
     var q = new NDSQuery(datasetInfo.datasetName,activeCategoricalDimension,
 			 function(queryReturn){
 			     var counts = {};
+			     console.log(queryReturn);
+			     if(queryReturn.length != 2){
+				 console.log("error")
+				 return;
+			     }
 			     queryReturn[1].forEach(d=>{counts[d[0]]=d[1]});
 			     console.log("totalcounts",counts);
 			     var result = queryReturn[0];
@@ -71,11 +76,13 @@ function queryEquiDepthPlot(){
     q.addAggregation("count");
     q.setPayload({"quantiles":d3.range(11).map(d=>0.1*d)});
     //
+    q.addConstraint("time_interval",activeTemporalDimension,timeConstraint);
     q.addConstraint("categorical",activeCategoricalDimension,{"values":["all"]});
     if(geoConstraints.length > 0){
-	q.addConstraint("region",activeSpatialDimension,{"zoom":myMap.map.getZoom(),"geometry":[geoConstraints[0].geometry[0], geoConstraints[0].geometry[1],geoConstraints[0].geometry[4],geoConstraints[0].geometry[5]]});
+	q.addConstraint("region",activeSpatialDimension,{"zoom":19,"geometry":[geoConstraints[0].geometry[4], geoConstraints[0].geometry[1],geoConstraints[0].geometry[0],geoConstraints[0].geometry[5]]});
     }
     //
+    console.log(q.toString());
     ndsInterface.query(q);
 
 }
@@ -89,10 +96,9 @@ function queryBandPlot(){
 			     //{"lower":0,"upper":0.1  ,"density":0.25}
 			     var numQuantiles = this.payload.quantiles.length;
 			     var data = d3.range(numQuantiles).map(d=>[]);
-			     console.log(result);
  			     if(numEntries > 0){
 				 for(var i = 0 ; i < numEntries ; ++i){
-				     data[i%numQuantiles].push([result[i][0],result[i][2]])
+				     data[i%numQuantiles].push([1000*result[i][0],result[i][2]])
 				 }
 			     }
 			     
@@ -114,15 +120,14 @@ function queryBandPlot(){
 			 });
     //
     q.addAggregation("quantile",activePayloadDimension);
-    q.setPayload({"quantiles":[0,0.25,0.5,0.75,1.0]});
+    q.setPayload({"quantiles":[0.25,0.5,0.75]});
     //
     q.addConstraint("time_interval",activeTemporalDimension,timeConstraint);
     if(geoConstraints.length > 0){
-	q.addConstraint("region",spatialDimension,{"zoom":myMap.map.getZoom(),"geometry":[geoConstraints[0].geometry[0], geoConstraints[0].geometry[1],geoConstraints[0].geometry[4],geoConstraints[0].geometry[5]]});
+	q.addConstraint("region",activeSpatialDimension,{"zoom":19,"geometry":[geoConstraints[0].geometry[4], geoConstraints[0].geometry[1],geoConstraints[0].geometry[0],geoConstraints[0].geometry[5]]});
     }
     //
     ndsInterface.query(q);
-
 }
 
 function updateSystem(){
@@ -171,7 +176,6 @@ function setTemporalConstraint(constraint){
     }
 
     console.log("constraint",constraint);
-    
     //
     //queryBoxPlot();
     queryEquiDepthPlot();
@@ -179,11 +183,24 @@ function setTemporalConstraint(constraint){
     ndsLayer.repaint();
 }
 
+function updateTimeConstraint(e){
+    var lower = $('#datetimepicker1').data("DateTimePicker").viewDate().unix();
+    var upper = $('#datetimepicker2').data("DateTimePicker").viewDate().unix();
+    setTemporalConstraint({"constraints":[lower,upper]});
+    queryBandPlot();
+}
+
 /********
  * Main *
  ********/
 
 function initializeSystem(){
+    //
+    $('#datetimepicker1').datetimepicker({"inline": true}).data("DateTimePicker").date(new Date(1375315200000));
+    $('#datetimepicker1').on("dp.change",updateTimeConstraint);
+    $('#datetimepicker2').datetimepicker({"inline": true}).data("DateTimePicker").date(new Date(1388534400000));
+    $('#datetimepicker2').on("dp.change",updateTimeConstraint);
+    
     //add map
     var mapID = "mapID";
     d3.select("body").append("div").attr("id",mapID);    
