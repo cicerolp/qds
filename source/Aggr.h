@@ -214,6 +214,8 @@ class AggrPDigestSubset : public AggrPayloadSubset<AgrrPDigest> {
       AggrPayloadSubset(expr, __index, size) {}
 
   void output(size_t el, uint64_t value, json &writer) override {
+    if (_map[el].empty()) return;
+
     auto clausule = boost::trim_copy_if(_expr.second.second, boost::is_any_of("()"));
 
     boost::char_separator<char> sep(":");
@@ -326,6 +328,8 @@ class AggrGaussianSubset : public AggrPayloadSubset<AggrGaussian> {
       AggrPayloadSubset(expr, __index, size) {}
 
   void output(size_t el, uint64_t value, json &writer) override {
+    if (_map[el].empty()) return;
+
     if (_expr.first == "variance") {
       writer.StartArray();
       write_value(value, writer);

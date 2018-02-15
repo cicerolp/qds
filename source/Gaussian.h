@@ -18,6 +18,10 @@ class Gaussian : public Payload {
 
 class AggrGaussian : public AgrrPayload {
  public:
+  inline bool empty() const override {
+    return count_i.size() == 0;
+  }
+
   void merge(size_t payload_index, const Pivot &pivot) override;
   void merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) override;
 

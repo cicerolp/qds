@@ -82,6 +82,10 @@ class PDigest : public Payload {
 
 class AgrrPDigest : public AgrrPayload {
  public:
+  inline bool empty() const override {
+    return _lastUsedCell == 0;
+  }
+
   void merge(size_t payload_index, const Pivot &pivot) override;
   void merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) override;
 
