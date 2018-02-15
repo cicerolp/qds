@@ -7,12 +7,25 @@ struct Schema {
   Schema(const std::string filename) {
     boost::property_tree::ptree pt;
 
+    const std::string ENV_DIR = std::string(std::getenv("NDS_DATA"));
+
     try {
       boost::property_tree::read_xml(filename, pt);
 
       name = pt.get<std::string>("config.name");
       //bytes = pt.get<uint8_t>("config.bytes");
-      file = std::string(std::getenv("NDS_DATA")) + "/" + pt.get<std::string>("config.file");
+
+      auto pt_files = pt.get_child("config.files", boost::property_tree::ptree());
+
+      if (!pt_files.empty()) {
+        // multiple files
+        for (auto &file : pt_files) {
+          files.emplace_back(ENV_DIR + "/" + file.second.data());
+        }
+      } else {
+        //single file
+        files.emplace_back(ENV_DIR + "/" + pt.get<std::string>("config.file", ""));
+      }
 
       for (auto &v : pt.get_child("config.schema")) {
         std::string index = v.second.get<std::string>("index");
@@ -35,7 +48,8 @@ struct Schema {
     }
   }
 
-  std::string name, file;
+  std::string name;
+  std::vector<std::string> files;
 
   // payload [index, bin, offset]
   std::vector<DimensionSchema> payload;

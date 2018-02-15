@@ -2,6 +2,8 @@
 
 #include "types.h"
 
+class Schema;
+
 class Data {
   struct DataElement {
     uint32_t hash, index;
@@ -11,7 +13,7 @@ class Data {
   };
 
  public:
-  Data(const std::string &path);
+  Data(const Schema &schema);
   ~Data() = default;
 
   void sort(size_t fromIndex, size_t toIndex);
@@ -19,22 +21,25 @@ class Data {
 
   template<typename T>
   T *record(size_t id);
+  inline float payload(uint32_t offset, size_t id);
+
   template<typename T>
   void prepareOffset(uint8_t offset);
-
-  inline float payload(uint32_t offset, size_t id);
   inline void preparePayload(uint8_t offset);
 
-  inline uint32_t size() const;
+  inline uint32_t size() const {
+    return _num_elts;
+  }
 
  private:
-  static inline bool comparator(const DataElement &bit0,
-                                const DataElement &bit1) {
+  static inline bool comparator(const DataElement &bit0, const DataElement &bit1) {
     return bit0.hash < bit1.hash;
   }
 
-  BinaryHeader _header;
-  std::string _path;
+  size_t _num_elts{0};
+
+  std::vector<BinaryHeader> _headers;
+  std::vector<std::string> _paths;
 
   std::vector<uint8_t> _data;
   std::vector<DataElement> _element;
@@ -48,36 +53,46 @@ T *Data::record(size_t id) {
   return ((T *) &_data[_element[id].index * sizeof(T)]);
 }
 
-template<typename T>
-void Data::prepareOffset(uint8_t offset) {
-  _data.clear();
-
-  std::ifstream infile(_path, std::ios::binary);
-
-  infile.ignore(sizeof(BinaryHeader) + (_header.records * offset));
-
-  _data.resize(sizeof(T) * _header.records);
-  infile.read(reinterpret_cast<char *>(&_data[0]), sizeof(T) * _header.records);
-
-  infile.close();
-}
-
 float Data::payload(uint32_t offset, size_t id) {
   return _payload[offset][_element[id].index];
 }
 
-void Data::preparePayload(uint8_t offset) {
-  std::ifstream infile(_path, std::ios::binary);
+template<typename T>
+void Data::prepareOffset(uint8_t offset) {
+  _data.clear();
+  _data.resize(sizeof(T) * _num_elts);
 
-  if (_payload.find(offset) == _payload.end()) {
-    infile.ignore(sizeof(BinaryHeader) + (_header.records * offset));
+  size_t curr_size = 0;
+  for (auto i = 0; i < _paths.size(); ++i) {
+    std::ifstream infile(_paths[i], std::ios::binary);
 
-    _payload.emplace(offset, std::vector<float>(_header.records));
+    infile.ignore(sizeof(BinaryHeader) + (_headers[i].records * offset));
 
-    infile.read(reinterpret_cast<char *>(&_payload[offset][0]), sizeof(float) * _header.records);
+    infile.read(reinterpret_cast<char *>(&_data[curr_size]), sizeof(T) * _headers[i].records);
+
+    curr_size += sizeof(T) * _headers[i].records;
+
+    infile.close();
   }
-
-  infile.close();
 }
 
-uint32_t Data::size() const { return _header.records; }
+void Data::preparePayload(uint8_t offset) {
+  if (_payload.find(offset) == _payload.end()) {
+
+    _payload.emplace(offset, std::vector<float>(_num_elts));
+
+    size_t curr_size = 0;
+    for (auto i = 0; i < _paths.size(); ++i) {
+      std::ifstream infile(_paths[i], std::ios::binary);
+
+      infile.ignore(sizeof(BinaryHeader) + (_headers[i].records * offset));
+
+      infile.read(reinterpret_cast<char *>(&_payload[offset][curr_size]), sizeof(float) * _headers[i].records);
+
+      curr_size += _headers[i].records;
+
+      infile.close();
+    }
+  }
+}
+

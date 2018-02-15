@@ -98,10 +98,10 @@ var view_schemas = {
         ]
     },
 
-    "on_time_performance_2017": {
+    "on_time_performance": {
         PLOTTING: "black",
-        PLOTTING_MODE: "circle",
-        PLOTTING_COLOR_SCALE: "bbb",
+        PLOTTING_MODE: "rect",
+        PLOTTING_COLOR_SCALE: "ryw",
         PLOTTING_TRANSFORM: "density_scaling",
         title: "Trip Data",
         tile: [{

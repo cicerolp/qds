@@ -16,7 +16,13 @@ NDS::NDS(const Schema &schema) {
 
   uint32_t pivots_count = 0;
 
-  Data data(schema.file);
+  Data data(schema);
+
+  std::cout << "Input Data: " << std::endl;
+  for (auto &file : schema.files) {
+    std::cout << "\tFile: " << file << std::endl;
+  }
+  std::cout << std::endl;
 
   std::cout << "NDS: " << std::endl;
   std::cout << "\tName: " << schema.name << std::endl;
