@@ -68,8 +68,8 @@ float AggrGaussian::variance() const {
 }
 
 float AggrGaussian::average() const {
-  float count = std::accumulate(count_i.begin(), count_i.end(), 0);
-  float sum = std::accumulate(sum_i.begin(), sum_i.end(), 0);
+  float count = std::accumulate(count_i.begin(), count_i.end(), 0.f);
+  float sum = std::accumulate(sum_i.begin(), sum_i.end(), 0.f);
 
   return sum / count;
 }
