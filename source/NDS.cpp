@@ -338,6 +338,10 @@ bool NDS::search_iterators(range_it &it_range, const range_ctn &range,
 
   it_upper = std::upper_bound(it_lower, subset.end(), (*it_range).pivot, Pivot::upper_bound_comp);
 
+  if (it_lower == it_upper) {
+    return false;
+  }
+
   return true;
 }
 
