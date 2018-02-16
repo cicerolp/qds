@@ -1,6 +1,7 @@
 var datasets = {
     "green_cabs":{
 	"datasetName":"green_tripdata_2013",
+	"timeStep":86400,
 	"initialTimeConstraint":{"lower":1375315200,"upper":1388534400},
 	"temporalDimension":["pickup_datetime"],
 	"spatialDimension":["pickup"],
