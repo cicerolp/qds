@@ -39,7 +39,7 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
 
   auto inOrder = sort_indexes(inMean);
 
-  float totalWeight = std::accumulate(inWeight.begin(), inWeight.end(), 0.0);
+  float totalWeight = std::accumulate(inWeight.begin(), inWeight.end(), 0.f);
 
   float normalizer = PDIGEST_COMPRESSION / (M_PI * totalWeight);
 
@@ -249,7 +249,7 @@ float AgrrPDigest::quantile(float q) const {
   // we know that there are at least two centroids now
   int32_t n = _lastUsedCell;
 
-  float totalWeight = std::accumulate(_weight.begin(), _weight.begin() + _lastUsedCell, 0.0);
+  float totalWeight = std::accumulate(_weight.begin(), _weight.begin() + _lastUsedCell, 0.f);
 
   // if values were stored in a sorted array, index would be the offset we are interested in
   const float index = q * totalWeight;
@@ -315,7 +315,7 @@ float AgrrPDigest::inverse(float value) const {
   // dw * q + weightSoFar
   weightSoFar += dw * (value - _mean[index - 1]) / (_mean[index] - _mean[index - 1]);
 
-  auto totalWeight = std::accumulate(_weight.begin(), _weight.begin() + _lastUsedCell, 0.0);
+  auto totalWeight = std::accumulate(_weight.begin(), _weight.begin() + _lastUsedCell, 0.f);
 
   return weightSoFar / totalWeight;
 }
@@ -325,7 +325,7 @@ void AgrrPDigest::merge_buffer_data() {
 
   auto inOrder = PDigest::sort_indexes(_buffer_mean);
 
-  float totalWeight = std::accumulate(_buffer_weight.begin(), _buffer_weight.end(), 0.0);
+  float totalWeight = std::accumulate(_buffer_weight.begin(), _buffer_weight.end(), 0.f);
 
   float normalizer = PDIGEST_COMPRESSION / (M_PI * totalWeight);
 
