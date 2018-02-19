@@ -14,16 +14,14 @@ std::uniform_int_distribution<> uniform_dist(0, 1000);
 
 std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
   // TODO remove temporary vector
+
+  // copy payload data
   std::vector<float> inMean;
   inMean.reserve(pivot.back() - pivot.front());
 
   for (auto p = pivot.front(); p < pivot.back(); ++p) {
     inMean.emplace_back(data.payload(_schema.offset, p));
   }
-
-  // TODO payload weight
-  // every weight equal 1
-  std::vector<float> inWeight(pivot.back() - pivot.front(), 1);
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // temporary data
@@ -37,15 +35,16 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
 
   int32_t incomingCount = inMean.size();
 
-  auto inOrder = sort_indexes(inMean);
+  // sort input
+  gfx::timsort(inMean.begin(), inMean.end());
 
-  float totalWeight = std::accumulate(inWeight.begin(), inWeight.end(), 0.f);
+  float totalWeight = inMean.size();
 
   float normalizer = PDIGEST_COMPRESSION / (M_PI * totalWeight);
 
   lastUsedCell = 0;
-  mean[lastUsedCell] = inMean[inOrder[0]];
-  weight[lastUsedCell] = inWeight[inOrder[0]];
+  mean[lastUsedCell] = inMean[0];
+  weight[lastUsedCell] = 1;
 
   float wSoFar = 0;
 
@@ -56,8 +55,7 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
   wLimit = totalWeight * integratedQ(k1 + 1);
 
   for (int i = 1; i < incomingCount; ++i) {
-    int ix = inOrder[i];
-    float proposedWeight = weight[lastUsedCell] + inWeight[ix];
+    float proposedWeight = weight[lastUsedCell] + 1;
 
     float projectedW = wSoFar + proposedWeight;
 
@@ -68,11 +66,8 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
     if (addThis) {
       // next point will fit
       // so merge into existing centroid
-      weight[lastUsedCell] += inWeight[ix];
-      mean[lastUsedCell] = mean[lastUsedCell]
-          + (inMean[ix] - mean[lastUsedCell]) * inWeight[ix] / weight[lastUsedCell];
-
-      inWeight[ix] = 0;
+      weight[lastUsedCell] += 1;
+      mean[lastUsedCell] = mean[lastUsedCell] + (inMean[i] - mean[lastUsedCell]) / weight[lastUsedCell];
 
     } else {
       // didn't fit ... move to next output, copy out first centroid
@@ -82,22 +77,16 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
       wLimit = totalWeight * integratedQ(k1 + 1);
 
       lastUsedCell++;
-      mean[lastUsedCell] = inMean[ix];
-      weight[lastUsedCell] = inWeight[ix];
-      inWeight[ix] = 0;
+      mean[lastUsedCell] = inMean[i];
+      weight[lastUsedCell] = 1;
     }
   }
 
   // points to next empty cell
   lastUsedCell++;
 
-  /*// shrink_to_fit
-  stde::dynarray<float> *payload = new stde::dynarray<float>(lastUsedCell * 2);
-
-  std::memcpy(&(*payload)[0], &mean[0], lastUsedCell * sizeof(float));
-  std::memcpy(&(*payload)[lastUsedCell], &weight[0], lastUsedCell * sizeof(float));*/
-
   // TODO optimize
+
   std::vector<float> payload;
   payload.reserve(lastUsedCell * 2);
 
