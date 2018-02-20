@@ -24,6 +24,10 @@ class BandPlotWidget {
 	this.plot.setTimeSelectionCallBack(this.timeSelectionChanged,this.timeLabelChanged);
     }
 
+    setYAxisLabel(yLabel){
+	this.plot.setYLabel(yLabel);
+    }
+    
     timeSelectionChanged(payload){
 	var that = bandPlotWidget;
 	if(that.timeSelectionCallback)

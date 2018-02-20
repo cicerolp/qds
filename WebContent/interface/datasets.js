@@ -7,6 +7,7 @@ var datasets = {
 	"spatialDimension":["pickup"],
 	"categoricalDimension":["passenger_count","payment_type"],
 	"payloads":["trip_distance_t","trip_distance_g","total_amount"],
+	"payloadsScreenNames":{"trip_distance_t": "Trip Distance","trip_distance_g" : "Trip Distance","total_amount": "Total Fare"},
 	"aliases":{"payment_type":{"0":"Credit",
 				   "1":"Cash",
 				   "2":"No Charge",

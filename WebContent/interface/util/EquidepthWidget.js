@@ -41,6 +41,10 @@ class EquidepthWidget {
 
     }
 
+    setYAxisLabel(yLabel){
+	this.plot.setYAxisLabel(yLabel);
+    }
+    
     setDimensionSelectionCallback(f){
 	this.dimensionSelectionCallback = f;
     }

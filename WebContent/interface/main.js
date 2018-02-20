@@ -69,6 +69,7 @@ function queryEquiDepthPlot(){
 				 d.label = getAlias(activeCategoricalDimension,d.label);
 				 return d;
 			     })
+			     equidepthWidget.setYAxisLabel(datasetInfo.payloadsScreenNames[activePayloadDimension]);
 			     equidepthWidget.setData(data);
 			 });
     q.addAggregation("quantile",activePayloadDimension);
@@ -191,7 +192,8 @@ function queryBandPlot(){
 				     newCurve.push([i,0]);
 				 }
 			     }
-			     
+
+			     bandPlotWidget.setYAxisLabel(datasetInfo.payloadsScreenNames[activePayloadDimension]);
 			     bandPlotWidget.setData(bands,medianCurve);
 			 });
     //

@@ -37,6 +37,11 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	var scale = d3.scaleLinear().range(d3.schemeRdBu[7]);//["rgba(255,0,0,"+opacity+")","rgba(0,0,255,"+opacity+")"]);
 	return scale(value);
     },
+    normalizedColorScale:function(value){
+	var opacity = this.options.opacity
+	var scale = d3.scaleLinear().range(d3.schemeBlues[7]);//["rgba(255,0,0,"+opacity+")","rgba(0,0,255,"+opacity+")"]);
+	return scale(value);
+    },
     colorTile: function(tile, coords,totalResolution){
 	//
 	var layer = this;
