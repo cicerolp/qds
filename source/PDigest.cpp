@@ -40,8 +40,6 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
 
   float totalWeight = inMean.size();
 
-  float normalizer = PDIGEST_COMPRESSION / (M_PI * totalWeight);
-
   lastUsedCell = 0;
   mean[lastUsedCell] = inMean[0];
   weight[lastUsedCell] = 1;
@@ -54,6 +52,8 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
   float wLimit;
   wLimit = totalWeight * integratedQ(k1 + 1);
 
+  bool weightAllOne = true;
+
   for (int i = 1; i < incomingCount; ++i) {
     float proposedWeight = weight[lastUsedCell] + 1;
 
@@ -64,6 +64,8 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
     addThis = projectedW <= wLimit;
 
     if (addThis) {
+      weightAllOne = false;
+
       // next point will fit
       // so merge into existing centroid
       weight[lastUsedCell] += 1;
@@ -85,13 +87,34 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
   // points to next empty cell
   lastUsedCell++;
 
-  // TODO optimize
-
   std::vector<float> payload;
+
+#ifdef PDIGEST_OPTIMIZE_ARRAY
+  if (weightAllOne) {
+    payload.reserve(lastUsedCell + 1);
+
+    // insert p-digest data
+    payload.insert(payload.end(), mean.begin(), mean.begin() + lastUsedCell);
+
+    // payload does not contains weight array
+    payload.emplace_back(0.f);
+
+  } else {
+    payload.reserve(lastUsedCell * 2 + 1);
+
+    // insert p-digest data
+    payload.insert(payload.end(), mean.begin(), mean.begin() + lastUsedCell);
+    payload.insert(payload.end(), weight.begin(), weight.begin() + lastUsedCell);
+
+    // payload contains weight array
+    payload.emplace_back(1.f);
+  }
+#else
   payload.reserve(lastUsedCell * 2);
 
   payload.insert(payload.end(), mean.begin(), mean.begin() + lastUsedCell);
   payload.insert(payload.end(), weight.begin(), weight.begin() + lastUsedCell);
+#endif // PDIGEST_OPTIMIZE_ARRAY
 
   return payload;
 }
@@ -174,15 +197,36 @@ void AgrrPDigest::merge(size_t payload_index, const Pivot &pivot) {
   _buffer_mean.clear();
   _buffer_weight.clear();
 
+#ifdef PDIGEST_OPTIMIZE_ARRAY
+  const auto &payload = pivot.get_payload(payload_index);
+  uint32_t payload_size = payload.size() - 1;
+
+  if (payload.back() == 0.f) {
+    // payload does not contains weight array
+
+    // insert mean data
+    _buffer_mean.insert(_buffer_mean.end(), payload.begin(), payload.begin() + payload_size);
+    // insert weight data
+    _buffer_weight.insert(_buffer_weight.end(), payload_size, 1.f);
+
+  } else {
+    // payload contains weight array
+    payload_size = payload_size / 2;
+
+    // insert mean data
+    _buffer_mean.insert(_buffer_mean.end(), payload.begin(), payload.begin() + payload_size);
+    // insert weight data
+    _buffer_weight.insert(_buffer_weight.end(), payload.begin() + payload_size, payload.end() - 1);
+  }
+#else
   const auto &payload = pivot.get_payload(payload_index);
   uint32_t payload_size = payload.size() / 2;
 
-  _buffer_mean.reserve(_lastUsedCell + payload_size);
-  _buffer_weight.reserve(_lastUsedCell + payload_size);
-
-  // insert payload data
-  _buffer_mean.insert(_buffer_mean.end(), payload.begin(), payload.begin() + payload_size);    // mean
-  _buffer_weight.insert(_buffer_weight.end(), payload.begin() + payload_size, payload.end());  // weight
+  // insert mean data
+  _buffer_mean.insert(_buffer_mean.end(), payload.begin(), payload.begin() + payload_size);
+  // insert weight data
+  _buffer_weight.insert(_buffer_weight.end(), payload.begin() + payload_size, payload.end());
+#endif // PDIGEST_OPTIMIZE_ARRAY
 
   // insert p-digest data
   _buffer_mean.insert(_buffer_mean.end(), _mean.begin(), _mean.begin() + _lastUsedCell);
@@ -195,28 +239,47 @@ void AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, const pi
   _buffer_mean.clear();
   _buffer_weight.clear();
 
-  uint32_t sum_payload_size_size = 0;
-  for (auto it = it_lower; it != it_upper; ++it) {
-    sum_payload_size_size += (*it).get_payload(payload_index).size();
+#ifdef PDIGEST_OPTIMIZE_ARRAY
+  auto it = it_lower;
+  // insert payload data
+  while (it != it_upper) {
+    auto &payload = (*it).get_payload(payload_index);
+    uint32_t payload_size = payload.size() - 1;
+
+    if (payload.back() == 0.f) {
+      // payload does not contains weight array
+
+      // insert mean data
+      _buffer_mean.insert(_buffer_mean.end(), payload.begin(), payload.begin() + payload_size);
+      // insert weight data
+      _buffer_weight.insert(_buffer_weight.end(), payload_size, 1.f);
+
+    } else {
+      // payload contains weight array
+      payload_size = payload_size / 2;
+
+      // insert mean data
+      _buffer_mean.insert(_buffer_mean.end(), payload.begin(), payload.begin() + payload_size);
+      // insert weight data
+      _buffer_weight.insert(_buffer_weight.end(), payload.begin() + payload_size, payload.end() - 1);
+    }
+    ++it;
   }
-
-  sum_payload_size_size = sum_payload_size_size / 2;
-
-  // reserve memory
-  _buffer_mean.reserve(_lastUsedCell + sum_payload_size_size);
-  _buffer_weight.reserve(_lastUsedCell + sum_payload_size_size);
-
+#else
   auto it = it_lower;
   // insert payload data
   while (it != it_upper) {
     auto &payload = (*it).get_payload(payload_index);
     uint32_t payload_size = payload.size() / 2;
 
-    _buffer_mean.insert(_buffer_mean.end(), payload.begin(), payload.begin() + payload_size);    // mean
-    _buffer_weight.insert(_buffer_weight.end(), payload.begin() + payload_size, payload.end());  // weight
+    // insert mean data
+    _buffer_mean.insert(_buffer_mean.end(), payload.begin(), payload.begin() + payload_size);
+    // insert weight data
+    _buffer_weight.insert(_buffer_weight.end(), payload.begin() + payload_size, payload.end());
 
     ++it;
   }
+#endif // PDIGEST_OPTIMIZE_ARRAY
 
   // insert p-digest data
   _buffer_mean.insert(_buffer_mean.end(), _mean.begin(), _mean.begin() + _lastUsedCell);
@@ -323,8 +386,6 @@ void AgrrPDigest::merge_buffer_data() {
   for (auto i = 0; i < _buffer_weight.size(); ++i) {
     totalWeight += _buffer_weight[i];
   }
-
-  float normalizer = PDIGEST_COMPRESSION / (M_PI * totalWeight);
 
   _lastUsedCell = 0;
   _mean[_lastUsedCell] = _buffer_mean[inOrder[0]];
