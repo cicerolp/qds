@@ -9,12 +9,7 @@
 
 #ifdef ENABLE_PDIGEST
 
-std::default_random_engine random_engine;
-std::uniform_int_distribution<> uniform_dist(0, 1000);
-
 std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
-  // TODO remove temporary vector
-
   // copy payload data
   std::vector<float> inMean;
   inMean.reserve(pivot.back() - pivot.front());
@@ -23,7 +18,6 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
     inMean.emplace_back(data.payload(_schema.offset, p));
   }
 
-  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // temporary data
   uint32_t lastUsedCell{0};
 
@@ -45,12 +39,9 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
   weight[lastUsedCell] = 1;
 
   float wSoFar = 0;
-
   float k1 = 0;
-
   // weight will contain all zeros
-  float wLimit;
-  wLimit = totalWeight * integratedQ(k1 + 1);
+  float wLimit = totalWeight * integratedQ(k1 + 1);
 
   bool weightAllOne = true;
 
@@ -392,12 +383,9 @@ void AgrrPDigest::merge_buffer_data() {
   _weight[_lastUsedCell] = _buffer_weight[inOrder[0]];
 
   float wSoFar = 0;
-
   float k1 = 0;
-
   // weight will contain all zeros
-  float wLimit;
-  wLimit = totalWeight * PDigest::integratedQ(k1 + 1);
+  float wLimit = totalWeight * PDigest::integratedQ(k1 + 1);
 
   for (int i = 1; i < incomingCount; ++i) {
     int ix = inOrder[i];
