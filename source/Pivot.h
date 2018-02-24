@@ -33,8 +33,18 @@ class Pivot {
     _payload = rhs;
   }
 
-  inline const payload_t &get_payload(size_t index) const {
-    return *_payload[index];
+  inline const payload_t get_payload(size_t index) const {
+    // TODO optimize
+    size_t lower = _payload[index];
+    size_t upper = _payload[index + 1];
+
+    payload_t data(upper - lower);
+
+    std::memcpy(&(data[0]), &(_payload[lower]), (upper - lower) * sizeof(float));
+
+    assert(data.size() != 0);
+
+    return data;
   };
 #endif // NDS_ENABLE_PAYLOAD
 

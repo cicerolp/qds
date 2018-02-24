@@ -44,15 +44,34 @@ class NDS {
 
 #ifdef NDS_ENABLE_PAYLOAD
   inline void create_payload(Data &data, Pivot &pivot) {
-    payload_ctn payloads = new payload_t *[_payload.size()];
+    size_t accumulated_size = 0;
+    std::vector<std::vector<float>> payload_buffer;
 
+    // accumulate payloads
     for (auto i = 0; i < _payload.size(); ++i) {
-      auto raw_data = _payload[i]->get_payload(data, pivot);
+      payload_buffer.emplace_back(_payload[i]->get_payload(data, pivot));
+      accumulated_size += payload_buffer.back().size();
+    }
 
-      payloads[i] = new payload_t(raw_data.size());
+    // allocate payload
+    payload_ctn payloads = new float[accumulated_size + _payload.size() + 1];
 
+    // insert indexes
+    size_t accum_index = _payload.size() + 1;
+    for (auto i = 0; i < _payload.size(); ++i) {
+      accum_index += payload_buffer[i].size();
+
+      payloads[i + 1] = accum_index;
+    }
+    payloads[0] = _payload.size() + 1;
+
+    // insert data
+    size_t index = _payload.size() + 1;
+    for (auto i = 0; i < _payload.size(); ++i) {
       // copy data
-      std::memcpy(&(*payloads[i])[0], &raw_data[0], raw_data.size() * sizeof(float));
+      std::memcpy(&(payloads[index]), &(payload_buffer[i])[0], payload_buffer[i].size() * sizeof(float));
+
+      index += payload_buffer[i].size();
     }
 
     pivot.set_payload_ptr(payloads);
