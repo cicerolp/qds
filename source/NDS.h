@@ -44,16 +44,15 @@ class NDS {
 
 #ifdef NDS_ENABLE_PAYLOAD
   inline void create_payload(Data &data, Pivot &pivot) {
-    payload_ctn *payloads = new payload_ctn(_payload.size());
+    payload_ctn payloads = new payload_t *[_payload.size()];
 
     for (auto i = 0; i < _payload.size(); ++i) {
       auto raw_data = _payload[i]->get_payload(data, pivot);
 
-      // allocate memory
-      (*payloads)[i] = new payload_t(raw_data.size());
+      payloads[i] = new payload_t(raw_data.size());
 
       // copy data
-      std::memcpy(&(*(*payloads)[i])[0], &raw_data[0], raw_data.size() * sizeof(float));
+      std::memcpy(&(*payloads[i])[0], &raw_data[0], raw_data.size() * sizeof(float));
     }
 
     pivot.set_payload_ptr(payloads);

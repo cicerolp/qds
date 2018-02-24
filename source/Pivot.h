@@ -24,17 +24,17 @@ class Pivot {
   Pivot &operator=(Pivot &&other) = default;
 
 #ifdef NDS_ENABLE_PAYLOAD
-  inline payload_ctn *get_payload_ptr() {
+  inline payload_ctn get_payload_ptr() {
     return _payload;
   };
-  inline void set_payload_ptr(payload_ctn *rhs) {
+
+  inline void set_payload_ptr(payload_ctn rhs) {
     assert(rhs != nullptr);
     _payload = rhs;
   }
 
   inline const payload_t &get_payload(size_t index) const {
-    assert(index < _payload->size());
-    return (*(*_payload)[index]);
+    return *_payload[index];
   };
 #endif // NDS_ENABLE_PAYLOAD
 
@@ -85,9 +85,8 @@ class Pivot {
   uint32_t _first, _second;
 
 #ifdef NDS_ENABLE_PAYLOAD
-  payload_ctn *_payload{nullptr};
+  payload_ctn _payload{nullptr};
 #endif // NDS_ENABLE_PAYLOAD
-
 };
 
 struct bined_pivot_t {
