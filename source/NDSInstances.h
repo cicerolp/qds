@@ -11,6 +11,8 @@ class NDSInstances : public Singleton<NDSInstances> {
   static void run(const std::vector<Schema> &args);
 
   std::string query(const Query &query);
+  std::string pipeline(const Pipeline &pipeline);
+
   std::string schema(const std::string &url) const;
 
  private:

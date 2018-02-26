@@ -39,6 +39,8 @@ void Server::handler(mg_connection* conn, int ev, void* p) {
         printJson(conn, NDSInstances::getInstance().schema(uri));
       } else if (tokens[2] == "query") {
         printJson(conn, NDSInstances::getInstance().query(Query(uri)));
+      } else if (tokens[2] == "pipeline") {
+        printJson(conn, NDSInstances::getInstance().pipeline(Pipeline(uri)));
       } else {
         printJson(conn, "[]");
       }

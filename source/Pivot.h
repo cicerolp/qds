@@ -107,11 +107,11 @@ struct bined_pivot_t {
   inline pivot_ctn &ptr() const { return *pivots; }
 };
 
-using subset_pivot_ctn = std::vector<const bined_pivot_t *>;
+using bined_ctn = std::vector<const bined_pivot_t *>;
 
 struct subset_t {
   CopyOption option{DefaultCopy};
-  subset_pivot_ctn container;
+  bined_ctn container;
 };
 
 using subset_ctn = std::vector<subset_t>;

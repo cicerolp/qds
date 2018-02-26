@@ -5,7 +5,12 @@
 #include "Dimension.h"
 #include "Pivot.h"
 #include "Query.h"
+#include "Pipeline.h"
 #include "Schema.h"
+
+using AggrNoneCtn = std::vector<std::shared_ptr<AggrNone>>;
+using AggrRangeCtn = std::vector<std::shared_ptr<AggrRange>>;
+using AggrSubsetCtn = std::vector<std::shared_ptr<AggrSubset>>;
 
 class NDS {
  public:
@@ -15,6 +20,8 @@ class NDS {
   NDS &operator=(NDS const &) = delete;
 
   std::string query(const Query &query);
+  std::string pipeline(const Pipeline &pipeline);
+
   std::string schema() const;
 
   template<typename Container>
@@ -128,6 +135,14 @@ class NDS {
 
  private:
   std::string serialize(const Query &query, subset_ctn &subsets, const RangePivot &root) const;
+  std::string serialize_pipeline(const Pipeline &pipeline,
+                                 subset_ctn &source_ctn,
+                                 subset_ctn &dest_ctn,
+                                 const RangePivot &root) const;
+
+  range_ctn get_range(const subset_ctn &subsets) const;
+
+  bined_ctn get_subset(const subset_ctn &subsets) const;
 
   void restrict(range_ctn &range, range_ctn &response, const subset_t &subset, CopyOption &option) const;
 
@@ -164,16 +179,43 @@ class NDS {
     return index;
   }
 
-  void group_by_subset(aggrs_subset_t &aggrs, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                       range_ctn &range, const subset_pivot_ctn &subset) const;
+  // group_by
 
-  void group_by_range(aggrs_range_t &aggrs, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                      range_ctn &range, const subset_pivot_ctn &subset) const;
+  template<typename T>
+  struct GroupBy {
+    GroupBy() = default;
+    GroupBy(const T &__aggrs, const range_ctn &__range, const bined_ctn &__subset)
+        : aggrs(__aggrs), range(__range), subset(__subset) {}
 
-  void group_by_none(aggrs_none_t &aggrs, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                     range_ctn &range, const subset_pivot_ctn &subset) const;
+    T aggrs;
+    range_ctn range;
+    bined_ctn subset;
+  };
 
-  void group_by_none(aggrs_none_t &aggrs, rapidjson::Writer<rapidjson::StringBuffer> &writer, range_ctn &range) const;
+  template<typename T>
+  using GroupCtn = std::pair<GroupBy<T>, GroupBy<T>>;
+
+  void group_by_subset(AggrSubsetCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const;
+
+  void group_by_range(AggrRangeCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const;
+
+  void summarize_subset(AggrNoneCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const;
+
+  void summarize_range(AggrNoneCtn &aggrs, json &writer, range_ctn &range) const;
+
+  void summarize_pipe(GroupCtn<AggrNoneCtn> &groups, json &writer) const;
+
+  void do_summarize_range(AggrNoneCtn &aggrs, range_ctn &range) const;
+  void do_summarize_subset(AggrNoneCtn &aggrs, range_ctn &range, const bined_ctn &subset) const;
+
+
+  // get_aggr
+
+  AggrNoneCtn get_aggr_none(const Query &query) const;
+
+  AggrRangeCtn get_aggr_range(const Query &query) const;
+
+  AggrSubsetCtn get_aggr_subset(const Query &query, size_t subset_size) const;
 
   pivot_ctn _root;
   std::vector<std::unique_ptr<Payload>> _payload;

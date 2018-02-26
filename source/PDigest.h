@@ -9,6 +9,8 @@
 
 #include "Payload.h"
 
+#include "Query.h"
+
 #ifdef ENABLE_PDIGEST
 
 class NDS;
@@ -91,6 +93,20 @@ class AgrrPDigest : public AgrrPayload {
 
   float quantile(float q) const;
   float inverse(float value) const;
+
+  static inline pipe_ctn get_parameters(const Query::aggr_expr &expr) {
+    auto clausule = boost::trim_copy_if(expr.second.second, boost::is_any_of("()"));
+
+    boost::char_separator<char> sep(":");
+    boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
+
+    pipe_ctn pipe;
+    for (auto &q : tokens) {
+      pipe.emplace_back(std::stof(q));
+    }
+
+    return pipe;
+  }
 
  protected:
   void merge_buffer_data();

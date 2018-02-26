@@ -16,6 +16,16 @@ std::string NDSInstances::query(const Query &query) {
   }
 }
 
+std::string NDSInstances::pipeline(const Pipeline &pipeline) {
+  auto cube = get_instance(pipeline.get_dataset());
+
+  if (!cube) {
+    return ("[]");
+  } else {
+    return cube->pipeline(pipeline);
+  }
+}
+
 std::string NDSInstances::schema(const std::string &url) const {
   boost::char_separator<char> sep("/");
   boost::tokenizer<boost::char_separator<char> > tokens(url, sep);

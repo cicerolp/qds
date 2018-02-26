@@ -9,7 +9,10 @@ class Query {
   using clausule = std::pair<std::string, std::string>;
   using aggr_expr = std::pair<std::string, clausule>;
 
+  Query() = default;
   Query(const std::string &url);
+
+  void parse(const std::string &url);
 
   inline const std::string &get_dataset() const {
     return _dataset;
@@ -40,8 +43,6 @@ class Query {
   friend std::ostream &operator<<(std::ostream &os, const Query &query);
 
  private:
-  void parse(const std::string &url);
-
   std::string _url;
 
   std::string _dataset;

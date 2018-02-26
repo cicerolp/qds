@@ -123,15 +123,25 @@ std::string NDS::query(const Query &query) {
   return serialize(query, subsets, root);
 }
 
+std::string NDS::pipeline(const Pipeline &pipeline) {
+  subset_ctn source_ctn, dest_ctn;
+
+  RangePivot root(_root[0]);
+
+  for (auto &d : _dimension) {
+    if (!d->query(pipeline.get_source(), source_ctn) || !d->query(pipeline.get_dest(), dest_ctn)) {
+      // empty query
+      root.pivot.back(0);
+      source_ctn.clear();
+      dest_ctn.clear();
+      break;
+    }
+  }
+
+  return serialize_pipeline(pipeline, source_ctn, dest_ctn, root);
+}
+
 std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangePivot &root) const {
-  // get aggregation clausule
-  auto &aggr = query.get_aggr();
-
-  CopyOption option = DefaultCopy;
-  range_ctn range, response;
-
-  response.emplace_back(root);
-
   // serialization
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -141,36 +151,141 @@ std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangeP
 
   if (subsets.size() == 0) {
     if (!root.pivot.empty()) {
-      // initialize aggregators
-      std::vector<std::unique_ptr<AggrNone>> aggregators;
+      auto aggregators = get_aggr_none(query);
 
-      for (const auto &expr : aggr) {
-        if (expr.first == "count") {
-          aggregators.emplace_back(std::make_unique<AggrCountNone>(expr, get_payload_index(expr.second)));
-        }
+      range_ctn range{root};
 
-#ifdef ENABLE_PDIGEST
-        if (expr.first == "quantile" || expr.first == "inverse") {
-          aggregators.emplace_back(std::make_unique<AggrPDigestNone>(expr, get_payload_index(expr.second)));
-        }
-#endif // ENABLE_PDIGEST
-
-#ifdef ENABLE_GAUSSIAN
-        if (expr.first == "variance" || expr.first == "average") {
-          aggregators.emplace_back(std::make_unique<AggrGaussianNone>(expr, get_payload_index(expr.second)));
-        }
-#endif // ENABLE_GAUSSIAN
-      }
-
-      group_by_none(aggregators, writer, response);
-
+      summarize_range(aggregators, writer, range);
     } else {
       // empty response
       writer.StartArray();
       writer.EndArray();
     }
-
   } else {
+    auto range = get_range(subsets);
+
+    if (query.group_by()) {
+      if (subsets.back().option == CopyValueFromSubset) {
+        auto aggregators = get_aggr_subset(query, subsets.back().container.size());
+        group_by_subset(aggregators, writer, range, subsets.back().container);
+
+      } else {
+        // initialize aggregators
+        auto aggregators = get_aggr_range(query);
+        group_by_range(aggregators, writer, range, subsets.back().container);
+      }
+
+    } else {
+      auto aggregators = get_aggr_none(query);
+      summarize_subset(aggregators, writer, range, subsets.back().container);
+    }
+  }
+
+  // end json
+  writer.EndArray();
+  return buffer.GetString();
+}
+
+std::string NDS::serialize_pipeline(const Pipeline &pipeline,
+                                    subset_ctn &source_ctn,
+                                    subset_ctn &dest_ctn,
+                                    const RangePivot &root) const {
+  // serialization
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
+  // start json
+  writer.StartArray();
+
+  if (root.pivot.empty()) {
+    // empty response
+    writer.StartArray();
+    writer.EndArray();
+  }
+
+  if (pipeline.get_source().group_by() != pipeline.get_dest().group_by()) {
+    // invalid pipeline
+    writer.StartArray();
+    writer.EndArray();
+  }
+
+  // summarize
+  if (!pipeline.get_source().group_by()) {    
+    auto aggr_source = get_aggr_none(pipeline.get_source());
+    auto range_source = get_range(source_ctn);
+    auto subset_source = get_subset(source_ctn);
+
+    if (source_ctn.size() == 0) {
+      do_summarize_range(aggr_source, range_source);
+    } else {
+      do_summarize_subset(aggr_source, range_source, subset_source);
+    }
+
+    auto aggr_dest = get_aggr_none(pipeline.get_dest());
+    auto range_dest = get_range(dest_ctn);
+    auto subset_dest = get_subset(dest_ctn);
+
+    if (dest_ctn.size() == 0) {
+      do_summarize_range(aggr_dest, range_dest);
+    } else {
+      do_summarize_subset(aggr_dest, range_dest, subset_dest);
+    }
+
+    auto groups = std::make_pair(GroupBy<AggrNoneCtn>(aggr_source, range_source, subset_source),
+                                 GroupBy<AggrNoneCtn>(aggr_dest, range_dest, subset_dest));
+
+    summarize_pipe(groups, writer);
+  }
+
+  /*if (source_ctn.size() == 0 && dest_ctn.size() == 0) {
+    auto aggr_source = get_aggr_none(pipeline.get_source());
+    auto aggr_dest = get_aggr_none(pipeline.get_dest());
+
+    range_ctn range{root};
+    bined_ctn subset;
+
+    auto groups = std::make_pair(GroupBy<AggrNoneCtn>(aggr_source, range, subset),
+                                 GroupBy<AggrNoneCtn>(aggr_dest, range, subset));
+
+    summarize_range(groups, writer);
+  } else if (source_ctn.size() != 0 && dest_ctn.size() != 0) {
+    auto range_source = get_range(source_ctn);
+    auto range_dest = get_range(dest_ctn);
+
+    if (pipeline.get_source().group_by() && pipeline.get_dest().group_by()) {
+      if (option == CopyValueFromSubset) {
+        auto aggregators = get_aggr_subset(query, subsets.back().container.size());
+        group_by_subset(aggregators, writer, range, subsets.back().container);
+
+      } else {
+        // initialize aggregators
+        auto aggregators = get_aggr_range(query);
+        group_by_range(aggregators, writer, range, subsets.back().container);
+      }
+
+    } else {
+      auto aggr_source = get_aggr_none(pipeline.get_source());
+      auto aggr_dest = get_aggr_none(pipeline.get_dest());
+
+      auto groups = std::make_pair(GroupBy<AggrNoneCtn>(aggr_source, range_source, source_ctn.back().container),
+                                   GroupBy<AggrNoneCtn>(aggr_dest, range_dest, dest_ctn.back().container));
+
+      summarize_subset(groups, writer);
+    }
+  }*/
+
+  // end json
+  writer.EndArray();
+  return buffer.GetString();
+}
+
+range_ctn NDS::get_range(const subset_ctn &subsets) const {
+  if (subsets.size() == 0) {
+    return {_root[0]};
+  } else {
+    CopyOption option = DefaultCopy;
+    range_ctn range, response{_root[0]};
+
     for (auto i = 0; i < subsets.size() - 1; ++i) {
       restrict(range, response, subsets[i], option);
     }
@@ -180,90 +295,16 @@ std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangeP
     // sort range only when necessary
     swap_and_sort(range, response, option);
 
-    if (query.group_by()) {
-      if (option == CopyValueFromSubset) {
-        // initialize aggregators
-        std::vector<std::unique_ptr<AggrSubset>> aggregators;
-
-        for (const auto &expr : aggr) {
-          if (expr.first == "count") {
-            aggregators.emplace_back(std::make_unique<AggrCountSubset>(expr,
-                                                                       get_payload_index(expr.second),
-                                                                       subsets.back().container.size()));
-          }
-
-#ifdef ENABLE_PDIGEST
-          if (expr.first == "quantile" || expr.first == "inverse") {
-            aggregators.emplace_back(std::make_unique<AggrPDigestSubset>(expr,
-                                                                         get_payload_index(expr.second),
-                                                                         subsets.back().container.size()));
-          }
-#endif // ENABLE_PDIGEST
-
-#ifdef ENABLE_GAUSSIAN
-          if (expr.first == "variance" || expr.first == "average") {
-            aggregators.emplace_back(std::make_unique<AggrGaussianSubset>(expr,
-                                                                          get_payload_index(expr.second),
-                                                                          subsets.back().container.size()));
-          }
-#endif // ENABLE_GAUSSIAN
-        }
-        group_by_subset(aggregators, writer, range, subsets.back().container);
-
-        // Range
-      } else {
-        // initialize aggregators
-        std::vector<std::unique_ptr<AggrRange>> aggregators;
-
-        for (const auto &expr : aggr) {
-          if (expr.first == "count") {
-            aggregators.emplace_back(std::make_unique<AggrCountRange>(expr, get_payload_index(expr.second)));
-          }
-
-#ifdef ENABLE_PDIGEST
-          if (expr.first == "quantile" || expr.first == "inverse") {
-            aggregators.emplace_back(std::make_unique<AggrPDigestRange>(expr, get_payload_index(expr.second)));
-          }
-#endif // ENABLE_PDIGEST
-
-#ifdef ENABLE_GAUSSIAN
-          if (expr.first == "variance" || expr.first == "average") {
-            aggregators.emplace_back(std::make_unique<AggrGaussianRange>(expr, get_payload_index(expr.second)));
-          }
-#endif // ENABLE_GAUSSIAN
-        }
-        group_by_range(aggregators, writer, range, subsets.back().container);
-
-      }
-      // None
-    } else {
-      // initialize aggregators
-      std::vector<std::unique_ptr<AggrNone>> aggregators;
-
-      for (const auto &expr : aggr) {
-        if (expr.first == "count") {
-          aggregators.emplace_back(std::make_unique<AggrCountNone>(expr, get_payload_index(expr.second)));
-        }
-
-#ifdef ENABLE_PDIGEST
-        if (expr.first == "quantile" || expr.first == "inverse") {
-          aggregators.emplace_back(std::make_unique<AggrPDigestNone>(expr, get_payload_index(expr.second)));
-        }
-#endif // ENABLE_PDIGEST
-
-#ifdef ENABLE_GAUSSIAN
-        if (expr.first == "variance" || expr.first == "average") {
-          aggregators.emplace_back(std::make_unique<AggrGaussianNone>(expr, get_payload_index(expr.second)));
-        }
-#endif // ENABLE_GAUSSIAN
-      }
-      group_by_none(aggregators, writer, range, subsets.back().container);
-    }
+    return range;
   }
+}
 
-  // end json
-  writer.EndArray();
-  return buffer.GetString();
+bined_ctn NDS::get_subset(const subset_ctn &subsets) const {
+  if (subsets.size() == 0) {
+    return bined_ctn();
+  } else {
+    return subsets.back().container;
+  }
 }
 
 void NDS::restrict(range_ctn &range, range_ctn &response, const subset_t &subset, CopyOption &option) const {
@@ -400,8 +441,7 @@ std::string NDS::schema() const {
   return buffer.GetString();
 }
 
-void NDS::group_by_subset(aggrs_subset_t &aggrs, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                          range_ctn &range, const subset_pivot_ctn &subset) const {
+void NDS::group_by_subset(AggrSubsetCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const {
 
   for (auto el = 0; el < subset.size(); ++el) {
     pivot_it it_lower = subset[el]->ptr().begin(), it_upper;
@@ -425,8 +465,7 @@ void NDS::group_by_subset(aggrs_subset_t &aggrs, rapidjson::Writer<rapidjson::St
   }
 }
 
-void NDS::group_by_range(aggrs_range_t &aggrs, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                         range_ctn &range, const subset_pivot_ctn &subset) const {
+void NDS::group_by_range(AggrRangeCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const {
   for (const auto &el : subset) {
     pivot_it it_lower = el->ptr().begin(), it_upper;
     range_it it_range = range.begin();
@@ -447,8 +486,46 @@ void NDS::group_by_range(aggrs_range_t &aggrs, rapidjson::Writer<rapidjson::Stri
   }
 }
 
-void NDS::group_by_none(aggrs_none_t &aggrs, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                        range_ctn &range, const subset_pivot_ctn &subset) const {
+void NDS::summarize_subset(AggrNoneCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const {
+  do_summarize_subset(aggrs, range, subset);
+
+  for (auto &aggr : aggrs) {
+    writer.StartArray();
+    aggr->output(writer);
+    writer.EndArray();
+  }
+}
+void NDS::summarize_range(AggrNoneCtn &aggrs, json &writer, range_ctn &range) const {
+  do_summarize_range(aggrs, range);
+
+  for (auto &aggr : aggrs) {
+    writer.StartArray();
+    aggr->output(writer);
+    writer.EndArray();
+  }
+}
+
+void NDS::summarize_pipe(GroupCtn<AggrNoneCtn> &groups, json &writer) const {
+  for (auto &source_aggr : groups.first.aggrs) {
+    auto pipe = source_aggr->source();
+
+    writer.StartArray();
+    for (auto &dest_aggr : groups.second.aggrs) {
+      writer.StartArray();
+      dest_aggr->output(pipe, writer);
+      writer.EndArray();
+    }
+    writer.EndArray();
+  }
+}
+
+void NDS::do_summarize_range(AggrNoneCtn &aggrs, range_ctn &range) const {
+  for (auto &aggr : aggrs) {
+    aggr->merge(range.begin(), range.end());
+  }
+}
+
+void NDS::do_summarize_subset(AggrNoneCtn &aggrs, range_ctn &range, const bined_ctn &subset) const {
   for (const auto &el : subset) {
     pivot_it it_lower = el->ptr().begin(), it_upper;
     range_it it_range = range.begin();
@@ -461,24 +538,85 @@ void NDS::group_by_none(aggrs_none_t &aggrs, rapidjson::Writer<rapidjson::String
       ++it_range;
     }
   }
-
-  for (auto &aggr : aggrs) {
-    writer.StartArray();
-    aggr->output(writer);
-    writer.EndArray();
-  }
 }
 
-void NDS::group_by_none(aggrs_none_t &aggrs, rapidjson::Writer<rapidjson::StringBuffer> &writer,
-                        range_ctn &range) const {
+AggrNoneCtn NDS::get_aggr_none(const Query &query) const {
+  std::vector<std::shared_ptr<AggrNone>> aggr_ctn;
 
-  for (auto &aggr : aggrs) {
-    aggr->merge(range.begin(), range.end());
+  // get aggregation clausule
+  auto &aggr = query.get_aggr();
+
+  for (const auto &expr : aggr) {
+    if (expr.first == "count") {
+      aggr_ctn.emplace_back(std::make_shared<AggrCountNone>(expr, get_payload_index(expr.second)));
+    }
+
+#ifdef ENABLE_PDIGEST
+    if (expr.first == "quantile" || expr.first == "inverse") {
+      aggr_ctn.emplace_back(std::make_shared<AggrPDigestNone>(expr, get_payload_index(expr.second)));
+    }
+#endif // ENABLE_PDIGEST
+
+#ifdef ENABLE_GAUSSIAN
+    if (expr.first == "variance" || expr.first == "average") {
+      aggr_ctn.emplace_back(std::make_shared<AggrGaussianNone>(expr, get_payload_index(expr.second)));
+    }
+#endif // ENABLE_GAUSSIAN
   }
 
-  for (auto &aggr : aggrs) {
-    writer.StartArray();
-    aggr->output(writer);
-    writer.EndArray();
+  return aggr_ctn;
+}
+
+AggrRangeCtn NDS::get_aggr_range(const Query &query) const {
+  std::vector<std::shared_ptr<AggrRange>> aggr_ctn;
+
+  // get aggregation clausule
+  auto &aggr = query.get_aggr();
+
+  for (const auto &expr : aggr) {
+    if (expr.first == "count") {
+      aggr_ctn.emplace_back(std::make_shared<AggrCountRange>(expr, get_payload_index(expr.second)));
+    }
+
+#ifdef ENABLE_PDIGEST
+    if (expr.first == "quantile" || expr.first == "inverse") {
+      aggr_ctn.emplace_back(std::make_shared<AggrPDigestRange>(expr, get_payload_index(expr.second)));
+    }
+#endif // ENABLE_PDIGEST
+
+#ifdef ENABLE_GAUSSIAN
+    if (expr.first == "variance" || expr.first == "average") {
+      aggr_ctn.emplace_back(std::make_shared<AggrGaussianRange>(expr, get_payload_index(expr.second)));
+    }
+#endif // ENABLE_GAUSSIAN
   }
+
+  return aggr_ctn;
+}
+
+AggrSubsetCtn NDS::get_aggr_subset(const Query &query, size_t subset_size) const {
+  std::vector<std::shared_ptr<AggrSubset>> aggr_ctn;
+
+  // get aggregation clausule
+  auto &aggr = query.get_aggr();
+
+  for (const auto &expr : aggr) {
+    if (expr.first == "count") {
+      aggr_ctn.emplace_back(std::make_shared<AggrCountSubset>(expr, get_payload_index(expr.second), subset_size));
+    }
+
+#ifdef ENABLE_PDIGEST
+    if (expr.first == "quantile" || expr.first == "inverse") {
+      aggr_ctn.emplace_back(std::make_shared<AggrPDigestSubset>(expr, get_payload_index(expr.second), subset_size));
+    }
+#endif // ENABLE_PDIGEST
+
+#ifdef ENABLE_GAUSSIAN
+    if (expr.first == "variance" || expr.first == "average") {
+      aggr_ctn.emplace_back(std::make_shared<AggrGaussianSubset>(expr, get_payload_index(expr.second), subset_size));
+    }
+#endif // ENABLE_GAUSSIAN
+  }
+
+  return aggr_ctn;
 }

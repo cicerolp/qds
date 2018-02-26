@@ -63,16 +63,21 @@ class AggrRange : public Aggr {
 
 class AggrNone : public Aggr {
  public:
+  AggrNone() = default;
   AggrNone(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
 
   virtual void merge(const pivot_it &it_lower, const pivot_it &it_upper) = 0;
   virtual void merge(const range_it &it_lower, const range_it &it_upper) = 0;
   virtual void output(json &writer) = 0;
-};
 
-using aggrs_subset_t = std::vector<std::unique_ptr<AggrSubset>>;
-using aggrs_range_t = std::vector<std::unique_ptr<AggrRange>>;
-using aggrs_none_t = std::vector<std::unique_ptr<AggrNone>>;
+  virtual pipe_ctn source() {
+    return pipe_ctn();
+  }
+
+  virtual void output(const pipe_ctn& pipe, json &writer) {
+    return;
+  };
+};
 
 // count
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -133,6 +138,7 @@ class AggrCountRange : public AggrRange {
 /////////////////////////////////////////////////////////////////////////////////////////
 class AggrCountNone : public AggrNone {
  public:
+  AggrCountNone() = default;
   AggrCountNone(const Query::aggr_expr &expr, size_t __index) :
       AggrNone(expr, __index) {}
 
@@ -142,6 +148,7 @@ class AggrCountNone : public AggrNone {
       _count += (*it++).size();
     }
   }
+
   void merge(const range_it &it_lower, const range_it &it_upper) override {
     auto it = it_lower;
 
@@ -149,9 +156,15 @@ class AggrCountNone : public AggrNone {
       _count += (*it++).pivot.size();
     }
   }
+
   void output(json &writer) override {
     writer.Uint(_count);
   }
+
+  pipe_ctn source() override {
+    return {(float)_count};
+  }
+
  protected:
   uint32_t _count{0};
 };
@@ -188,6 +201,7 @@ class AggrPayloadRange : public AggrRange {
 template<typename T>
 class AggrPayloadNone : public AggrNone {
  public:
+  AggrPayloadNone() = default;
   AggrPayloadNone(const Query::aggr_expr &expr, size_t __index) :
       AggrNone(expr, __index) {}
 
@@ -216,30 +230,23 @@ class AggrPDigestSubset : public AggrPayloadSubset<AgrrPDigest> {
   void output(size_t el, uint64_t value, json &writer) override {
     if (_map[el].empty()) return;
 
-    auto clausule = boost::trim_copy_if(_expr.second.second, boost::is_any_of("()"));
-
-    boost::char_separator<char> sep(":");
-    boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
+    auto parameters = AgrrPDigest::get_parameters(_expr);
 
     if (_expr.first == "quantile") {
-      for (auto &q : tokens) {
-        auto parameter = std::stof(q);
-
+      for (auto &q : parameters) {
         writer.StartArray();
         write_value(value, writer);
-        writer.Double(parameter);
-        writer.Double(_map[el].quantile(parameter));
+        writer.Double(q);
+        writer.Double(_map[el].quantile(q));
         writer.EndArray();
       }
 
     } else if (_expr.first == "inverse") {
-      for (auto &q : tokens) {
-        auto parameter = std::stof(q);
-
+      for (auto &q : parameters) {
         writer.StartArray();
         write_value(value, writer);
-        writer.Double(parameter);
-        writer.Double(_map[el].inverse(parameter));
+        writer.Double(q);
+        writer.Double(_map[el].inverse(q));
         writer.EndArray();
       }
     }
@@ -252,33 +259,26 @@ class AggrPDigestRange : public AggrPayloadRange<AgrrPDigest> {
       AggrPayloadRange(expr, __index) {}
 
   void output(json &writer) override {
-    auto clausule = boost::trim_copy_if(_expr.second.second, boost::is_any_of("()"));
-
-    boost::char_separator<char> sep(":");
-    boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
+    auto parameters = AgrrPDigest::get_parameters(_expr);
 
     if (_expr.first == "quantile") {
       for (const auto &pair : _map) {
-        for (auto &q : tokens) {
-          auto parameter = std::stof(q);
-
+        for (auto &q : parameters) {
           writer.StartArray();
           write_value(pair.first, writer);
-          writer.Double(parameter);
-          writer.Double(pair.second.quantile(parameter));
+          writer.Double(q);
+          writer.Double(pair.second.quantile(q));
           writer.EndArray();
         }
       }
 
     } else if (_expr.first == "inverse") {
       for (const auto &pair : _map) {
-        for (auto &q : tokens) {
-          auto parameter = std::stof(q);
-
+        for (auto &q : parameters) {
           writer.StartArray();
           write_value(pair.first, writer);
-          writer.Double(parameter);
-          writer.Double(pair.second.inverse(parameter));
+          writer.Double(q);
+          writer.Double(pair.second.inverse(q));
           writer.EndArray();
         }
       }
@@ -288,35 +288,48 @@ class AggrPDigestRange : public AggrPayloadRange<AgrrPDigest> {
 
 class AggrPDigestNone : public AggrPayloadNone<AgrrPDigest> {
  public:
+  AggrPDigestNone() = default;
   AggrPDigestNone(const Query::aggr_expr &expr, size_t __index) :
       AggrPayloadNone(expr, __index) {}
 
   void output(json &writer) override {
-    auto clausule = boost::trim_copy_if(_expr.second.second, boost::is_any_of("()"));
+    output(AgrrPDigest::get_parameters(_expr), writer);
+  }
 
-    boost::char_separator<char> sep(":");
-    boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
-
+  void output(const pipe_ctn &pipe, json &writer) override {
     if (_expr.first == "quantile") {
-      for (auto &q : tokens) {
-        auto parameter = std::stof(q);
-
+      for (auto &q : pipe) {
         writer.StartArray();
-        writer.Double(parameter);
-        writer.Double(_map.quantile(parameter));
+        writer.Double(q);
+        writer.Double(_map.quantile(q));
         writer.EndArray();
       }
-
     } else if (_expr.first == "inverse") {
-      for (auto &q : tokens) {
-        auto parameter = std::stof(q);
-
+      for (auto &q : pipe) {
         writer.StartArray();
-        writer.Double(parameter);
-        writer.Double(_map.inverse(parameter));
+        writer.Double(q);
+        writer.Double(_map.inverse(q));
         writer.EndArray();
       }
     }
+  }
+
+  pipe_ctn source() override {
+    pipe_ctn pipe;
+
+    auto parameters = AgrrPDigest::get_parameters(_expr);
+
+    if (_expr.first == "quantile") {
+      for (auto &q : parameters) {
+        pipe.emplace_back(_map.quantile(q));
+      }
+    } else if (_expr.first == "inverse") {
+      for (auto &q : parameters) {
+        pipe.emplace_back(_map.inverse(q));
+      }
+    }
+
+    return pipe;
   }
 };
 #endif // ENABLE_PDIGEST
@@ -377,6 +390,7 @@ class AggrGaussianRange : public AggrPayloadRange<AggrGaussian> {
 
 class AggrGaussianNone : public AggrPayloadNone<AggrGaussian> {
  public:
+  AggrGaussianNone() = default;
   AggrGaussianNone(const Query::aggr_expr &expr, size_t __index) :
       AggrPayloadNone(expr, __index) {}
 

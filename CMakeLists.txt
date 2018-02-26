@@ -49,7 +49,7 @@ add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
         source/SpatialElement.cpp
         source/string_util.cpp
         source/Temporal.cpp
-        source/PDigest.cpp source/Gaussian.cpp source/Gaussian.h)
+        source/PDigest.cpp source/Gaussian.cpp source/Gaussian.h source/Pipeline.cpp source/Pipeline.h)
 
 find_package(Threads REQUIRED)
 

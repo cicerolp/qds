@@ -5,6 +5,8 @@
 
 class Pivot;
 
+using pipe_ctn = std::vector<float>;
+
 template<typename T>
 struct BuildPair {
   T input, output;
