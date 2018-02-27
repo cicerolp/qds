@@ -34,37 +34,38 @@ class Aggr {
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// Subset
-/////////////////////////////////////////////////////////////////////////////////////////
-
-class AggrSubset : public Aggr {
- public:
-  AggrSubset(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
-
-  virtual void merge(size_t el, const pivot_it &it_lower, const pivot_it &it_upper) = 0;
-  virtual void output(size_t el, uint64_t value, json &writer) = 0;
-};
-
-/////////////////////////////////////////////////////////////////////////////////////////
 // Range
 /////////////////////////////////////////////////////////////////////////////////////////
 
-class AggrRange : public Aggr {
+class AggrGroupBy : public Aggr {
  public:
-  AggrRange(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
+  AggrGroupBy(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
 
   virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) = 0;
+
+  virtual void output(uint64_t value, const pipe_ctn &pipe, json &writer) {
+    writer.StartArray();
+    // empty
+    writer.EndArray();
+  };
+
   virtual void output(json &writer) = 0;
+
+  virtual std::vector<uint64_t> get_mapped_values() const = 0;
+
+  virtual pipe_ctn source(uint64_t value) {
+    return pipe_ctn();
+  }
 };
 
 /////////////////////////////////////////////////////////////////////////////////////////
-// None
+// Summarize
 /////////////////////////////////////////////////////////////////////////////////////////
 
-class AggrNone : public Aggr {
+class AggrSummarize : public Aggr {
  public:
-  AggrNone() = default;
-  AggrNone(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
+  AggrSummarize() = default;
+  AggrSummarize(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
 
   virtual void merge(const pivot_it &it_lower, const pivot_it &it_upper) = 0;
   virtual void merge(const range_it &it_lower, const range_it &it_upper) = 0;
@@ -74,45 +75,17 @@ class AggrNone : public Aggr {
     return pipe_ctn();
   }
 
-  virtual void output(const pipe_ctn& pipe, json &writer) {
+  virtual void output(const pipe_ctn &pipe, json &writer) {
     return;
   };
 };
 
 // count
 /////////////////////////////////////////////////////////////////////////////////////////
-
-class AggrCountSubset : public AggrSubset {
+class AggrCountGroupBy : public AggrGroupBy {
  public:
-  AggrCountSubset(const Query::aggr_expr &expr, size_t __index, size_t size) :
-      AggrSubset(expr, __index), _map(size, 0) {}
-
-  virtual void merge(size_t el, const pivot_it &it_lower, const pivot_it &it_upper) override {
-    auto it = it_lower;
-    while (it != it_upper) {
-      _map[el] += (*it++).size();
-    }
-  }
-
-  virtual void output(size_t el, uint64_t value, json &writer) override {
-    if (_map[el] == 0) return;
-
-    writer.StartArray();
-    write_value(value, writer);
-    writer.Uint(_map[el]);
-    writer.EndArray();
-  }
-
- protected:
-  std::vector<uint32_t> _map;
-};
-
-// count
-/////////////////////////////////////////////////////////////////////////////////////////
-class AggrCountRange : public AggrRange {
- public:
-  AggrCountRange(const Query::aggr_expr &expr, size_t __index) :
-      AggrRange(expr, __index) {}
+  AggrCountGroupBy(const Query::aggr_expr &expr, size_t __index) :
+      AggrGroupBy(expr, __index) {}
 
   virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) override {
     auto it = it_lower;
@@ -130,17 +103,32 @@ class AggrCountRange : public AggrRange {
     }
   }
 
+  std::vector<uint64_t> get_mapped_values() const override {
+    std::vector<uint64_t> mapped_keys;
+    for (const auto &elt: _map) {
+      mapped_keys.emplace_back(elt.first);
+    }
+  }
+
+  pipe_ctn source(uint64_t value) override {
+    auto it = _map.find(value);
+
+    if (it != _map.end()) {
+      return {(float) (*it).second};
+    } else {
+      return pipe_ctn();
+    }
+  }
+
  protected:
   std::map<uint64_t, uint32_t> _map;
 };
 
-// count
-/////////////////////////////////////////////////////////////////////////////////////////
-class AggrCountNone : public AggrNone {
+class AggrCountSummarize : public AggrSummarize {
  public:
-  AggrCountNone() = default;
-  AggrCountNone(const Query::aggr_expr &expr, size_t __index) :
-      AggrNone(expr, __index) {}
+  AggrCountSummarize() = default;
+  AggrCountSummarize(const Query::aggr_expr &expr, size_t __index) :
+      AggrSummarize(expr, __index) {}
 
   void merge(const pivot_it &it_lower, const pivot_it &it_upper) override {
     auto it = it_lower;
@@ -162,7 +150,7 @@ class AggrCountNone : public AggrNone {
   }
 
   pipe_ctn source() override {
-    return {(float)_count};
+    return {(float) _count};
   }
 
  protected:
@@ -171,27 +159,20 @@ class AggrCountNone : public AggrNone {
 
 #ifdef NDS_ENABLE_PAYLOAD
 template<typename T>
-class AggrPayloadSubset : public AggrSubset {
+class AggrPayloadGroupBy : public AggrGroupBy {
  public:
-  AggrPayloadSubset(const Query::aggr_expr &expr, size_t __index, size_t size) :
-      AggrSubset(expr, __index), _map(size) {}
-
-  void merge(size_t el, const pivot_it &it_lower, const pivot_it &it_upper) override {
-    _map[el].merge(_payload_index, it_lower, it_upper);
-  }
-
- protected:
-  std::vector<T> _map;
-};
-
-template<typename T>
-class AggrPayloadRange : public AggrRange {
- public:
-  AggrPayloadRange(const Query::aggr_expr &expr, size_t __index) :
-      AggrRange(expr, __index) {}
+  AggrPayloadGroupBy(const Query::aggr_expr &expr, size_t __index) :
+      AggrGroupBy(expr, __index) {}
 
   void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) override {
     _map[value].merge(_payload_index, it_lower, it_upper);
+  }
+
+  std::vector<uint64_t> get_mapped_values() const override {
+    std::vector<uint64_t> mapped_keys;
+    for (const auto &elt: _map) {
+      mapped_keys.emplace_back(elt.first);
+    }
   }
 
  protected:
@@ -199,11 +180,11 @@ class AggrPayloadRange : public AggrRange {
 };
 
 template<typename T>
-class AggrPayloadNone : public AggrNone {
+class AggrPayloadSummarize : public AggrSummarize {
  public:
-  AggrPayloadNone() = default;
-  AggrPayloadNone(const Query::aggr_expr &expr, size_t __index) :
-      AggrNone(expr, __index) {}
+  AggrPayloadSummarize() = default;
+  AggrPayloadSummarize(const Query::aggr_expr &expr, size_t __index) :
+      AggrSummarize(expr, __index) {}
 
   void merge(const pivot_it &it_lower, const pivot_it &it_upper) override {
     _map.merge(_payload_index, it_lower, it_upper);
@@ -222,41 +203,32 @@ class AggrPayloadNone : public AggrNone {
 #endif // NDS_ENABLE_PAYLOAD
 
 #ifdef ENABLE_PDIGEST
-class AggrPDigestSubset : public AggrPayloadSubset<AgrrPDigest> {
+class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
  public:
-  AggrPDigestSubset(const Query::aggr_expr &expr, size_t __index, size_t size) :
-      AggrPayloadSubset(expr, __index, size) {}
+  AggrPDigestGroupBy(const Query::aggr_expr &expr, size_t __index) :
+      AggrPayloadGroupBy(expr, __index) {}
 
-  void output(size_t el, uint64_t value, json &writer) override {
-    if (_map[el].empty()) return;
+  void output(uint64_t value, const pipe_ctn &pipe, json &writer) override {
+    auto it = _map.find(value);
 
-    auto parameters = AgrrPDigest::get_parameters(_expr);
-
-    if (_expr.first == "quantile") {
-      for (auto &q : parameters) {
-        writer.StartArray();
-        write_value(value, writer);
-        writer.Double(q);
-        writer.Double(_map[el].quantile(q));
-        writer.EndArray();
-      }
-
-    } else if (_expr.first == "inverse") {
-      for (auto &q : parameters) {
-        writer.StartArray();
-        write_value(value, writer);
-        writer.Double(q);
-        writer.Double(_map[el].inverse(q));
-        writer.EndArray();
+    if (it != _map.end()) {
+      if (_expr.first == "quantile") {
+        for (auto &q : pipe) {
+          writer.StartArray();
+          writer.Double(q);
+          writer.Double((*it).second.quantile(q));
+          writer.EndArray();
+        }
+      } else if (_expr.first == "inverse") {
+        for (auto &q : pipe) {
+          writer.StartArray();
+          writer.Double(q);
+          writer.Double((*it).second.inverse(q));
+          writer.EndArray();
+        }
       }
     }
   }
-};
-
-class AggrPDigestRange : public AggrPayloadRange<AgrrPDigest> {
- public:
-  AggrPDigestRange(const Query::aggr_expr &expr, size_t __index) :
-      AggrPayloadRange(expr, __index) {}
 
   void output(json &writer) override {
     auto parameters = AgrrPDigest::get_parameters(_expr);
@@ -284,13 +256,35 @@ class AggrPDigestRange : public AggrPayloadRange<AgrrPDigest> {
       }
     }
   }
+
+  pipe_ctn source(uint64_t value) override {
+    auto it = _map.find(value);
+
+    if (it != _map.end()) {
+      pipe_ctn pipe;
+
+      auto parameters = AgrrPDigest::get_parameters(_expr);
+
+      if (_expr.first == "quantile") {
+        for (auto &q : parameters) {
+          pipe.emplace_back((*it).second.quantile(q));
+        }
+      } else if (_expr.first == "inverse") {
+        for (auto &q : parameters) {
+          pipe.emplace_back((*it).second.inverse(q));
+        }
+      }
+    } else {
+      return pipe_ctn();
+    }
+  }
 };
 
-class AggrPDigestNone : public AggrPayloadNone<AgrrPDigest> {
+class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
  public:
-  AggrPDigestNone() = default;
-  AggrPDigestNone(const Query::aggr_expr &expr, size_t __index) :
-      AggrPayloadNone(expr, __index) {}
+  AggrPDigestSummarize() = default;
+  AggrPDigestSummarize(const Query::aggr_expr &expr, size_t __index) :
+      AggrPayloadSummarize(expr, __index) {}
 
   void output(json &writer) override {
     output(AgrrPDigest::get_parameters(_expr), writer);
@@ -335,40 +329,12 @@ class AggrPDigestNone : public AggrPayloadNone<AgrrPDigest> {
 #endif // ENABLE_PDIGEST
 
 #ifdef ENABLE_GAUSSIAN
-class AggrGaussianSubset : public AggrPayloadSubset<AggrGaussian> {
+class AggrGaussianGroupBy : public AggrPayloadGroupBy<AggrGaussian> {
  public:
-  AggrGaussianSubset(const Query::aggr_expr &expr, size_t __index, size_t size) :
-      AggrPayloadSubset(expr, __index, size) {}
-
-  void output(size_t el, uint64_t value, json &writer) override {
-    if (_map[el].empty()) return;
-
-    if (_expr.first == "variance") {
-      writer.StartArray();
-      write_value(value, writer);
-      writer.Double(_map[el].variance());
-      writer.EndArray();
-
-    } else if (_expr.first == "average") {
-      writer.StartArray();
-      write_value(value, writer);
-      writer.Double(_map[el].average());
-      writer.EndArray();
-    }
-  }
-};
-
-class AggrGaussianRange : public AggrPayloadRange<AggrGaussian> {
- public:
-  AggrGaussianRange(const Query::aggr_expr &expr, size_t __index) :
-      AggrPayloadRange(expr, __index) {}
+  AggrGaussianGroupBy(const Query::aggr_expr &expr, size_t __index) :
+      AggrPayloadGroupBy(expr, __index) {}
 
   void output(json &writer) override {
-    auto clausule = boost::trim_copy_if(_expr.second.second, boost::is_any_of("()"));
-
-    boost::char_separator<char> sep(":");
-    boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
-
     if (_expr.first == "variance") {
       for (const auto &pair : _map) {
         writer.StartArray();
@@ -386,20 +352,31 @@ class AggrGaussianRange : public AggrPayloadRange<AggrGaussian> {
       }
     }
   }
+
+  pipe_ctn source(uint64_t value) override {
+    auto it = _map.find(value);
+
+    if (it != _map.end()) {
+      pipe_ctn pipe;
+
+      if (_expr.first == "quantile") {
+        return {(*it).second.variance()};
+      } else if (_expr.first == "inverse") {
+        return {(*it).second.average()};
+      }
+    } else {
+      return pipe_ctn();
+    }
+  }
 };
 
-class AggrGaussianNone : public AggrPayloadNone<AggrGaussian> {
+class AggrGaussianSummarize : public AggrPayloadSummarize<AggrGaussian> {
  public:
-  AggrGaussianNone() = default;
-  AggrGaussianNone(const Query::aggr_expr &expr, size_t __index) :
-      AggrPayloadNone(expr, __index) {}
+  AggrGaussianSummarize() = default;
+  AggrGaussianSummarize(const Query::aggr_expr &expr, size_t __index) :
+      AggrPayloadSummarize(expr, __index) {}
 
   void output(json &writer) override {
-    auto clausule = boost::trim_copy_if(_expr.second.second, boost::is_any_of("()"));
-
-    boost::char_separator<char> sep(":");
-    boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
-
     if (_expr.first == "variance") {
       writer.StartArray();
       writer.Double(_map.variance());
@@ -409,6 +386,15 @@ class AggrGaussianNone : public AggrPayloadNone<AggrGaussian> {
       writer.StartArray();
       writer.Double(_map.average());
       writer.EndArray();
+    }
+  }
+
+  virtual pipe_ctn source() {
+    if (_expr.first == "variance") {
+      return {_map.variance()};
+
+    } else if (_expr.first == "average") {
+      return {_map.average()};
     }
   }
 };

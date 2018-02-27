@@ -8,9 +8,8 @@
 #include "Pipeline.h"
 #include "Schema.h"
 
-using AggrNoneCtn = std::vector<std::shared_ptr<AggrNone>>;
-using AggrRangeCtn = std::vector<std::shared_ptr<AggrRange>>;
-using AggrSubsetCtn = std::vector<std::shared_ptr<AggrSubset>>;
+using AggrSummarizeCtn = std::vector<std::shared_ptr<AggrSummarize>>;
+using AggrGroupByCtn = std::vector<std::shared_ptr<AggrGroupBy>>;
 
 class NDS {
  public:
@@ -195,27 +194,18 @@ class NDS {
   template<typename T>
   using GroupCtn = std::pair<GroupBy<T>, GroupBy<T>>;
 
-  void group_by_subset(AggrSubsetCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const;
+  void group_by_query(AggrGroupByCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const;
+  void group_by_pipe(GroupCtn<AggrGroupByCtn> &groups, json &writer) const;
 
-  void group_by_range(AggrRangeCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const;
+  void do_group_by(AggrGroupByCtn &aggrs, range_ctn &range, const bined_ctn &subset) const;
 
-  void summarize_subset(AggrNoneCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const;
+  void summarize_query(AggrSummarizeCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const;
+  void summarize_pipe(GroupCtn<AggrSummarizeCtn> &groups, json &writer) const;
 
-  void summarize_range(AggrNoneCtn &aggrs, json &writer, range_ctn &range) const;
+  void do_summarize(AggrSummarizeCtn &aggrs, range_ctn &range, const bined_ctn &subset) const;
 
-  void summarize_pipe(GroupCtn<AggrNoneCtn> &groups, json &writer) const;
-
-  void do_summarize_range(AggrNoneCtn &aggrs, range_ctn &range) const;
-  void do_summarize_subset(AggrNoneCtn &aggrs, range_ctn &range, const bined_ctn &subset) const;
-
-
-  // get_aggr
-
-  AggrNoneCtn get_aggr_none(const Query &query) const;
-
-  AggrRangeCtn get_aggr_range(const Query &query) const;
-
-  AggrSubsetCtn get_aggr_subset(const Query &query, size_t subset_size) const;
+  AggrGroupByCtn get_aggr_group_by(const Query &query) const;
+  AggrSummarizeCtn get_aggr_summarize(const Query &query) const;
 
   pivot_ctn _root;
   std::vector<std::unique_ptr<Payload>> _payload;

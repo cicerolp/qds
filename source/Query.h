@@ -32,6 +32,10 @@ class Query {
     }
   };
 
+  inline const std::string& get_group_by() const {
+    return _group_by;
+  };
+
   inline bool group_by() const {
     return !_group_by.empty();
   };
