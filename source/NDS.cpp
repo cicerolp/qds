@@ -155,7 +155,9 @@ std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangeP
     writer.EndArray();
 
   } else {
-    auto range = get_range(subsets);
+    CopyOption option = DefaultCopy;
+
+    auto range = get_range(subsets, option);
     auto subset = get_subset(subsets);
 
     // summarize
@@ -167,7 +169,7 @@ std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangeP
 
     } else {
       auto aggr = get_aggr_group_by(query);
-      do_group_by(aggr, range, subset);
+      do_group_by(aggr, range, subset, option);
 
       group_by_query(aggr, writer, range, subset);
     }
@@ -200,10 +202,12 @@ std::string NDS::serialize_pipeline(const Pipeline &pipeline,
     writer.EndArray();
 
   } else {
-    auto range_source = get_range(source_ctn);
+    CopyOption option_source = DefaultCopy;
+    auto range_source = get_range(source_ctn, option_source);
     auto subset_source = get_subset(source_ctn);
 
-    auto range_dest = get_range(dest_ctn);
+    CopyOption option_dest = DefaultCopy;
+    auto range_dest = get_range(dest_ctn, option_dest);
     auto subset_dest = get_subset(dest_ctn);
 
     // summarize
@@ -221,10 +225,10 @@ std::string NDS::serialize_pipeline(const Pipeline &pipeline,
 
     } else {
       auto aggr_source = get_aggr_group_by(pipeline.get_source());
-      do_group_by(aggr_source, range_source, subset_source);
+      do_group_by(aggr_source, range_source, subset_source, option_source);
 
       auto aggr_dest = get_aggr_group_by(pipeline.get_dest());
-      do_group_by(aggr_dest, range_dest, subset_dest);
+      do_group_by(aggr_dest, range_dest, subset_dest, option_dest);
 
       auto groups = std::make_pair(GroupBy<AggrGroupByCtn>(aggr_source, range_source, subset_source),
                                    GroupBy<AggrGroupByCtn>(aggr_dest, range_dest, subset_dest));
@@ -238,11 +242,10 @@ std::string NDS::serialize_pipeline(const Pipeline &pipeline,
   return buffer.GetString();
 }
 
-range_ctn NDS::get_range(const subset_ctn &subsets) const {
+range_ctn NDS::get_range(const subset_ctn &subsets, CopyOption &option) const {
   if (subsets.size() == 0) {
     return {_root[0]};
   } else {
-    CopyOption option = DefaultCopy;
     range_ctn range, response{_root[0]};
 
     for (auto i = 0; i < subsets.size() - 1; ++i) {
@@ -426,17 +429,32 @@ void NDS::group_by_pipe(GroupCtn<AggrGroupByCtn> &groups, json &writer) const {
   }
 }
 
-void NDS::do_group_by(AggrGroupByCtn &aggrs, range_ctn &range, const bined_ctn &subset) const {
-  for (const auto &el : subset) {
-    pivot_it it_lower = el->ptr().begin(), it_upper;
-    range_it it_range = range.begin();
+void NDS::do_group_by(AggrGroupByCtn &aggrs, range_ctn &range, const bined_ctn &subset, const CopyOption &option) const {
+  if (option == CopyValueFromSubset) {
+    for (auto el = 0; el < subset.size(); ++el) {
+      pivot_it it_lower = subset[el]->ptr().begin(), it_upper;
+      range_it it_range = range.begin();
 
-    while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-      for (auto &aggr : aggrs) {
-        aggr->merge((*it_range).value, it_lower, it_upper);
+      while (search_iterators(it_range, range, it_lower, it_upper, subset[el]->ptr())) {
+        for (auto &aggr : aggrs) {
+          aggr->merge(subset[el]->value, it_lower, it_upper);
+        }
+        it_lower = it_upper;
+        ++it_range;
       }
-      it_lower = it_upper;
-      ++it_range;
+    }
+  } else {
+    for (const auto &el : subset) {
+      pivot_it it_lower = el->ptr().begin(), it_upper;
+      range_it it_range = range.begin();
+
+      while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+        for (auto &aggr : aggrs) {
+          aggr->merge((*it_range).value, it_lower, it_upper);
+        }
+        it_lower = it_upper;
+        ++it_range;
+      }
     }
   }
 }
