@@ -139,7 +139,7 @@ class NDS {
                                  subset_ctn &dest_ctn,
                                  const RangePivot &root) const;
 
-  range_ctn get_range(const subset_ctn &subsets) const;
+  range_ctn get_range(const subset_ctn &subsets, CopyOption &option) const;
 
   bined_ctn get_subset(const subset_ctn &subsets) const;
 
@@ -197,7 +197,7 @@ class NDS {
   void group_by_query(AggrGroupByCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const;
   void group_by_pipe(GroupCtn<AggrGroupByCtn> &groups, json &writer) const;
 
-  void do_group_by(AggrGroupByCtn &aggrs, range_ctn &range, const bined_ctn &subset) const;
+  void do_group_by(AggrGroupByCtn &aggrs, range_ctn &range, const bined_ctn &subset, const CopyOption &option) const;
 
   void summarize_query(AggrSummarizeCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const;
   void summarize_pipe(GroupCtn<AggrSummarizeCtn> &groups, json &writer) const;
