@@ -10,6 +10,18 @@
             <offset>0</offset>
         </categorical>>
 
+        <temporal>
+            <index>pickup_datetime</index>
+            <bin>86400</bin>
+            <offset>19</offset>
+        </temporal>
+
+        <spatial>
+            <index>pickup</index>
+            <bin>1</bin>
+            <offset>3</offset>
+        </spatial>
+
         <payload>
             <index>trip_distance_t</index>
             <bin>0</bin>
@@ -20,6 +32,18 @@
             <index>trip_distance_g</index>
             <bin>1</bin>
             <offset>27</offset>
+        </payload>
+
+        <payload>
+            <index>total_amount_t</index>
+            <bin>0</bin>
+            <offset>39</offset>
+        </payload>
+
+        <payload>
+            <index>total_amount_g</index>
+            <bin>1</bin>
+            <offset>39</offset>
         </payload>
     </schema>
 </config>
