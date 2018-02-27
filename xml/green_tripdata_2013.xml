@@ -15,6 +15,7 @@
             <bin>6</bin>
             <offset>2</offset>
         </categorical>
+        
         <temporal>
             <index>pickup_datetime</index>
             <bin>86400</bin>
