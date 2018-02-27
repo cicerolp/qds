@@ -27,6 +27,12 @@
             <offset>3</offset>
         </spatial>
 
+        <spatial>
+            <index>dropoff</index>
+            <bin>1</bin>
+            <offset>3</offset>
+        </spatial>
+	
         <payload>
             <index>trip_distance_t</index>
             <bin>0</bin>

@@ -19,6 +19,8 @@ var activeTemporalDimension    = undefined;
 var activeSpatialDimension     = undefined;
 var activePayloadDimension     = undefined;
 
+//
+var inverseQuantileScale = d3.scaleQuantile().domain([0,1]).range(d3.schemeRdBu[7]);
 
 function getAlias(dimension,value){
     return datasetInfo.aliases[dimension][value];
@@ -52,7 +54,7 @@ function queryEquiDepthPlot(){
 				     var entry = result[i];
 				     if(prevEntry[0] == entry[0]){
 					 var totalCount = counts[entry[0]];
-					 bins.push({"lower":prevEntry[2],"upper":entry[2],"density":(entry[1]-prevEntry[1])*totalCount});
+					 bins.push({"lower":prevEntry[2],"upper":entry[2],"density":(1.0/(entry[1]-prevEntry[1]))});
 				     }
 				     else{
 					 data.push({"label":prevEntry[0],"bins":bins});
@@ -72,7 +74,7 @@ function queryEquiDepthPlot(){
 			     equidepthWidget.setYAxisLabel(datasetInfo.payloadsScreenNames[activePayloadDimension]);
 			     equidepthWidget.setData(data);
 			 });
-    q.addAggregation("quantile",activePayloadDimension);
+    q.addAggregation("quantile",activePayloadDimension + "_t");
     q.addAggregation("count");
     q.setPayload({"quantiles":d3.range(11).map(d=>0.1*d)});
     //
@@ -82,6 +84,8 @@ function queryEquiDepthPlot(){
 	q.addConstraint("region",activeSpatialDimension,{"zoom":19,"geometry":[geoConstraints[0].geometry[4], geoConstraints[0].geometry[1],geoConstraints[0].geometry[0],geoConstraints[0].geometry[5]]});
     }
     //
+    console.log("===>",activePayloadDimension);
+    console.log(q.toString());
     ndsInterface.query(q);
 
 }
@@ -197,7 +201,7 @@ function queryBandPlot(){
 			     bandPlotWidget.setData(bands,medianCurve);
 			 });
     //
-    q.addAggregation("quantile",activePayloadDimension);
+    q.addAggregation("quantile",activePayloadDimension + "_t");
     q.setPayload({"quantiles":[0.25,0.5,0.75]});
     //
     q.addConstraint("time_interval",activeTemporalDimension,timeConstraint);
@@ -210,7 +214,10 @@ function queryBandPlot(){
 }
 
 function updateSystem(){
-    //queryBoxPlot();
+    queryBandPlot();
+    queryEquiDepthPlot();
+    var ndsLayer = myMap.getLayer("ndsLayer");
+    ndsLayer.repaint();
 }
 
 /*************************
@@ -225,7 +232,7 @@ function changeMapMode(e){
     //
     if(newMode == "inverse_quantile"){
 	var heatmapColorScale = d3.scaleOrdinal().domain([0, 0.14285714285714285, 0.2857142857142857, 0.42857142857142855, 0.5714285714285714, 0.7142857142857142, 0.8571428571428571, 1]).range(['#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#b10026']);
-	myMap.updateLegend(d3.scaleLinear().range(["white","red"]),"continuousLog","Quantile","#legend");
+	myMap.updateLegend(inverseQuantileScale,"continuousLog","Quantile","#legend");
 	d3.select("#legend").style("display", "block");
     }
     else{
@@ -308,11 +315,11 @@ function initializeSystem(){
 
     //
     d3.select("#payloadCombobox")
-	.selectAll("option")
 	.on("change",function(d){
 	    activePayloadDimension = d3.event.target.selectedOptions[0].text;
 	    updateSystem();
 	})
+	.selectAll("option")
 	.data(datasetInfo.payloads)
 	.enter()
 	.append("option")
