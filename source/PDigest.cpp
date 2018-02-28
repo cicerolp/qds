@@ -184,7 +184,11 @@ float PDigest::asinApproximation(float x) {
 #endif
 }
 
-void AgrrPDigest::merge(size_t payload_index, const Pivot &pivot) {
+void AgrrPDigest::merge(size_t payload_index, const Pivot &pivot, int32_t threshold) {
+  if (pivot.size() < threshold) {
+    return;
+  }
+
   _buffer_mean.clear();
   _buffer_weight.clear();
 
@@ -226,7 +230,7 @@ void AgrrPDigest::merge(size_t payload_index, const Pivot &pivot) {
   merge_buffer_data();
 }
 
-void AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) {
+void AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper, int32_t threshold) {
   _buffer_mean.clear();
   _buffer_weight.clear();
 
@@ -234,6 +238,11 @@ void AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, const pi
   auto it = it_lower;
   // insert payload data
   while (it != it_upper) {
+    if ((*it).size() < threshold) {
+      ++it;
+      continue;
+    }
+
     auto &payload = (*it).get_payload(payload_index);
     uint32_t payload_size = payload.size() - 1;
 
@@ -260,6 +269,11 @@ void AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, const pi
   auto it = it_lower;
   // insert payload data
   while (it != it_upper) {
+    if ((*it).size() < threshold) {
+      ++it;
+      continue;
+    }
+
     auto &payload = (*it).get_payload(payload_index);
     uint32_t payload_size = payload.size() / 2;
 

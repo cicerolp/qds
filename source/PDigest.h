@@ -88,8 +88,8 @@ class AgrrPDigest : public AgrrPayload {
     return _lastUsedCell == 0;
   }
 
-  void merge(size_t payload_index, const Pivot &pivot) override;
-  void merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) override;
+  void merge(size_t payload_index, const Pivot &pivot, int32_t threshold) override;
+  void merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper, int32_t threshold) override;
 
   float quantile(float q) const;
   float inverse(float value) const;

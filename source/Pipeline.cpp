@@ -20,7 +20,8 @@ Pipeline::Pipeline(const std::string &url) {
 
       if (key == "join") {
         _join = value;
-        break;
+      } else if (key == "threshold") {
+        _threshold = std::stoi(value);
       }
     }
   }
