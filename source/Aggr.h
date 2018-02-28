@@ -108,6 +108,7 @@ class AggrCountGroupBy : public AggrGroupBy {
     for (const auto &elt: _map) {
       mapped_keys.emplace_back(elt.first);
     }
+    return mapped_keys;
   }
 
   pipe_ctn source(uint64_t value) override {
@@ -173,6 +174,7 @@ class AggrPayloadGroupBy : public AggrGroupBy {
     for (const auto &elt: _map) {
       mapped_keys.emplace_back(elt.first);
     }
+    return mapped_keys;
   }
 
  protected:
@@ -215,6 +217,7 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
       if (_expr.first == "quantile") {
         for (auto &q : pipe) {
           writer.StartArray();
+          write_value(value, writer);
           writer.Double(q);
           writer.Double((*it).second.quantile(q));
           writer.EndArray();
@@ -222,6 +225,7 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
       } else if (_expr.first == "inverse") {
         for (auto &q : pipe) {
           writer.StartArray();
+          write_value(value, writer);
           writer.Double(q);
           writer.Double((*it).second.inverse(q));
           writer.EndArray();
@@ -258,11 +262,10 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
   }
 
   pipe_ctn source(uint64_t value) override {
+    pipe_ctn pipe;
     auto it = _map.find(value);
 
     if (it != _map.end()) {
-      pipe_ctn pipe;
-
       auto parameters = AgrrPDigest::get_parameters(_expr);
 
       if (_expr.first == "quantile") {
@@ -274,9 +277,9 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
           pipe.emplace_back((*it).second.inverse(q));
         }
       }
-    } else {
-      return pipe_ctn();
     }
+
+    return pipe;
   }
 };
 
@@ -354,19 +357,18 @@ class AggrGaussianGroupBy : public AggrPayloadGroupBy<AggrGaussian> {
   }
 
   pipe_ctn source(uint64_t value) override {
+    pipe_ctn pipe;
     auto it = _map.find(value);
 
     if (it != _map.end()) {
-      pipe_ctn pipe;
-
-      if (_expr.first == "quantile") {
-        return {(*it).second.variance()};
-      } else if (_expr.first == "inverse") {
-        return {(*it).second.average()};
+      if (_expr.first == "variance") {
+        pipe.emplace_back((*it).second.variance());
+      } else if (_expr.first == "average") {
+        pipe.emplace_back((*it).second.average());
       }
-    } else {
-      return pipe_ctn();
     }
+
+    return pipe;
   }
 };
 
@@ -392,9 +394,10 @@ class AggrGaussianSummarize : public AggrPayloadSummarize<AggrGaussian> {
   virtual pipe_ctn source() {
     if (_expr.first == "variance") {
       return {_map.variance()};
-
     } else if (_expr.first == "average") {
       return {_map.average()};
+    } else {
+      return pipe_ctn();
     }
   }
 };
