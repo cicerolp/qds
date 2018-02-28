@@ -10,6 +10,10 @@ class Pipeline {
  public:
   Pipeline(const std::string &url);
 
+  inline const std::string &get_join() const {
+    return _join;
+  }
+
   inline const std::string &get_dataset() const {
     return _source.get_dataset();
   }
@@ -23,5 +27,6 @@ class Pipeline {
   }
 
  protected:
+  std::string _join{"inner_join"};
   Query _source, _destination;
 };

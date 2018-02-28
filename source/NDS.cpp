@@ -233,7 +233,13 @@ std::string NDS::serialize_pipeline(const Pipeline &pipeline,
       auto groups = std::make_pair(GroupBy<AggrGroupByCtn>(aggr_source, range_source, subset_source),
                                    GroupBy<AggrGroupByCtn>(aggr_dest, range_dest, subset_dest));
 
-      group_by_pipe(groups, writer);
+      if (pipeline.get_join() == "inner_join") {
+        group_by_inner_join(groups, writer);
+      } else if (pipeline.get_join() == "left_join") {
+        group_by_left_join(groups, writer);
+      } else if (pipeline.get_join() == "right_join") {
+        group_by_right_join(groups, writer);
+      }
     }
   }
 
@@ -410,26 +416,55 @@ void NDS::group_by_query(AggrGroupByCtn &aggrs, json &writer, range_ctn &range, 
     writer.EndArray();
   }
 }
-void NDS::group_by_pipe(GroupCtn<AggrGroupByCtn> &groups, json &writer) const {
+void NDS::group_by_inner_join(GroupCtn<AggrGroupByCtn> &groups, json &writer) const {
   for (auto &source_aggr : groups.first.aggrs) {
-
-    // get key from source
+    writer.StartArray();
+    // get keys from source
     for (auto &key : source_aggr->get_mapped_values()) {
-
+      // get pipe from source
       auto pipe = source_aggr->source(key);
-
-      writer.StartArray();
       for (auto &dest_aggr : groups.second.aggrs) {
-        writer.StartArray();
-        dest_aggr->output(key, pipe, writer);
-        writer.EndArray();
+        dest_aggr->output(key, pipe, writer, false);
       }
-      writer.EndArray();
     }
+    writer.EndArray();
   }
 }
 
-void NDS::do_group_by(AggrGroupByCtn &aggrs, range_ctn &range, const bined_ctn &subset, const CopyOption &option) const {
+void NDS::group_by_left_join(NDS::GroupCtn<std::vector<std::shared_ptr<AggrGroupBy>>> &groups, json &writer) const {
+  for (auto &source_aggr : groups.first.aggrs) {
+    writer.StartArray();
+    // get keys from source
+    for (auto &key : source_aggr->get_mapped_values()) {
+      // get pipe from sorce
+      auto pipe = source_aggr->source(key);
+      for (auto &dest_aggr : groups.second.aggrs) {
+        dest_aggr->output(key, pipe, writer, true);
+      }
+    }
+    writer.EndArray();
+  }
+}
+
+void NDS::group_by_right_join(NDS::GroupCtn<std::vector<std::shared_ptr<AggrGroupBy>>> &groups, json &writer) const {
+  for (auto &source_aggr : groups.first.aggrs) {
+    writer.StartArray();
+    // get keys from destination
+    for (auto &dest_aggr : groups.second.aggrs) {
+      for (auto &key : dest_aggr->get_mapped_values()) {
+        // get pipe from source
+        auto pipe = source_aggr->source(key);
+        dest_aggr->output(key, pipe, writer, true);
+      }
+    }
+    writer.EndArray();
+  }
+}
+
+void NDS::do_group_by(AggrGroupByCtn &aggrs,
+                      range_ctn &range,
+                      const bined_ctn &subset,
+                      const CopyOption &option) const {
   if (option == CopyValueFromSubset) {
     for (auto el = 0; el < subset.size(); ++el) {
       pivot_it it_lower = subset[el]->ptr().begin(), it_upper;

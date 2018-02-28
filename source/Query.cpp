@@ -9,8 +9,6 @@ Query::Query(const std::string &url) : _url(url) {
 }
 
 void Query::parse(const std::string &url) {
-  // TODO refactor code
-
   boost::char_separator<char> sep("/");
   boost::tokenizer<boost::char_separator<char> > tokens(url, sep);
 

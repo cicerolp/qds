@@ -47,6 +47,11 @@ int main(int argc, char *argv[]) {
       "server port");
 
   desc.add_options()(
+      "cache,c",
+      po::value<bool>(&nds_opts.cache)->default_value(nds_opts.cache),
+      "web cache");
+
+  desc.add_options()(
       "depth,d",
       po::value<uint32_t>(&g_Quadtree_Depth)->default_value(g_Quadtree_Depth),
       "quadtree depth");

@@ -51,9 +51,9 @@ var view_schemas = {
         ]
     },
 
-    "green_tripdata_2013": {
+    "green_tripdata": {
         PLOTTING: "black",
-        PLOTTING_MODE: "circle",
+        PLOTTING_MODE: "rect",
         PLOTTING_COLOR_SCALE: "bbb",
         PLOTTING_TRANSFORM: "density_scaling",
         title: "Trip Data",

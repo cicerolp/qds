@@ -4,8 +4,9 @@ var lBound = 0;
 var uBound = 23;
 var sliderRT = false;
 
-var root = "./api/";
-var _queryURL = root + "query/dataset=" + _schema;
+var root = "./api";
+var _pipelineURL = root + "/pipeline";
+var _queryURL = root + "/query/dataset=" + _schema;
 
 var map;
 
@@ -18,7 +19,7 @@ function onReady(callback) {
         if (ready == false) {
             $.ajax({
                 type: 'GET',
-                url: root + "schema/dataset=" + _schema,
+                url: root + "/schema/dataset=" + _schema,
                 dataType: "json",
                 success: function (data) {
                     if (!jQuery.isEmptyObject(data)) {
@@ -206,7 +207,7 @@ function updateDataRestrictions() {
         update = true;
         update_tile = true;
     }
-    tseries = curr_tseries;
+    tseries = "/const=pickup_datetime.interval.(1414713600:1414800000)";
 
     if (window_resize) {
         update = true;

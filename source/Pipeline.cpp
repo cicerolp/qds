@@ -6,6 +6,25 @@
 #include "Pipeline.h"
 
 Pipeline::Pipeline(const std::string &url) {
+  boost::char_separator<char> sep("/");
+  boost::tokenizer<boost::char_separator<char> > tokens(url, sep);
+
+  for (auto &it : tokens) {
+    std::vector<std::string> clausules;
+    boost::split(clausules, it, boost::is_any_of("="));
+
+    if (clausules.size() == 2) {
+
+      auto &key = clausules[0];
+      auto &value = clausules[1];
+
+      if (key == "join") {
+        _join = value;
+        break;
+      }
+    }
+  }
+
   const std::string source_template = "/source";
   const std::string dest_template = "/destination";
 

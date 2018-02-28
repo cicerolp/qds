@@ -16,6 +16,8 @@ function heatmap_layer(value) {
         var context = canvas.getContext('2d');
         context.globalCompositeOperation = 'lighter';
 
+
+        // 
         // [dimension_name].tile.([x]:[y]:[z]:[resolution])
         var query_map = "/const=" + value + ".tile.(" + coords.x + ":" + coords.y + ":" + zoom + ":" + heatmap_resolution + ")" + where + tseries;
 

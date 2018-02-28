@@ -7,11 +7,11 @@ function loadMap() {
     var baseLayer = L.tileLayer(layers[view_schemas[_schema].PLOTTING], {
         subdomains: "abcd",
         minZoom: 0,
-        maxZoom: 20,        
+        maxZoom: 18,        
         maxNativeZoom: 20,
-        unloadInvisibleTiles: false,
+        unloadInvisibleTiles: true,
         updateWhenIdle: false,
-        reuseTiles: false,
+        reuseTiles: true,
         noWrap: true,
     });
     

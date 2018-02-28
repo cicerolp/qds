@@ -43,7 +43,7 @@ class AggrGroupBy : public Aggr {
 
   virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) = 0;
 
-  virtual void output(uint64_t value, const pipe_ctn &pipe, json &writer) {
+  virtual void output(uint64_t value, const pipe_ctn &pipe, json &writer, bool force_output) {
     writer.StartArray();
     // empty
     writer.EndArray();
@@ -210,24 +210,52 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
   AggrPDigestGroupBy(const Query::aggr_expr &expr, size_t __index) :
       AggrPayloadGroupBy(expr, __index) {}
 
-  void output(uint64_t value, const pipe_ctn &pipe, json &writer) override {
+  void output(uint64_t value, const pipe_ctn &pipe, json &writer, bool force_output) override {
     auto it = _map.find(value);
 
-    if (it != _map.end()) {
-      if (_expr.first == "quantile") {
+    if (_expr.first == "quantile") {
+      if (force_output && pipe.empty()) {
+        writer.StartArray();
+        write_value(value, writer);
+        writer.String("NaN");
+        writer.String("NaN");
+        writer.EndArray();
+
+      } else {
         for (auto &q : pipe) {
           writer.StartArray();
           write_value(value, writer);
           writer.Double(q);
-          writer.Double((*it).second.quantile(q));
+
+          if (it != _map.end()) {
+            writer.Double((*it).second.quantile(q));
+          } else if (force_output) {
+            writer.String("NaN");
+          }
+
           writer.EndArray();
         }
-      } else if (_expr.first == "inverse") {
+      }
+    } else if (_expr.first == "inverse") {
+      if (force_output && pipe.empty()) {
+        writer.StartArray();
+        write_value(value, writer);
+        writer.String("NaN");
+        writer.Double(-1.0);
+        writer.EndArray();
+
+      } else {
         for (auto &q : pipe) {
           writer.StartArray();
           write_value(value, writer);
           writer.Double(q);
-          writer.Double((*it).second.inverse(q));
+
+          if (it != _map.end()) {
+            writer.Double((*it).second.inverse(q));
+          } else if (force_output) {
+            writer.Double(-1.0);
+          }
+
           writer.EndArray();
         }
       }

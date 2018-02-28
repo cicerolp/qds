@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
-    <name>green_tripdata_2013</name>
+    <name>green_tripdata</name>
     <bytes>43</bytes>
-    <file>green_tripdata_2013.nds</file>
+    <files>
+        <file>green_tripdata_2014.nds</file>
+    </files>
     <schema>
         <categorical>
             <index>passenger_count</index>
@@ -15,7 +17,7 @@
             <bin>6</bin>
             <offset>2</offset>
         </categorical>
-        
+
         <temporal>
             <index>pickup_datetime</index>
             <bin>86400</bin>
@@ -27,18 +29,6 @@
             <bin>1</bin>
             <offset>3</offset>
         </spatial>
-
-        <payload>
-            <index>trip_distance_t</index>
-            <bin>0</bin>
-            <offset>27</offset>
-        </payload>
-
-        <payload>
-            <index>trip_distance_g</index>
-            <bin>1</bin>
-            <offset>27</offset>
-        </payload>
 
         <payload>
             <index>total_amount_t</index>
