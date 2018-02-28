@@ -207,7 +207,7 @@ function updateDataRestrictions() {
         update = true;
         update_tile = true;
     }
-    tseries = "/const=pickup_datetime.interval.(1414713600:1414800000)";
+    tseries = curr_tseries;
 
     if (window_resize) {
         update = true;
