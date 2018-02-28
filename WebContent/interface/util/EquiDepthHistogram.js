@@ -55,7 +55,7 @@ class EquiDepthHistogram {
 	this.plotGroup
 	    .append("g")
 	    .attr("class","yAxis")
-	    .attr("transform","translate("+(this.margins.left+5) + ",0)");
+	    .attr("transform","translate("+(this.margins.left+20) + ",0)");
 
 	//
 	this.colorScale = d3.scaleQuantize()

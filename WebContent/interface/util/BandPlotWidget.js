@@ -24,6 +24,10 @@ class BandPlotWidget {
 	this.plot.setTimeSelectionCallBack(this.timeSelectionChanged,this.timeLabelChanged);
     }
 
+    setYAxisLabel(yLabel){
+	this.plot.setYLabel(yLabel);
+    }
+    
     timeSelectionChanged(payload){
 	var that = bandPlotWidget;
 	if(that.timeSelectionCallback)
@@ -34,7 +38,7 @@ class BandPlotWidget {
 	var labelString = "Select a time range";
 	if(brushSelection){
 	    var format = d3.timeFormat("%a %Y-%m-%d %H:%M:%S");
-	    var labelString = format(new Date(brushSelection.constraints[0])) + "  ---  " + format(new Date(brushSelection.constraints[1]));
+	    var labelString = format(new Date(brushSelection.constraints[0]*1000)) + "  ---  " + format(new Date(brushSelection.constraints[1]*1000));
 	}
 	//
 	d3.select("#timeSeriesSelectionLabel").text(labelString);

@@ -23,18 +23,25 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	this.options.state = v;
 	this.redraw();
     },
+    setMyColorScaleDomain(domain){
+	this.options.myColorScaleDomain = domain;
+    },
     myColorScale:function(value){
-	var opacity = this.options.opacity
-	var lc = Math.log(value + 1) / Math.log(10);
-        var r = Math.floor(255 * Math.min(1, lc));
-	var g = Math.floor(255 * Math.min(1, Math.max(0, lc - 1)));
-	var b = Math.floor(255 * Math.min(1, Math.max(0, lc - 2)));
-	var a = opacity;
-        return  "rgba(" + ([r, g, b, a].join(",")) + ")";
+	// var opacity = this.options.opacity
+	// var lc = Math.log(value + 1) / Math.log(10);
+        // var r = Math.floor(255 * Math.min(1, lc));
+	// var g = Math.floor(255 * Math.min(1, Math.max(0, lc - 1)));
+	// var b = Math.floor(255 * Math.min(1, Math.max(0, lc - 2)));
+	// var a = opacity;
+        //return  "rgba(" + ([r, g, b, a].join(",")) + ")";
+	var scale = d3.scaleQuantile().domain(this.options.myColorScaleDomain).range(['#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#b10026']);
+	return scale(value);
+;
     },
     normalizedColorScale:function(value){
 	var opacity = this.options.opacity
-	var scale = d3.scaleLinear().range(d3.schemeRdBu[7]);//["rgba(255,0,0,"+opacity+")","rgba(0,0,255,"+opacity+")"]);
+	var scale = inverseQuantileScale;//["rgba(255,0,0,"+opacity+")","rgba(0,0,255,"+opacity+")"]);
+	console.log(value,scale(value));
 	return scale(value);
     },
     colorTile: function(tile, coords,totalResolution){
@@ -60,10 +67,11 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	    var pixelInLocalCoords = [pixel[0]-coords[0],pixel[1]-coords[1]];
 	    var rgba;
 	    if(layer.options.state == "inverse_quantile"){
-		if(layer.options.inverseQuantileFilter[0] > pixel[3] ||
-		   layer.options.inverseQuantileFilter[1] < pixel[3])
+		if(layer.options.inverseQuantileFilter[0] > crudePixel[3] ||
+		   layer.options.inverseQuantileFilter[1] < crudePixel[3])
 		    return;
-		rgba = layer.normalizedColorScale(pixel[3]);
+		//debugger
+		rgba = layer.normalizedColorScale(crudePixel[3]);
 	    }
 	    else
 		rgba = layer.myColorScale(pixel[3]);
@@ -140,34 +148,34 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	//
 	var query = undefined;
 	if(layer.options.state == "count"){
-	    query = new NDSQuery(datasetInfo.datasetName,activeSpatialDimension,fCallback);
+	    query = new NDSQuery(datasetInfo.datasetName,"dropoff",fCallback);
 	    query.addAggregation("count");
 	    query.addConstraint("time_interval",activeTemporalDimension,timeConstraint);
-	    query.addConstraint("tile",activeSpatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
+	    query.addConstraint("tile","dropoff",{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
 	}
 	else if(layer.options.state == "average"){
 	    query = new NDSQuery(datasetInfo.datasetName,activeSpatialDimension,fCallback);
-	    query.addAggregation("average","trip_distance_g");
+	    query.addAggregation("average",activePayloadDimension+"_g");
 	    query.addConstraint("time_interval",activeTemporalDimension,timeConstraint);	   
 	    query.addConstraint("tile",activeSpatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
 	}
 	else if(layer.options.state == "quantile"){
-	    query = new NDSQuery(datasetInfo.datasetName,activeSpatialDimension,fCallback);
-	    query.addAggregation("quantile",activePayloadDimension);
+	    query = new NDSQuery(datasetInfo.datasetName,"dropoff",fCallback);
+	    query.addAggregation("quantile",activePayloadDimension + "_t");
 	    query.addConstraint("time_interval",activeTemporalDimension,timeConstraint);	   
 	    query.addConstraint("tile",activeSpatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
 	    query.setPayload({"quantiles":[layer.options.quantileQuery]});
 	}
 	else if(layer.options.state == "quantile_range"){
 	    query = new NDSQuery(datasetInfo.datasetName,activeSpatialDimension,fCallback);
-	    query.addAggregation("quantile",activePayloadDimension);
+	    query.addAggregation("quantile",activePayloadDimension + "_t");
 	    query.addConstraint("time_interval",activeTemporalDimension,timeConstraint);	   
 	    query.addConstraint("tile",activeSpatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
 	    query.setPayload({"quantiles":[0.25,0.75]});
 	}
 	else if(layer.options.state == "inverse_quantile"){
 	    query = new NDSQuery(datasetInfo.datasetName,activeSpatialDimension,fCallback);
-	    query.addAggregation("inverse_quantile",activePayloadDimension);
+	    query.addAggregation("inverse_quantile",activePayloadDimension + "_t");
 	    query.addConstraint("time_interval",activeTemporalDimension,timeConstraint);	   
 	    query.addConstraint("tile",activeSpatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
 	    query.setPayload({"inverse_quantile":layer.options.inverseQuantileQuery});
@@ -175,6 +183,7 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 
 	//
 	query.tile = [tileInTotalResolution[0],tileInTotalResolution[1],totalResolution];
+	console.log(query.toString());
 	ndsInterface.query(query);
 	
         return tile;
@@ -265,7 +274,14 @@ class NDSLayer{
 	
 	//
 	var that = this;
-	this.tileLayer = L.gridLayer.canvasCircles({"ndsInterface":ndsInterface, "parent":that, "resolution":5,"opacity":1.0,"quantileQuery":0.5,"inverseQuantileQuery":100,"state":"count"});
+	this.tileLayer = L.gridLayer.canvasCircles({"ndsInterface":ndsInterface,
+						    "parent":that,
+						    "resolution":5,
+						    "opacity":1.0,
+						    "myColorScaleDomain":[0,100],
+						    "quantileQuery":0.5,
+						    "inverseQuantileQuery":100,
+						    "state":"count"});
 	this.tileLayer.addTo(this.containerMap);
 	//
 	// this.debugLayer = L.gridLayer.debugCoords();
@@ -315,6 +331,11 @@ class NDSLayer{
 
     setInverseQuantileFilter(minFilter,maxFilter){
 	this.tileLayer.setInverseQuantileFilter(minFilter,maxFilter);
+    }
+
+    setMyColorScaleDomain(domain){
+	this.tileLayer.setMyColorScaleDomain(domain);
+	this.repaint();
     }
     
     renderData(){
