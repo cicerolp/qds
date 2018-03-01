@@ -26,11 +26,7 @@ std::vector<float> Gaussian::get_payload(Data &data, const Pivot &pivot) const {
   return payload;
 }
 
-void AggrGaussian::merge(size_t payload_index, const Pivot &pivot, int32_t threshold) {
-  if (pivot.size() < threshold) {
-    return;
-  }
-
+void AggrGaussian::merge(size_t payload_index, const Pivot &pivot) {
   const auto &payload = pivot.get_payload(payload_index);
 
   count_i.emplace_back(pivot.size());
@@ -38,16 +34,11 @@ void AggrGaussian::merge(size_t payload_index, const Pivot &pivot, int32_t thres
   sum_square_i.emplace_back(payload[1]);
 }
 
-void AggrGaussian::merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper, int32_t threshold) {
+void AggrGaussian::merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) {
   auto it = it_lower;
 
   // insert payload data
   while (it != it_upper) {
-    if ((*it).size() < threshold) {
-      ++it;
-      continue;
-    }
-
     auto &payload = (*it).get_payload(payload_index);
 
     count_i.emplace_back((*it).size());

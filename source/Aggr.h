@@ -41,7 +41,7 @@ class AggrGroupBy : public Aggr {
  public:
   AggrGroupBy(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
 
-  virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper, int32_t threshold) = 0;
+  virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) = 0;
 
   virtual void output(uint64_t value, const pipe_ctn &pipe, json &writer, bool force_output) {
     writer.StartArray();
@@ -87,12 +87,10 @@ class AggrCountGroupBy : public AggrGroupBy {
   AggrCountGroupBy(const Query::aggr_expr &expr, size_t __index) :
       AggrGroupBy(expr, __index) {}
 
-  virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper, int32_t threshold) override {
+  virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) override {
     auto it = it_lower;
     while (it != it_upper) {
-      if ((*it++).size() >= threshold) {
-        _map[value] += (*it++).size();
-      }
+      _map[value] += (*it++).size();
     }
   }
 
@@ -167,8 +165,8 @@ class AggrPayloadGroupBy : public AggrGroupBy {
   AggrPayloadGroupBy(const Query::aggr_expr &expr, size_t __index) :
       AggrGroupBy(expr, __index) {}
 
-  void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper, int32_t threshold) override {
-    _map[value].merge(_payload_index, it_lower, it_upper, threshold);
+  void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) override {
+    _map[value].merge(_payload_index, it_lower, it_upper);
   }
 
   std::vector<uint64_t> get_mapped_values() const override {
@@ -191,13 +189,13 @@ class AggrPayloadSummarize : public AggrSummarize {
       AggrSummarize(expr, __index) {}
 
   void merge(const pivot_it &it_lower, const pivot_it &it_upper) override {
-    _map.merge(_payload_index, it_lower, it_upper, -1);
+    _map.merge(_payload_index, it_lower, it_upper);
   }
 
   void merge(const range_it &it_lower, const range_it &it_upper) override {
     auto it = it_lower;
     while (it != it_upper) {
-      _map.merge(_payload_index, (*it++).pivot, -1);
+      _map.merge(_payload_index, (*it++).pivot);
     }
   }
 

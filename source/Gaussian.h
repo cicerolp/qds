@@ -22,8 +22,8 @@ class AggrGaussian : public AgrrPayload {
     return count_i.size() == 0;
   }
 
-  void merge(size_t payload_index, const Pivot &pivot, int32_t threshold) override;
-  void merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper, int32_t threshold) override;
+  void merge(size_t payload_index, const Pivot &pivot) override;
+  void merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) override;
 
   float variance() const;
   float average() const;

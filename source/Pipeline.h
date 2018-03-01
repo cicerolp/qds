@@ -10,10 +10,6 @@ class Pipeline {
  public:
   Pipeline(const std::string &url);
 
-  inline int32_t get_threshold() const {
-    return _threshold;
-  }
-
   inline const std::string &get_join() const {
     return _join;
   }
@@ -31,7 +27,6 @@ class Pipeline {
   }
 
  protected:
-  int32_t _threshold{-1};
   std::string _join{"inner_join"};
   Query _source, _destination;
 };

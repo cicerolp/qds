@@ -169,7 +169,7 @@ std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangeP
 
     } else {
       auto aggr = get_aggr_group_by(query);
-      do_group_by(aggr, range, subset, option, -1);
+      do_group_by(aggr, range, subset, option);
 
       group_by_query(aggr, writer, range, subset);
     }
@@ -225,10 +225,10 @@ std::string NDS::serialize_pipeline(const Pipeline &pipeline,
 
     } else {
       auto aggr_source = get_aggr_group_by(pipeline.get_source());
-      do_group_by(aggr_source, range_source, subset_source, option_source, -1);
+      do_group_by(aggr_source, range_source, subset_source, option_source);
 
       auto aggr_dest = get_aggr_group_by(pipeline.get_dest());
-      do_group_by(aggr_dest, range_dest, subset_dest, option_dest, pipeline.get_threshold());
+      do_group_by(aggr_dest, range_dest, subset_dest, option_dest);
 
       auto groups = std::make_pair(GroupBy<AggrGroupByCtn>(aggr_source, range_source, subset_source),
                                    GroupBy<AggrGroupByCtn>(aggr_dest, range_dest, subset_dest));
@@ -238,7 +238,7 @@ std::string NDS::serialize_pipeline(const Pipeline &pipeline,
       } else if (pipeline.get_join() == "left_join") {
         group_by_left_join(groups, writer);
       } else if (pipeline.get_join() == "right_join") {
-        group_by_right_join(groups, writer, pipeline);
+        group_by_right_join(groups, writer);
       }
     }
   }
@@ -446,9 +446,7 @@ void NDS::group_by_left_join(NDS::GroupCtn<std::vector<std::shared_ptr<AggrGroup
   }
 }
 
-void NDS::group_by_right_join(NDS::GroupCtn<std::vector<std::shared_ptr<AggrGroupBy>>> &groups,
-                              json &writer,
-                              const Pipeline &pipeline) const {
+void NDS::group_by_right_join(NDS::GroupCtn<std::vector<std::shared_ptr<AggrGroupBy>>> &groups, json &writer) const {
   for (auto &source_aggr : groups.first.aggrs) {
     writer.StartArray();
     // get keys from destination
@@ -466,8 +464,7 @@ void NDS::group_by_right_join(NDS::GroupCtn<std::vector<std::shared_ptr<AggrGrou
 void NDS::do_group_by(AggrGroupByCtn &aggrs,
                       range_ctn &range,
                       const bined_ctn &subset,
-                      const CopyOption &option,
-                      int32_t threshold) const {
+                      const CopyOption &option) const {
   if (option == CopyValueFromSubset) {
     for (auto el = 0; el < subset.size(); ++el) {
       pivot_it it_lower = subset[el]->ptr().begin(), it_upper;
@@ -475,7 +472,7 @@ void NDS::do_group_by(AggrGroupByCtn &aggrs,
 
       while (search_iterators(it_range, range, it_lower, it_upper, subset[el]->ptr())) {
         for (auto &aggr : aggrs) {
-          aggr->merge(subset[el]->value, it_lower, it_upper, threshold);
+          aggr->merge(subset[el]->value, it_lower, it_upper);
         }
         it_lower = it_upper;
         ++it_range;
@@ -488,7 +485,7 @@ void NDS::do_group_by(AggrGroupByCtn &aggrs,
 
       while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
         for (auto &aggr : aggrs) {
-          aggr->merge((*it_range).value, it_lower, it_upper, threshold);
+          aggr->merge((*it_range).value, it_lower, it_upper);
         }
         it_lower = it_upper;
         ++it_range;

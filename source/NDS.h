@@ -197,9 +197,9 @@ class NDS {
   void group_by_query(AggrGroupByCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const;
   void group_by_inner_join(GroupCtn<AggrGroupByCtn> &groups, json &writer) const;
   void group_by_left_join(GroupCtn<AggrGroupByCtn> &groups, json &writer) const;
-  void group_by_right_join(GroupCtn<AggrGroupByCtn> &groups, json &writer, const Pipeline &pipeline) const;
+  void group_by_right_join(GroupCtn<AggrGroupByCtn> &groups, json &writer) const;
 
-  void do_group_by(AggrGroupByCtn &aggrs, range_ctn &range, const bined_ctn &subset, const CopyOption &option, int32_t threshold) const;
+  void do_group_by(AggrGroupByCtn &aggrs, range_ctn &range, const bined_ctn &subset, const CopyOption &option) const;
 
   void summarize_query(AggrSummarizeCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const;
   void summarize_pipe(GroupCtn<AggrSummarizeCtn> &groups, json &writer) const;
