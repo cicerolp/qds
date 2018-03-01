@@ -13,7 +13,7 @@ class Gaussian : public Payload {
  public:
   Gaussian(const DimensionSchema &schema) : Payload(schema) {}
 
-  std::vector<float> get_payload(Data &data, const Pivot &pivot) const override;
+  std::vector<float> get_payload(Data &data, const Pivot &pivot) override;
 };
 
 class AggrGaussian : public AgrrPayload {
@@ -22,8 +22,8 @@ class AggrGaussian : public AgrrPayload {
     return count_i.size() == 0;
   }
 
-  void merge(size_t payload_index, const Pivot &pivot) override;
-  void merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) override;
+  uint32_t merge(size_t payload_index, const Pivot &pivot) override;
+  uint32_t merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) override;
 
   float variance() const;
   float average() const;

@@ -2,7 +2,7 @@ function heatmap_layer(value) {
 
     var canvas_layer = L.tileLayer.canvas({
         minZoom: 0,
-        maxZoom: 20,
+        maxZoom: 18,
         unloadInvisibleTiles: false,
         updateWhenIdle: false,
         reuseTiles: false,
@@ -25,17 +25,15 @@ function heatmap_layer(value) {
 
         $.ajax({
             type: 'GET',
-            //url: _queryURL + "/aggr=count" + map_const + query_const + map_group,
+            
             url: _pipelineURL + 
-                "/join=left_join" + 
+                "/join=inner_join" + 
+                "/threshold=" + curr_join_threshold +                
                 "/source/aggr=average.total_amount_g/dataset=" +                 
-                _schema + map_const + map_group +    
-                "/const=pickup_datetime.interval.(1414713600:1414800000)" +          
+                _schema + map_const + map_group + 
                 
                 "/destination/aggr=inverse.total_amount_t.($)/dataset=" + 
                 _schema + map_const + map_group + query_const,
-                // + 
-                //"/const=pickup_datetime.sequence.(1388707200:86400:100:604800)"                ,
 
             dataType: "json",
             success: function (data) {

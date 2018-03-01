@@ -23,7 +23,7 @@ Data::Data(const Schema &schema) : _paths(schema.files) {
 }
 
 void Data::sort(size_t fromIndex, size_t toIndex) {
-  std::sort(_element.begin() + fromIndex, _element.begin() + toIndex);
+  gfx::timsort(_element.begin() + fromIndex, _element.begin() + toIndex);
 }
 
 void Data::setHash(size_t id, uint32_t value) {

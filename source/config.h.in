@@ -26,7 +26,7 @@
         #cmakedefine PDIGEST_OPTIMIZE_ARRAY
         #cmakedefine PDIGEST_PIECE_WISE_APPROXIMATION
         #define PDIGEST_COMPRESSION @PDIGEST_COMPRESSION@
-        #define PDIGEST_ARRAY_SIZE (uint32_t)((std::ceil(@PDIGEST_COMPRESSION@) * 2))
+        #define PDIGEST_ARRAY_SIZE ((uint32_t)@PDIGEST_COMPRESSION@ * 2)
     #endif // ENABLE_PDIGEST
 #endif // ENABLE_PDIGEST
 

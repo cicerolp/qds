@@ -9,7 +9,7 @@
 
 #ifdef ENABLE_GAUSSIAN
 
-std::vector<float> Gaussian::get_payload(Data &data, const Pivot &pivot) const {
+std::vector<float> Gaussian::get_payload(Data &data, const Pivot &pivot) {
   // sum, sum_square
   std::vector<float> payload(2, 0.f);
 
@@ -26,19 +26,25 @@ std::vector<float> Gaussian::get_payload(Data &data, const Pivot &pivot) const {
   return payload;
 }
 
-void AggrGaussian::merge(size_t payload_index, const Pivot &pivot) {
+uint32_t AggrGaussian::merge(size_t payload_index, const Pivot &pivot) {
+  uint32_t count = pivot.size();
   const auto &payload = pivot.get_payload(payload_index);
 
   count_i.emplace_back(pivot.size());
   sum_i.emplace_back(payload[0]);
   sum_square_i.emplace_back(payload[1]);
+
+  return count;
 }
 
-void AggrGaussian::merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) {
+uint32_t AggrGaussian::merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) {
+  uint32_t count = 0;
   auto it = it_lower;
 
   // insert payload data
   while (it != it_upper) {
+    count += (*it).size();
+
     auto &payload = (*it).get_payload(payload_index);
 
     count_i.emplace_back((*it).size());
@@ -47,6 +53,8 @@ void AggrGaussian::merge(size_t payload_index, const pivot_it &it_lower, const p
 
     ++it;
   }
+
+  return count;
 }
 
 float AggrGaussian::variance() const {

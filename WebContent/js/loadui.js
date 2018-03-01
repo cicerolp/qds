@@ -8,7 +8,7 @@ function loadMap() {
         subdomains: "abcd",
         minZoom: 0,
         maxZoom: 18,        
-        maxNativeZoom: 20,
+        maxNativeZoom: 18,
         unloadInvisibleTiles: true,
         updateWhenIdle: false,
         reuseTiles: true,
@@ -28,7 +28,7 @@ function loadMap() {
         center : new L.LatLng(0, 0),
         zoom : 3,
         minZoom: 0,
-        maxZoom: 20,
+        maxZoom: 18,
         worldCopyJump: true,
         bounceAtZoomLimits : false,
         zoomControl: true,
@@ -177,6 +177,27 @@ function loadUi() {
     });
 
     $("#slider").slider("value", 8);
+
+    $(function () {
+        $("#slider-threshold").slider({
+            min: 0,
+            max: 100,
+            step: 1,
+            change: function (event, ui) {
+                $("#threshold").val(ui.value);
+
+                curr_join_threshold = ui.value;
+
+                updateDataRestrictions();
+                callbacks.fire(curr_join_threshold);
+            },
+            slide: function (event, ui) {
+                $("#threshold").val(ui.value);
+            },
+        });
+    });
+
+    $("#slider-threshold").slider("value", curr_join_threshold);
     
     $("#checkTime").button({
         text : false,

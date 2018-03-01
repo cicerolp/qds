@@ -43,17 +43,23 @@ class AggrGroupBy : public Aggr {
 
   virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) = 0;
 
-  virtual void output(uint64_t value, const pipe_ctn &pipe, json &writer, bool force_output) {
+  virtual void output(json &writer) = 0;
+
+  virtual void output_one_way(uint64_t value, const pipe_ctn &pipe, json &writer) {
     writer.StartArray();
     // empty
     writer.EndArray();
   };
 
-  virtual void output(json &writer) = 0;
+  virtual void output_two_way(uint64_t value, const pipe_ctn &pipe, json &writer, uint32_t threshold) {
+    writer.StartArray();
+    // empty
+    writer.EndArray();
+  };
 
-  virtual std::vector<uint64_t> get_mapped_values() const = 0;
+  virtual std::vector<uint64_t> get_mapped_values(uint32_t threshold) const = 0;
 
-  virtual pipe_ctn source(uint64_t value) {
+  virtual pipe_ctn get_pipe(uint64_t value, uint32_t threshold) {
     return pipe_ctn();
   }
 };
@@ -71,7 +77,7 @@ class AggrSummarize : public Aggr {
   virtual void merge(const range_it &it_lower, const range_it &it_upper) = 0;
   virtual void output(json &writer) = 0;
 
-  virtual pipe_ctn source() {
+  virtual pipe_ctn get_pipe() {
     return pipe_ctn();
   }
 
@@ -103,18 +109,20 @@ class AggrCountGroupBy : public AggrGroupBy {
     }
   }
 
-  std::vector<uint64_t> get_mapped_values() const override {
+  std::vector<uint64_t> get_mapped_values(uint32_t threshold) const override {
     std::vector<uint64_t> mapped_keys;
     for (const auto &elt: _map) {
-      mapped_keys.emplace_back(elt.first);
+      if (elt.second >= threshold) {
+        mapped_keys.emplace_back(elt.first);
+      }
     }
     return mapped_keys;
   }
 
-  pipe_ctn source(uint64_t value) override {
+  pipe_ctn get_pipe(uint64_t value, uint32_t threshold) override {
     auto it = _map.find(value);
 
-    if (it != _map.end()) {
+    if (it != _map.end() && (*it).second >= threshold) {
       return {(float) (*it).second};
     } else {
       return pipe_ctn();
@@ -150,7 +158,7 @@ class AggrCountSummarize : public AggrSummarize {
     writer.Uint(_count);
   }
 
-  pipe_ctn source() override {
+  pipe_ctn get_pipe() override {
     return {(float) _count};
   }
 
@@ -166,19 +174,28 @@ class AggrPayloadGroupBy : public AggrGroupBy {
       AggrGroupBy(expr, __index) {}
 
   void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) override {
-    _map[value].merge(_payload_index, it_lower, it_upper);
+    uint32_t count = _map[value].payload.merge(_payload_index, it_lower, it_upper);
+    _map[value].count += count;
   }
 
-  std::vector<uint64_t> get_mapped_values() const override {
+  std::vector<uint64_t> get_mapped_values(uint32_t threshold) const override {
     std::vector<uint64_t> mapped_keys;
     for (const auto &elt: _map) {
-      mapped_keys.emplace_back(elt.first);
+      if (elt.second.count >= threshold) {
+        mapped_keys.emplace_back(elt.first);
+      }
     }
     return mapped_keys;
   }
 
  protected:
-  std::map<uint64_t, T> _map;
+  struct payload_pair_t {
+    uint32_t count{0};
+    T payload;
+  };
+
+  // [key] -> [count, payload]
+  std::map<uint64_t, payload_pair_t> _map;
 };
 
 template<typename T>
@@ -210,58 +227,6 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
   AggrPDigestGroupBy(const Query::aggr_expr &expr, size_t __index) :
       AggrPayloadGroupBy(expr, __index) {}
 
-  void output(uint64_t value, const pipe_ctn &pipe, json &writer, bool force_output) override {
-    auto it = _map.find(value);
-
-    if (_expr.first == "quantile") {
-      if (force_output && pipe.empty()) {
-        writer.StartArray();
-        write_value(value, writer);
-        writer.String("NaN");
-        writer.String("NaN");
-        writer.EndArray();
-
-      } else {
-        for (auto &q : pipe) {
-          writer.StartArray();
-          write_value(value, writer);
-          writer.Double(q);
-
-          if (it != _map.end()) {
-            writer.Double((*it).second.quantile(q));
-          } else if (force_output) {
-            writer.String("NaN");
-          }
-
-          writer.EndArray();
-        }
-      }
-    } else if (_expr.first == "inverse") {
-      if (force_output && pipe.empty()) {
-        writer.StartArray();
-        write_value(value, writer);
-        writer.String("NaN");
-        writer.Double(-1.0);
-        writer.EndArray();
-
-      } else {
-        for (auto &q : pipe) {
-          writer.StartArray();
-          write_value(value, writer);
-          writer.Double(q);
-
-          if (it != _map.end()) {
-            writer.Double((*it).second.inverse(q));
-          } else if (force_output) {
-            writer.Double(-1.0);
-          }
-
-          writer.EndArray();
-        }
-      }
-    }
-  }
-
   void output(json &writer) override {
     auto parameters = AgrrPDigest::get_parameters(_expr);
 
@@ -271,7 +236,7 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
           writer.StartArray();
           write_value(pair.first, writer);
           writer.Double(q);
-          writer.Double(pair.second.quantile(q));
+          writer.Double(pair.second.payload.quantile(q));
           writer.EndArray();
         }
       }
@@ -282,27 +247,102 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
           writer.StartArray();
           write_value(pair.first, writer);
           writer.Double(q);
-          writer.Double(pair.second.inverse(q));
+          writer.Double(pair.second.payload.inverse(q));
           writer.EndArray();
         }
       }
     }
   }
 
-  pipe_ctn source(uint64_t value) override {
+  void output_one_way(uint64_t value, const pipe_ctn &pipe, json &writer) override {
+    if (pipe.empty()) {
+      if (_expr.first == "quantile") {
+        writer.StartArray();
+        write_value(value, writer);
+        writer.String("NaN");
+        writer.String("NaN");
+        writer.EndArray();
+      } else if (_expr.first == "inverse") {
+        writer.StartArray();
+        write_value(value, writer);
+        writer.String("NaN");
+        writer.Double(-1.0);
+        writer.EndArray();
+      }
+
+    } else {
+      auto it = _map.find(value);
+
+      if (_expr.first == "quantile") {
+        for (auto &q : pipe) {
+          writer.StartArray();
+          write_value(value, writer);
+          writer.Double(q);
+
+          if (it != _map.end()) {
+            writer.Double((*it).second.payload.quantile(q));
+          } else {
+            writer.String("NaN");
+          }
+
+          writer.EndArray();
+        }
+      } else if (_expr.first == "inverse") {
+        for (auto &q : pipe) {
+          writer.StartArray();
+          write_value(value, writer);
+          writer.Double(q);
+
+          if (it != _map.end()) {
+            writer.Double((*it).second.payload.inverse(q));
+          } else {
+            writer.Double(-1.0);
+          }
+
+          writer.EndArray();
+        }
+      }
+    }
+  }
+
+  void output_two_way(uint64_t value, const pipe_ctn &pipe, json &writer, uint32_t threshold) override {
+    auto it = _map.find(value);
+
+    if (it != _map.end() && (*it).second.count >= threshold) {
+      if (_expr.first == "quantile") {
+        for (auto &q : pipe) {
+          writer.StartArray();
+          write_value(value, writer);
+          writer.Double(q);
+          writer.Double((*it).second.payload.quantile(q));
+          writer.EndArray();
+        }
+      } else if (_expr.first == "inverse") {
+        for (auto &q : pipe) {
+          writer.StartArray();
+          write_value(value, writer);
+          writer.Double(q);
+          writer.Double((*it).second.payload.inverse(q));
+          writer.EndArray();
+        }
+      }
+    }
+  }
+
+  pipe_ctn get_pipe(uint64_t value, uint32_t threshold) override {
     pipe_ctn pipe;
     auto it = _map.find(value);
 
-    if (it != _map.end()) {
+    if (it != _map.end() && (*it).second.count >= threshold) {
       auto parameters = AgrrPDigest::get_parameters(_expr);
 
       if (_expr.first == "quantile") {
         for (auto &q : parameters) {
-          pipe.emplace_back((*it).second.quantile(q));
+          pipe.emplace_back((*it).second.payload.quantile(q));
         }
       } else if (_expr.first == "inverse") {
         for (auto &q : parameters) {
-          pipe.emplace_back((*it).second.inverse(q));
+          pipe.emplace_back((*it).second.payload.inverse(q));
         }
       }
     }
@@ -339,7 +379,7 @@ class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
     }
   }
 
-  pipe_ctn source() override {
+  pipe_ctn get_pipe() override {
     pipe_ctn pipe;
 
     auto parameters = AgrrPDigest::get_parameters(_expr);
@@ -370,7 +410,7 @@ class AggrGaussianGroupBy : public AggrPayloadGroupBy<AggrGaussian> {
       for (const auto &pair : _map) {
         writer.StartArray();
         write_value(pair.first, writer);
-        writer.Double(pair.second.variance());
+        writer.Double(pair.second.payload.variance());
         writer.EndArray();
       }
 
@@ -378,21 +418,21 @@ class AggrGaussianGroupBy : public AggrPayloadGroupBy<AggrGaussian> {
       for (const auto &pair : _map) {
         writer.StartArray();
         write_value(pair.first, writer);
-        writer.Double(pair.second.average());
+        writer.Double(pair.second.payload.average());
         writer.EndArray();
       }
     }
   }
 
-  pipe_ctn source(uint64_t value) override {
+  pipe_ctn get_pipe(uint64_t value, uint32_t threshold) override {
     pipe_ctn pipe;
     auto it = _map.find(value);
 
-    if (it != _map.end()) {
+    if (it != _map.end() && (*it).second.count >= threshold) {
       if (_expr.first == "variance") {
-        pipe.emplace_back((*it).second.variance());
+        pipe.emplace_back((*it).second.payload.variance());
       } else if (_expr.first == "average") {
-        pipe.emplace_back((*it).second.average());
+        pipe.emplace_back((*it).second.payload.average());
       }
     }
 
@@ -419,7 +459,7 @@ class AggrGaussianSummarize : public AggrPayloadSummarize<AggrGaussian> {
     }
   }
 
-  virtual pipe_ctn source() {
+  virtual pipe_ctn get_pipe() {
     if (_expr.first == "variance") {
       return {_map.variance()};
     } else if (_expr.first == "average") {

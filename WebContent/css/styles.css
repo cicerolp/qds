@@ -122,9 +122,9 @@ html {
 #slider {
 	z-index: 900;
 	position: absolute;
-	left: 192px;
+	left: 217px;
 	margin-top: 45px;
-	width: 238px;
+	width: 225px;
 }
 
 #label-slider {
@@ -140,6 +140,29 @@ html {
 	color: black;
 	background-color: #d1d1d1;
 }
+
+#slider-threshold {
+	z-index: 900;
+	position: absolute;
+	left: 217px;
+	margin-top: 70px;
+	width: 225px;
+}
+
+#label-threshold {
+	z-index: 900;
+	position: absolute;
+	left: 42px;
+	margin-top: 65px;
+	font: 12px sans-serif;
+	text-align: center;
+	float: left;
+	line-height: 200%;
+	font-weight: bold;
+	color: black;
+	background-color: #d1d1d1;
+}
+
 
 #label {
 	width: 400px;

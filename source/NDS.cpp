@@ -98,6 +98,12 @@ NDS::NDS(const Schema &schema) {
     std::cout << "\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
   }
 
+#ifdef NDS_ENABLE_PAYLOAD
+  for (auto &elt : _payload) {
+    elt->dispose_buffers();
+  }
+#endif // NDS_ENABLE_PAYLOAD
+
   std::cout << "\n\tTotal Number of Pivots: " << pivots_count << std::endl;
 
   end = std::chrono::high_resolution_clock::now();
@@ -234,11 +240,11 @@ std::string NDS::serialize_pipeline(const Pipeline &pipeline,
                                    GroupBy<AggrGroupByCtn>(aggr_dest, range_dest, subset_dest));
 
       if (pipeline.get_join() == "inner_join") {
-        group_by_inner_join(groups, writer);
+        group_by_inner_join(groups, writer, pipeline.get_threshold());
       } else if (pipeline.get_join() == "left_join") {
-        group_by_left_join(groups, writer);
+        group_by_left_join(groups, writer, pipeline.get_threshold());
       } else if (pipeline.get_join() == "right_join") {
-        group_by_right_join(groups, writer);
+        group_by_right_join(groups, writer, pipeline.get_threshold());
       }
     }
   }
@@ -416,45 +422,45 @@ void NDS::group_by_query(AggrGroupByCtn &aggrs, json &writer, range_ctn &range, 
     writer.EndArray();
   }
 }
-void NDS::group_by_inner_join(GroupCtn<AggrGroupByCtn> &groups, json &writer) const {
+void NDS::group_by_inner_join(GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const {
   for (auto &source_aggr : groups.first.aggrs) {
     writer.StartArray();
     // get keys from source
-    for (auto &key : source_aggr->get_mapped_values()) {
+    for (auto &key : source_aggr->get_mapped_values(threshold)) {
       // get pipe from source
-      auto pipe = source_aggr->source(key);
+      auto pipe = source_aggr->get_pipe(key, threshold);
       for (auto &dest_aggr : groups.second.aggrs) {
-        dest_aggr->output(key, pipe, writer, false);
+        dest_aggr->output_two_way(key, pipe, writer, threshold);
       }
     }
     writer.EndArray();
   }
 }
 
-void NDS::group_by_left_join(NDS::GroupCtn<std::vector<std::shared_ptr<AggrGroupBy>>> &groups, json &writer) const {
+void NDS::group_by_left_join(GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const {
   for (auto &source_aggr : groups.first.aggrs) {
     writer.StartArray();
     // get keys from source
-    for (auto &key : source_aggr->get_mapped_values()) {
+    for (auto &key : source_aggr->get_mapped_values(0)) {
       // get pipe from sorce
-      auto pipe = source_aggr->source(key);
+      auto pipe = source_aggr->get_pipe(key, threshold);
       for (auto &dest_aggr : groups.second.aggrs) {
-        dest_aggr->output(key, pipe, writer, true);
+        dest_aggr->output_one_way(key, pipe, writer);
       }
     }
     writer.EndArray();
   }
 }
 
-void NDS::group_by_right_join(NDS::GroupCtn<std::vector<std::shared_ptr<AggrGroupBy>>> &groups, json &writer) const {
+void NDS::group_by_right_join(GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const {
   for (auto &source_aggr : groups.first.aggrs) {
     writer.StartArray();
     // get keys from destination
     for (auto &dest_aggr : groups.second.aggrs) {
-      for (auto &key : dest_aggr->get_mapped_values()) {
+      for (auto &key : dest_aggr->get_mapped_values(threshold)) {
         // get pipe from source
-        auto pipe = source_aggr->source(key);
-        dest_aggr->output(key, pipe, writer, true);
+        auto pipe = source_aggr->get_pipe(key, 0);
+        dest_aggr->output_one_way(key, pipe, writer);
       }
     }
     writer.EndArray();
@@ -504,7 +510,7 @@ void NDS::summarize_query(AggrSummarizeCtn &aggrs, json &writer, range_ctn &rang
 
 void NDS::summarize_pipe(GroupCtn<AggrSummarizeCtn> &groups, json &writer) const {
   for (auto &source_aggr : groups.first.aggrs) {
-    auto pipe = source_aggr->source();
+    auto pipe = source_aggr->get_pipe();
 
     writer.StartArray();
     for (auto &dest_aggr : groups.second.aggrs) {

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <name>yellow_tripdata</name>
+    <bytes>43</bytes>
+    <files>
+        <file>yellow_tripdata_2011.nds</file>
+    </files>
+    <schema>
+        <temporal>
+            <index>pickup_datetime</index>
+            <bin>10800</bin>
+            <offset>19</offset>
+        </temporal>
+
+        <spatial>
+            <index>pickup</index>
+            <bin>1</bin>
+            <offset>3</offset>
+        </spatial>
+
+        <payload>
+            <index>total_amount_t</index>
+            <bin>0</bin>
+            <offset>39</offset>
+        </payload>
+
+        <payload>
+            <index>total_amount_g</index>
+            <bin>1</bin>
+            <offset>39</offset>
+        </payload>
+    </schema>
+</config>

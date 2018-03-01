@@ -20,21 +20,35 @@ class PDigest : public Payload {
  public:
   friend class AgrrPDigest;
 
-  PDigest(const DimensionSchema &schema) : Payload(schema) {}
+  PDigest(const DimensionSchema &schema) : Payload(schema) {
+    _buffer_in = std::make_unique<std::vector<float>>();
+    _buffer_mean = std::make_unique<std::array<float, PDIGEST_ARRAY_SIZE>>();
+    _buffer_weight = std::make_unique<std::array<float, PDIGEST_ARRAY_SIZE>>();
+  }
 
-  std::vector<float> get_payload(Data &data, const Pivot &pivot) const override;
+  std::vector<float> get_payload(Data &data, const Pivot &pivot) override;
+
+  inline void dispose_buffers() override {
+    _buffer_in.reset();
+    _buffer_mean.reset();
+    _buffer_weight.reset();
+  }
 
  private:
-  template<typename T>
-  static std::vector<size_t> sort_indexes(const std::vector<T> &v) {
+  inline void clear_buffer() {
+    _buffer_in->clear();
+  }
 
+  template<typename T>
+  static std::vector<size_t> sort_indexes(const std::vector<T> &input) {
     // initialize original index locations
-    std::vector<size_t> idx(v.size());
+    std::vector<size_t> idx(input.size());
     std::iota(idx.begin(), idx.end(), 0);
 
     // sort indexes based on comparing values in v
-    std::sort(idx.begin(), idx.end(),
-              [&v](size_t i1, size_t i2) { return v[i1] < v[i2]; });
+    gfx::timsort(idx.begin(), idx.end(), [&input](size_t i1, size_t i2) {
+      return input[i1] < input[i2];
+    });
 
     return idx;
   }
@@ -80,6 +94,9 @@ class PDigest : public Payload {
     return std::max(x1, std::min(x, x2));
   }
 
+  // temporary data
+  std::unique_ptr<std::vector<float>> _buffer_in;
+  std::unique_ptr<std::array<float, PDIGEST_ARRAY_SIZE>> _buffer_mean, _buffer_weight;
 };
 
 class AgrrPDigest : public AgrrPayload {
@@ -88,8 +105,8 @@ class AgrrPDigest : public AgrrPayload {
     return _lastUsedCell == 0;
   }
 
-  void merge(size_t payload_index, const Pivot &pivot) override;
-  void merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) override;
+  uint32_t merge(size_t payload_index, const Pivot &pivot) override;
+  uint32_t merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) override;
 
   float quantile(float q) const;
   float inverse(float value) const;

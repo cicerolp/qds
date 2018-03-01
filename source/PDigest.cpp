@@ -9,44 +9,39 @@
 
 #ifdef ENABLE_PDIGEST
 
-std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
+std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
+  clear_buffer();
+
   // copy payload data
-  std::vector<float> inMean;
-  inMean.reserve(pivot.back() - pivot.front());
+  _buffer_in->reserve(pivot.back() - pivot.front());
 
   for (auto p = pivot.front(); p < pivot.back(); ++p) {
-    inMean.emplace_back(data.payload(_schema.offset, p));
+    _buffer_in->emplace_back(data.payload(_schema.offset, p));
   }
 
   // temporary data
   uint32_t lastUsedCell{0};
 
-  // mean of points added to each merged centroid
-  std::array<float, PDIGEST_ARRAY_SIZE> mean;
-
-  // number of points that have been added to each merged centroid
-  std::array<float, PDIGEST_ARRAY_SIZE> weight;
-
-  int32_t incomingCount = inMean.size();
+  int32_t incomingCount = _buffer_in->size();
 
   // sort input
-  gfx::timsort(inMean.begin(), inMean.end());
+  gfx::timsort(_buffer_in->begin(), _buffer_in->end());
 
-  float totalWeight = inMean.size();
+  float totalWeight = _buffer_in->size();
 
   lastUsedCell = 0;
-  mean[lastUsedCell] = inMean[0];
-  weight[lastUsedCell] = 1;
+  (*_buffer_mean)[lastUsedCell] = (*_buffer_in)[0];
+  (*_buffer_weight)[lastUsedCell] = 1;
 
   float wSoFar = 0;
   float k1 = 0;
   // weight will contain all zeros
   float wLimit = totalWeight * integratedQ(k1 + 1);
 
-  bool weightAllOne = true;
+  bool weight_equals_one = true;
 
   for (int i = 1; i < incomingCount; ++i) {
-    float proposedWeight = weight[lastUsedCell] + 1;
+    float proposedWeight = (*_buffer_weight)[lastUsedCell] + 1;
 
     float projectedW = wSoFar + proposedWeight;
 
@@ -55,23 +50,24 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
     addThis = projectedW <= wLimit;
 
     if (addThis) {
-      weightAllOne = false;
+      weight_equals_one = false;
 
       // next point will fit
       // so merge into existing centroid
-      weight[lastUsedCell] += 1;
-      mean[lastUsedCell] = mean[lastUsedCell] + (inMean[i] - mean[lastUsedCell]) / weight[lastUsedCell];
+      (*_buffer_weight)[lastUsedCell] += 1;
+      (*_buffer_mean)[lastUsedCell] = (*_buffer_mean)[lastUsedCell]
+          + ((*_buffer_in)[i] - (*_buffer_mean)[lastUsedCell]) / (*_buffer_weight)[lastUsedCell];
 
     } else {
       // didn't fit ... move to next output, copy out first centroid
-      wSoFar += weight[lastUsedCell];
+      wSoFar += (*_buffer_weight)[lastUsedCell];
 
       k1 = integratedLocation(wSoFar / totalWeight);
       wLimit = totalWeight * integratedQ(k1 + 1);
 
       lastUsedCell++;
-      mean[lastUsedCell] = inMean[i];
-      weight[lastUsedCell] = 1;
+      (*_buffer_mean)[lastUsedCell] = (*_buffer_in)[i];
+      (*_buffer_weight)[lastUsedCell] = 1;
     }
   }
 
@@ -81,11 +77,11 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
   std::vector<float> payload;
 
 #ifdef PDIGEST_OPTIMIZE_ARRAY
-  if (weightAllOne) {
+  if (weight_equals_one) {
     payload.reserve(lastUsedCell + 1);
 
     // insert p-digest data
-    payload.insert(payload.end(), mean.begin(), mean.begin() + lastUsedCell);
+    payload.insert(payload.end(), _buffer_mean->begin(), _buffer_mean->begin() + lastUsedCell);
 
     // payload does not contains weight array
     payload.emplace_back(0.f);
@@ -94,8 +90,8 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
     payload.reserve(lastUsedCell * 2 + 1);
 
     // insert p-digest data
-    payload.insert(payload.end(), mean.begin(), mean.begin() + lastUsedCell);
-    payload.insert(payload.end(), weight.begin(), weight.begin() + lastUsedCell);
+    payload.insert(payload.end(), _buffer_mean->begin(), _buffer_mean->begin() + lastUsedCell);
+    payload.insert(payload.end(), _buffer_weight->begin(), _buffer_weight->begin() + lastUsedCell);
 
     // payload contains weight array
     payload.emplace_back(1.f);
@@ -103,15 +99,14 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) const {
 #else
   payload.reserve(lastUsedCell * 2);
 
-  payload.insert(payload.end(), mean.begin(), mean.begin() + lastUsedCell);
-  payload.insert(payload.end(), weight.begin(), weight.begin() + lastUsedCell);
+  payload.insert(payload.end(), _buffer_mean->.begin(), _buffer_mean->.begin() + lastUsedCell);
+  payload.insert(payload.end(), _buffer_weight->.begin(), _buffer_weight->.begin() + lastUsedCell);
 #endif // PDIGEST_OPTIMIZE_ARRAY
 
   return payload;
 }
 
 float PDigest::asinApproximation(float x) {
-
 #ifdef PDIGEST_PIECE_WISE_APPROXIMATION
   if (x < 0) {
     return -asinApproximation(-x);
@@ -184,7 +179,9 @@ float PDigest::asinApproximation(float x) {
 #endif
 }
 
-void AgrrPDigest::merge(size_t payload_index, const Pivot &pivot) {
+uint32_t AgrrPDigest::merge(size_t payload_index, const Pivot &pivot) {
+  uint32_t count = pivot.size();
+
   _buffer_mean.clear();
   _buffer_weight.clear();
 
@@ -224,9 +221,13 @@ void AgrrPDigest::merge(size_t payload_index, const Pivot &pivot) {
   _buffer_weight.insert(_buffer_weight.end(), _weight.begin(), _weight.begin() + _lastUsedCell);
 
   merge_buffer_data();
+
+  return count;
 }
 
-void AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) {
+uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) {
+  uint32_t count = 0;
+
   _buffer_mean.clear();
   _buffer_weight.clear();
 
@@ -234,6 +235,8 @@ void AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, const pi
   auto it = it_lower;
   // insert payload data
   while (it != it_upper) {
+    count += (*it).size();
+
     auto &payload = (*it).get_payload(payload_index);
     uint32_t payload_size = payload.size() - 1;
 
@@ -260,6 +263,8 @@ void AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, const pi
   auto it = it_lower;
   // insert payload data
   while (it != it_upper) {
+    count += (*it).size();
+
     auto &payload = (*it).get_payload(payload_index);
     uint32_t payload_size = payload.size() / 2;
 
@@ -277,6 +282,8 @@ void AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, const pi
   _buffer_weight.insert(_buffer_weight.end(), _weight.begin(), _weight.begin() + _lastUsedCell);
 
   merge_buffer_data();
+
+  return count;
 }
 
 float AgrrPDigest::quantile(float q) const {
