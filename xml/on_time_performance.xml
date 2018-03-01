@@ -3,28 +3,9 @@
     <name>on_time_performance</name>
     <bytes>55</bytes>
     <files>
-        <file>on_time_performance_2016.nds</file>
-        <file>on_time_performance_2017.nds</file>
+        <file>on_time_performance_2001.nds</file>
     </files>
     <schema>
-        <categorical>
-            <index>cancelled</index>
-            <bin>2</bin>
-            <offset>0</offset>
-        </categorical>
-
-        <categorical>
-            <index>diverted</index>
-            <bin>2</bin>
-            <offset>1</offset>
-        </categorical>
-
-        <categorical>
-            <index>unique_carrier</index>
-            <bin>1639</bin>
-            <offset>10</offset>
-        </categorical>
-
         <temporal>
             <index>crs_dep_time</index>
             <bin>86400</bin>
@@ -38,15 +19,27 @@
         </spatial>
 
         <payload>
-            <index>dep_delay</index>
+            <index>dep_delay_t</index>
             <bin>0</bin>
             <offset>27</offset>
         </payload>
 
         <payload>
-            <index>distance</index>
+            <index>dep_delay_g</index>
+            <bin>1</bin>
+            <offset>27</offset>
+        </payload>
+
+        <payload>
+            <index>arr_delay_t</index>
             <bin>0</bin>
-            <offset>51</offset>
+            <offset>35</offset>
+        </payload>
+
+        <payload>
+            <index>arr_delay_g</index>
+            <bin>1</bin>
+            <offset>35</offset>
         </payload>
     </schema>
 </config>
