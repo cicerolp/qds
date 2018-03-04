@@ -26,14 +26,30 @@ function heatmap_layer(value) {
         $.ajax({
             type: 'GET',
             
-            url: _pipelineURL + 
-                "/join=inner_join" + 
-                "/threshold=" + curr_join_threshold +                
-                "/source/aggr=average.total_amount_g/dataset=" +                 
-                _schema + map_const + map_group + 
-                
-                "/destination/aggr=inverse.total_amount_t.($)/dataset=" + 
+            url:
+
+	    _pipelineURL +
+	    "/join=right_join" + 
+                "/threshold=" + curr_join_threshold +
+                "/source/aggr=average.dep_delay_g/dataset=" +                 
+                _schema + map_const + map_group +
+		"/const=crs_dep_time.interval.(1511481600:1511568000)" +
+                	    
+                "/destination/aggr=inverse.dep_delay_t.($)/dataset=" + 
                 _schema + map_const + map_group + query_const,
+
+	    
+
+	    // _pipelineURL + 
+            //     "/join=right_join" + 
+            //     "/threshold=" + curr_join_threshold +                
+            //     "/source/aggr=average.total_amount_g/dataset=" +                 
+            //     _schema + map_const + map_group + 
+	    // 	"/const=pickup_datetime.interval.(999388800:999475200)" +
+
+	    
+            //     "/destination/aggr=inverse.total_amount_t.($)/dataset=" + 
+            //     _schema + map_const + map_group + query_const,
 
             dataType: "json",
             success: function (data) {
@@ -86,6 +102,9 @@ function color_tile(entry) {
         var x1 = (lon2tilex(lon1, entry.tile_zoom) - entry.tile_x) * 256;
         var y1 = (lat2tiley(lat1, entry.tile_zoom) - entry.tile_y) * 256;
 
+	if(d[4] < 0)
+	    console.log("****",d);
+	
         var datum = {
             data_zoom: d[2],
             count: d[4],
@@ -115,6 +134,7 @@ function pickDrawFuncs() {
         bbb: d3.scale.threshold()
             .domain([0.0, 0.25, 0.75])
             .range(['rgba(152,78,163,0.75)', 'rgba(228,26,28,0.75)','rgba(55,126,184,0.75)','rgba(77,175,74,0.75)']),
+
         debug: function (count) {
             return "rgba(256,256,256,1.0)";
         },
@@ -123,7 +143,7 @@ function pickDrawFuncs() {
 
     var drawfuncs = {
         circle: function draw_circle(context, datum) {
-            var radius = 1.0;
+            var radius = 2.0;
             var midx = (datum.x0 + datum.x1) / 2;
             var midy = (datum.y0 + datum.y1) / 2;
             context.beginPath();

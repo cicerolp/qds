@@ -214,8 +214,8 @@ function queryBandPlot(){
 }
 
 function updateSystem(){
-    queryBandPlot();
-    queryEquiDepthPlot();
+    //queryBandPlot();
+    //queryEquiDepthPlot();
     var ndsLayer = myMap.getLayer("ndsLayer");
     ndsLayer.repaint();
 }
@@ -388,6 +388,6 @@ function initializeSystem(){
     activePayloadDimension     = datasetInfo.payloads[0];
     
     //
-    ndsInterface = new NDSInterface("localhost",7000,d=>{console.log("creation of NDS interface done!")});
+    ndsInterface = new NDSInterface("localhost",7001,d=>{console.log("creation of NDS interface done!")});
     initializeSystem();
 })()
