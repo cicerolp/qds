@@ -6,10 +6,15 @@ class NDSQuery{
 	this.group        = group;
 	this.callback     = callback;
 	this.constraints  = [];
+	this.threshold    = undefined;
     }
 
     addAggregation(aggregation,aggregationDimension){
 	this.aggregations.push({"aggr":aggregation,"dim":aggregationDimension})
+    }
+
+    setThreshold(v){
+	this.threshold = v;
     }
     
     //TODO: Remove parameter type and make it a member of constraint in all cases
@@ -84,6 +89,13 @@ class NDSQuery{
 	    return "";
     }
 
+    getThresholdString(){
+	if(this.threshold == undefined)
+	    return "";
+	else
+	    return "/threshold=" + this.threshold + "/"
+    }
+    
     getAggregationString(){
 	var resultStr = "";
 	var query = this;
