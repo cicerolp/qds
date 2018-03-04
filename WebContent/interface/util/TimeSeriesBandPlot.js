@@ -10,7 +10,7 @@ class TimeSeriesBandPlot{
 	this.baseTime = baseTime;
 	//
 	this.bands  = [];
-	this.medianCurve = [];
+	this.curves = [];
 	//
 	this.canvas = container
 	    .append("g")
@@ -88,8 +88,8 @@ class TimeSeriesBandPlot{
 	brushGroup.call(myBrush);
     }
     
-    setData(bands,curve){
-	this.medianCurve = curve;
+    setData(bands,curves){
+	this.curves = curves;
 	this.bands = bands;
 	this.updatePlot();
     }
@@ -144,20 +144,19 @@ class TimeSeriesBandPlot{
 	    .attr("fill","rgba(255,0,0,0.5)");
 
 	//
-	var medianCurve = that.medianCurve;
-	var curves = this.canvas.select("#"+this.widgetID+"lines").selectAll(".medianCurve").data([medianCurve]);
+	var curves = this.canvas.select("#"+this.widgetID+"lines").selectAll(".curve").data(this.curves);
 	curves.exit().remove();
 
 	curves.enter()
 	    .append("path")
 	    .merge(curves)
-	    .attr("class","medianCurve")
+	    .attr("class","curve")
 	    .attr("d", function(d){
 		//console.log("data",d);
-		return valueline(d);
+		return valueline(d.curve);
 	    })
 	    .attr("fill","none")
-	    .attr("stroke","rgba(0,0,0,1.0)")
+	    .attr("stroke",d=>d.color)
 	    .attr("stroke-width",4);
     }
     
@@ -165,7 +164,7 @@ class TimeSeriesBandPlot{
 	//
 	var xExtents = [];
 	var yExtents = [];
-	this.bands.concat([this.medianCurve]).forEach(function(band){
+	this.bands.concat(this.curves.map(d=>d.curve)).forEach(function(band){
 	    //
 	    var lineXExtent = d3.extent(band,d=>d[0]);
 	    xExtents.push(lineXExtent[0]);

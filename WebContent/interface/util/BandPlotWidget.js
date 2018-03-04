@@ -44,7 +44,8 @@ class BandPlotWidget {
 	d3.select("#timeSeriesSelectionLabel").text(labelString);
     }
     
-    setData(bands,curve){
-	this.plot.setData(bands,curve);
+    setData(bands,curves){
+	//curves = [{"curve":[],"color":"red"}]
+	this.plot.setData(bands,curves);
     }
 }

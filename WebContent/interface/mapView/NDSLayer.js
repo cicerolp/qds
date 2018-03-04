@@ -15,6 +15,10 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	this.options.inverseQuantileQuery = v;
 	this.redraw();
     },
+    setQueryThreshold(v){
+	this.options.queryThreshold = v;
+	this.redraw();
+    },
     setInverseQuantileFilter(min,max){
 	this.options.inverseQuantileFilter = [min,max];
 	this.redraw();
@@ -96,32 +100,52 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	//
 	var fCallback = function(queryReturn,myQ){
 	    
-	    // if(coords.x == 1204 && coords.y == 1542 && coords.z == 12)
-	    // 	debugger
-
 	    var result = [];
 	    //TODO: remove this fix when cicero fix the result standard
 	    if(queryReturn.length > 0)
 		result = queryReturn[0];
 	    
 	    if(layer.options.state == "count"){
+		//
+		if(myQ.threshold > 0){
+		    result = result.filter(d=>d[3] >= myQ.threshold)
+		}
+		//
 		tile.data = result;
 	    }
 	    else if(layer.options.state == "quantile"){
+		//
+		var counts = queryReturn[1];
+		if(myQ.threshold > 0){
+		    result = result.filter((d,i)=>counts[i][3] >= myQ.threshold)
+		}
 		result = result.map(entry=>[entry[0],entry[1],entry[2],entry[4]]);
 		tile.data = result;
 		//TODO: set proper scale
 	    }
 	    else if(layer.options.state == "inverse_quantile"){
+		//
+		var counts = queryReturn[1];
+		if(myQ.threshold > 0){
+		    result = result.filter((d,i)=>counts[i][3] >= myQ.threshold)
+		}
+		//
 		result = result.map(entry=>[entry[0],entry[1],entry[2],entry[4]]);
 		tile.data = result;
 		//TODO: set proper scale
 	    }
 	    else if(layer.options.state == "average"){
+		//
+		var counts = queryReturn[1];
+		if(myQ.threshold > 0){
+		    result = result.filter((d,i)=>counts[i][3] >= myQ.threshold)
+		}
+		//
 		tile.data = result;
 		//TODO: set proper scale
 	    }
 	    else if(layer.options.state == "quantile_range"){
+		//
 		var auxMap = {};
 		var consolidatedData = [];
 		result.forEach(entry=>{
@@ -133,6 +157,12 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 			auxMap[key] = entry;
 		    }
 		});
+		//
+		if(myQ.threshold > 0){
+		    var counts = queryReturn[1];
+		    consolidatedData = consolidatedData.filter((d,i)=>counts[i][3] >= myQ.threshold)
+		}
+		//
 		tile.data = consolidatedData;
 		//TODO: set proper scale		
 	    }
@@ -148,20 +178,22 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	//
 	var query = undefined;
 	if(layer.options.state == "count"){
-	    query = new NDSQuery(datasetInfo.datasetName,"dropoff",fCallback);
+	    query = new NDSQuery(datasetInfo.datasetName,activeSpatialDimension,fCallback);
 	    query.addAggregation("count");
 	    query.addConstraint("time_interval",activeTemporalDimension,timeConstraint);
-	    query.addConstraint("tile","dropoff",{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
+	    query.addConstraint("tile",activeSpatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
 	}
 	else if(layer.options.state == "average"){
 	    query = new NDSQuery(datasetInfo.datasetName,activeSpatialDimension,fCallback);
 	    query.addAggregation("average",activePayloadDimension+"_g");
+	    query.addAggregation("count");
 	    query.addConstraint("time_interval",activeTemporalDimension,timeConstraint);	   
 	    query.addConstraint("tile",activeSpatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
 	}
 	else if(layer.options.state == "quantile"){
-	    query = new NDSQuery(datasetInfo.datasetName,"dropoff",fCallback);
+	    query = new NDSQuery(datasetInfo.datasetName,activeSpatialDimension,fCallback);
 	    query.addAggregation("quantile",activePayloadDimension + "_t");
+	    query.addAggregation("count",activePayloadDimension + "_t");
 	    query.addConstraint("time_interval",activeTemporalDimension,timeConstraint);	   
 	    query.addConstraint("tile",activeSpatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
 	    query.setPayload({"quantiles":[layer.options.quantileQuery]});
@@ -169,6 +201,7 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	else if(layer.options.state == "quantile_range"){
 	    query = new NDSQuery(datasetInfo.datasetName,activeSpatialDimension,fCallback);
 	    query.addAggregation("quantile",activePayloadDimension + "_t");
+	    query.addAggregation("count");
 	    query.addConstraint("time_interval",activeTemporalDimension,timeConstraint);	   
 	    query.addConstraint("tile",activeSpatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
 	    query.setPayload({"quantiles":[0.25,0.75]});
@@ -176,14 +209,16 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	else if(layer.options.state == "inverse_quantile"){
 	    query = new NDSQuery(datasetInfo.datasetName,activeSpatialDimension,fCallback);
 	    query.addAggregation("inverse_quantile",activePayloadDimension + "_t");
+	    query.addAggregation("count");
 	    query.addConstraint("time_interval",activeTemporalDimension,timeConstraint);	   
 	    query.addConstraint("tile",activeSpatialDimension,{"x":coords.x,"y":coords.y,"z":coords.z,"resolution":resolution});
 	    query.setPayload({"inverse_quantile":layer.options.inverseQuantileQuery});
 	}
 
 	//
+	query.setThreshold(this.options.queryThreshold);
 	query.tile = [tileInTotalResolution[0],tileInTotalResolution[1],totalResolution];
-	console.log(query.toString());
+	//console.log(query.toString());
 	ndsInterface.query(query);
 	
         return tile;
@@ -281,6 +316,7 @@ class NDSLayer{
 						    "myColorScaleDomain":[0,100],
 						    "quantileQuery":0.5,
 						    "inverseQuantileQuery":100,
+						    "queryThreshold":0,
 						    "state":"count"});
 	this.tileLayer.addTo(this.containerMap);
 	//
@@ -336,6 +372,10 @@ class NDSLayer{
     setMyColorScaleDomain(domain){
 	this.tileLayer.setMyColorScaleDomain(domain);
 	this.repaint();
+    }
+
+    setQueryThreshold(v){
+	this.tileLayer.setQueryThreshold(v);
     }
     
     renderData(){
