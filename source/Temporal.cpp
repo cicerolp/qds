@@ -21,6 +21,9 @@ uint32_t Temporal::build(NDS &nds, Data &data, BuildPair<build_ctn> &range, Buil
       ++used[value];
     }
 
+    // sort before tdigesting...
+    data.sort(ptr.front(), ptr.back());
+
     uint32_t accum = ptr.front();
     for (const auto &entry : used) {
       uint32_t first = accum;
@@ -32,8 +35,6 @@ uint32_t Temporal::build(NDS &nds, Data &data, BuildPair<build_ctn> &range, Buil
 
       pivots_count++;
     }
-
-    data.sort(ptr.front(), ptr.back());
   }
 
   _container = stde::dynarray<TemporalElement>(tmp_ctn.size());
