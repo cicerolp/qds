@@ -33,7 +33,7 @@ uint32_t Temporal::build(NDS &nds, Data &data, BuildPair<build_ctn> &range, Buil
       range.output.emplace_back(first, second);
       tmp_ctn[entry.first].emplace_back(range.output.back());
 
-      pivots_count++;
+      ++pivots_count;
     }
   }
 
@@ -68,7 +68,7 @@ bool Temporal::query(const Query &query, subset_ctn &subsets) const {
           }
         } else {
           auto it_lower_data = std::lower_bound(_container.begin(), _container.end(), interval.bound[0]);
-          auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), interval.bound[1]);
+          auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), interval.bound[1] + 1);
 
           for (auto it = it_lower_data; it < it_upper_date; ++it) {
             subset.container.emplace_back(&(*it).el);
@@ -81,7 +81,7 @@ bool Temporal::query(const Query &query, subset_ctn &subsets) const {
           return true;
         } else {
           auto it_lower_data = std::lower_bound(_container.begin(), _container.end(), interval.bound[0]);
-          auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), interval.bound[1]);
+          auto it_upper_date = std::lower_bound(it_lower_data, _container.end(), interval.bound[1] + 1);
 
           for (auto it = it_lower_data; it < it_upper_date; ++it) {
             subset.container.emplace_back(&(*it).el);
@@ -102,7 +102,7 @@ bool Temporal::query(const Query &query, subset_ctn &subsets) const {
       for (auto &interval : sequence.bounds) {
 
         it_lower = std::lower_bound(it_upper, _container.end(), interval.bound[0]);
-        it_upper = std::lower_bound(it_lower, _container.end(), interval.bound[1]);
+        it_upper = std::lower_bound(it_lower, _container.end(), interval.bound[1] + 1);
 
         for (auto it = it_lower; it < it_upper; ++it) {
           subset.container.emplace_back(&(*it).el);
