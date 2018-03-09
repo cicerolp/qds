@@ -353,10 +353,6 @@ bool NDS::search_iterators(range_it &it_range, const range_ctn &range,
 
   it_upper = std::upper_bound(it_lower, subset.end(), (*it_range).pivot, Pivot::upper_bound_comp);
 
-  if (it_lower == it_upper) {
-    return false;
-  }
-
   return true;
 }
 
@@ -477,10 +473,12 @@ void NDS::do_group_by(AggrGroupByCtn &aggrs,
       range_it it_range = range.begin();
 
       while (search_iterators(it_range, range, it_lower, it_upper, subset[el]->ptr())) {
-        for (auto &aggr : aggrs) {
-          aggr->merge(subset[el]->value, it_lower, it_upper);
+        if (it_lower != it_upper) {
+          for (auto &aggr : aggrs) {
+            aggr->merge(subset[el]->value, it_lower, it_upper);
+          }
+          it_lower = it_upper;
         }
-        it_lower = it_upper;
         ++it_range;
       }
     }
@@ -490,10 +488,12 @@ void NDS::do_group_by(AggrGroupByCtn &aggrs,
       range_it it_range = range.begin();
 
       while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-        for (auto &aggr : aggrs) {
-          aggr->merge((*it_range).value, it_lower, it_upper);
+        if (it_lower != it_upper) {
+          for (auto &aggr : aggrs) {
+            aggr->merge((*it_range).value, it_lower, it_upper);
+          }
+          it_lower = it_upper;
         }
-        it_lower = it_upper;
         ++it_range;
       }
     }
@@ -529,10 +529,12 @@ void NDS::do_summarize(AggrSummarizeCtn &aggrs, range_ctn &range, const bined_ct
       range_it it_range = range.begin();
 
       while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-        for (auto &aggr : aggrs) {
-          aggr->merge(it_lower, it_upper);
+        if (it_lower != it_upper) {
+          for (auto &aggr : aggrs) {
+            aggr->merge(it_lower, it_upper);
+          }
+          it_lower = it_upper;
         }
-        it_lower = it_upper;
         ++it_range;
       }
     }
