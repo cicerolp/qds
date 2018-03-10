@@ -50,7 +50,12 @@ struct DimensionSchema {
   std::string index;
 };
 
-using payload_t = stde::dynarray<float>;
+struct payload_t {
+  payload_t(float *__lower, float *__upper) : lower(__lower), upper(__upper) {};
+  float *lower;
+  float *upper;
+};
+
 using payload_ctn = float *;
 
 using pivot_ctn = stde::dynarray<Pivot>;

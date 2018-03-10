@@ -31,8 +31,8 @@ uint32_t AggrGaussian::merge(size_t payload_index, const Pivot &pivot) {
   const auto &payload = pivot.get_payload(payload_index);
 
   count_i.emplace_back(pivot.size());
-  sum_i.emplace_back(payload[0]);
-  sum_square_i.emplace_back(payload[1]);
+  sum_i.emplace_back(payload.lower[0]);
+  sum_square_i.emplace_back(payload.lower[1]);
 
   return count;
 }
@@ -48,8 +48,8 @@ uint32_t AggrGaussian::merge(size_t payload_index, const pivot_it &it_lower, con
     auto &payload = (*it).get_payload(payload_index);
 
     count_i.emplace_back((*it).size());
-    sum_i.emplace_back(payload[0]);
-    sum_square_i.emplace_back(payload[1]);
+    sum_i.emplace_back(payload.lower[0]);
+    sum_square_i.emplace_back(payload.lower[1]);
 
     ++it;
   }
