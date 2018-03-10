@@ -16,6 +16,10 @@
 // CMake Config File
 #include "config.h"
 
+#ifdef ENABLE_GPERF
+#include <gperftools/profiler.h>
+#endif
+
 // C includes
 #include <cassert>
 #include <cmath>

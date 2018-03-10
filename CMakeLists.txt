@@ -1,6 +1,8 @@
 project(nds)
 cmake_minimum_required(VERSION 3.0)
 
+option(ENABLE_GPERF "Enable Gperftools Profiler" OFF)
+
 # nds options
 option(NDS_ENABLE_PAYLOAD "Enable Payload" ON)
 
@@ -36,7 +38,7 @@ include_directories(AFTER include)
 file(GLOB HEADERS "source/*.h")
 source_group("Header Files" FILES ${HEADERS})
 
-add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
+set(SRC_LIST
         source/mongoose.c
         source/Categorical.cpp
         source/Data.cpp
@@ -49,7 +51,12 @@ add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS}
         source/SpatialElement.cpp
         source/string_util.cpp
         source/Temporal.cpp
-        source/PDigest.cpp source/Gaussian.cpp source/Gaussian.h source/Pipeline.cpp source/Pipeline.h source/AugmentedSeries.cpp source/AugmentedSeries.h)
+        source/PDigest.cpp
+        source/Gaussian.cpp
+        source/Pipeline.cpp
+        source/AugmentedSeries.cpp)
+
+add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS})
 
 find_package(Threads REQUIRED)
 
@@ -58,14 +65,25 @@ set(Boost_USE_STATIC_LIBS ON)
 
 find_package(Boost COMPONENTS program_options REQUIRED)
 
-include_directories(${Boost_INCLUDE_DIR})
 link_directories(${Boost_LIBRARY_DIR})
+include_directories(${Boost_INCLUDE_DIR})
 
-if(WIN32)
-        target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-elseif(UNIX)
-        target_link_libraries(${PROJECT_NAME} LINK_PUBLIC -static-libgcc -static-libstdc++ ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-endif()
+
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+elseif (UNIX)
+    set(COMMON_LIBRARIES "-static-libgcc -static-libstdc++ ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}")
+
+    # default target
+    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${COMMON_LIBRARIES})
+
+    # profiling target
+    find_package(Gperftools REQUIRED)
+    include_directories(GPERFTOOLS_INCLUDE_DIR)
+    add_executable(profile ${SRC_LIST} ${HEADERS})
+    target_link_libraries(profile LINK_PUBLIC ${COMMON_LIBRARIES} ${GPERFTOOLS_PROFILER})
+    set_target_properties(profile PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "source/stdafx.h")
+endif ()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "source/stdafx.h")
 
