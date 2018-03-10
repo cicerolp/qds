@@ -148,6 +148,10 @@ std::string NDS::pipeline(const Pipeline &pipeline) {
 }
 
 std::string NDS::augmented_series(const AugmentedSeries &augmented_series) {
+#ifdef ENABLE_GPERF
+  ProfilerStart("augmented_series.prof");
+#endif
+
   // serialization
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -205,10 +209,10 @@ std::string NDS::augmented_series(const AugmentedSeries &augmented_series) {
     for (auto& m : document.GetArray()) {
       for (auto& v : m.GetArray()) {
         auto value = v[4].GetDouble();
-        if (value >= 0.5f) {
+        if (value >= 0.f) {
           accum += std::fabs(value - 0.5);
         } else {
-          //accum += 1;
+          accum += 1;
         }
       }
     }
@@ -222,7 +226,13 @@ std::string NDS::augmented_series(const AugmentedSeries &augmented_series) {
   // end json
   writer.EndArray();
   writer.EndArray();
-  return buffer.GetString();
+  auto output = buffer.GetString();
+
+#ifdef ENABLE_GPERF
+  ProfilerStop();
+#endif
+
+  return output;
 }
 
 std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangePivot &root) const {
