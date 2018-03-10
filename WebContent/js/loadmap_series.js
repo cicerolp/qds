@@ -276,22 +276,20 @@ function a_getQuery() {
                 case "time-series": {
                     //var query = "/aggr=count" + region + where + tseries + "/group=" + entry.field.name;
                     var query = _augmented_seriesURL +
-                        "/series=crs_dep_time.(978307200:86400:365:86400)" +
+                        "/series=crs_dep_time.(1388534400:86400:365:86400)" +
                         "/pipeline/join=right_join" +
 
                         "/source/aggr=average.dep_delay_g" +
                         "/dataset=on_time_performance" +
-                        //region +
-                        //"/const=origin_airport.tile.(0:0:0:15)" +
-                        "/const=origin_airport.region.(67004:97273:67132:97413:18)" +
+                        "/const=origin_airport.tile.(0:0:0:15)" +
+                        region + // overwrite previous const
                         where +
                         "/group=origin_airport" +
 
                         "/destination/aggr=inverse.dep_delay_t.($)" +
                         "/dataset=on_time_performance" +
-                        //region +
-                        //"/const=origin_airport.tile.(0:0:0:15)" +
-                        "/const=origin_airport.region.(67004:97273:67132:97413:18)" +
+                        "/const=origin_airport.tile.(0:0:0:15)" +
+                        region + // overwrite previous const
                         where +
                         "/group=origin_airport";
 

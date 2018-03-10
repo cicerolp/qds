@@ -180,6 +180,18 @@ class NDS {
     return index;
   }
 
+  inline bool validation(const Query &query, subset_ctn &ctn) const {
+    // validadion phase
+    for (auto &d : _dimension) {
+      if (!d->query(query, ctn)) {
+        ctn.clear();
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   // group_by
 
   template<typename T>
@@ -196,17 +208,31 @@ class NDS {
   template<typename T>
   using GroupCtn = std::pair<GroupBy<T>, GroupBy<T>>;
 
-  void group_by_query(AggrGroupByCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const;
-  void group_by_inner_join(GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const;
-  void group_by_left_join(GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const;
-  void group_by_right_join(GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const;
+  void do_group_by(AggrGroupByCtn &aggrs,
+                   const range_ctn &range,
+                   const bined_ctn &subset,
+                   const CopyOption &option) const;
 
-  void do_group_by(AggrGroupByCtn &aggrs, range_ctn &range, const bined_ctn &subset, const CopyOption &option) const;
+  void do_summarize(AggrSummarizeCtn &aggrs, const range_ctn &range, const bined_ctn &subset) const;
 
-  void summarize_query(AggrSummarizeCtn &aggrs, json &writer, range_ctn &range, const bined_ctn &subset) const;
-  void summarize_pipe(GroupCtn<AggrSummarizeCtn> &groups, json &writer) const;
+  // json ouput
+  void group_by_query(const AggrGroupByCtn &aggrs, json &writer, const range_ctn &range, const bined_ctn &subset) const;
+  void group_by_inner_join(const GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const;
+  void group_by_left_join(const GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const;
+  void group_by_right_join(const GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const;
 
-  void do_summarize(AggrSummarizeCtn &aggrs, range_ctn &range, const bined_ctn &subset) const;
+  void summarize_query(const AggrSummarizeCtn &aggrs,
+                       json &writer,
+                       const range_ctn &range,
+                       const bined_ctn &subset) const;
+  void summarize_pipe(const GroupCtn<AggrSummarizeCtn> &groups, json &writer) const;
+
+  // raw output
+  void group_by_inner_join(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw, uint32_t threshold) const;
+  void group_by_left_join(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw, uint32_t threshold) const;
+  void group_by_right_join(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw, uint32_t threshold) const;
+
+  void summarize_pipe(const GroupCtn<AggrSummarizeCtn> &groups, std::vector<float> &raw) const;
 
   AggrGroupByCtn get_aggr_group_by(const Query &query) const;
   AggrSummarizeCtn get_aggr_summarize(const Query &query) const;

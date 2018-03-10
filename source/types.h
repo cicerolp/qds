@@ -198,8 +198,12 @@ struct interval_t {
     return bound[0] <= lower && bound[1] >= upper;
   }
 
+  inline std::string to_string() const {
+    return std::to_string(bound[0]) + ":" + std::to_string(bound[1]);
+  }
+
   friend std::ostream &operator<<(std::ostream &os, const interval_t &obj) {
-    return os << obj.bound[0] << "/" << obj.bound[1];
+    return os << obj.bound[0] << ":" << obj.bound[1];
   }
 
   std::array<temporal_t, 2> bound;
