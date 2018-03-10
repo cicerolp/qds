@@ -147,6 +147,84 @@ std::string NDS::pipeline(const Pipeline &pipeline) {
   return serialize_pipeline(pipeline, source_ctn, dest_ctn, root);
 }
 
+std::string NDS::augmented_series(const AugmentedSeries &augmented_series) {
+  // serialization
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
+  // start json
+  writer.StartArray();
+  writer.StartArray();
+
+  // get pipeline from augmented_series
+  auto pipeline = augmented_series.get_pipeline();
+
+  subset_ctn source_ctn, dest_ctn;
+
+  RangePivot root(_root[0]);
+
+  // dest
+  for (auto &d : _dimension) {
+    if (!d->query(pipeline.get_dest(), dest_ctn)) {
+      // empty query
+      root.pivot.back(0);
+      dest_ctn.clear();
+      break;
+    }
+  }
+
+  rapidjson::Document document;
+
+  auto query = Query(pipeline.get_source());
+
+  auto &dimension = augmented_series.get_dimension();
+  auto &bounds = augmented_series.get_bounds();
+
+  for (const auto &interval : bounds) {
+    std::string append = "/const=" + dimension + ".interval.(" + std::to_string(interval.bound[0]) + ":"
+        + std::to_string(interval.bound[1]) + ")";
+
+    // overwrite temporal const
+    query.parse(append);
+
+    source_ctn.clear();
+
+    // source
+    for (auto &d : _dimension) {
+      if (!d->query(query, source_ctn)) {
+        // empty query
+        root.pivot.back(0);
+        source_ctn.clear();
+        break;
+      }
+    }
+
+    document.Parse(serialize_pipeline(pipeline, source_ctn, dest_ctn, root));
+
+    double accum = 0.0;
+    for (auto& m : document.GetArray()) {
+      for (auto& v : m.GetArray()) {
+        auto value = v[4].GetDouble();
+        if (value >= 0.5f) {
+          accum += std::fabs(value - 0.5);
+        } else {
+          //accum += 1;
+        }
+      }
+    }
+
+    writer.StartArray();
+    writer.Uint(interval.bound[0]);
+    writer.Double(accum);
+    writer.EndArray();
+  }
+
+  // end json
+  writer.EndArray();
+  writer.EndArray();
+  return buffer.GetString();
+}
+
 std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangePivot &root) const {
   // serialization
   rapidjson::StringBuffer buffer;
@@ -187,8 +265,8 @@ std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangeP
 }
 
 std::string NDS::serialize_pipeline(const Pipeline &pipeline,
-                                    subset_ctn &source_ctn,
-                                    subset_ctn &dest_ctn,
+                                    const subset_ctn &source_ctn,
+                                    const subset_ctn &dest_ctn,
                                     const RangePivot &root) const {
   // serialization
   rapidjson::StringBuffer buffer;

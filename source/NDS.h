@@ -6,6 +6,7 @@
 #include "Pivot.h"
 #include "Query.h"
 #include "Pipeline.h"
+#include "AugmentedSeries.h"
 #include "Schema.h"
 
 using AggrSummarizeCtn = std::vector<std::shared_ptr<AggrSummarize>>;
@@ -20,6 +21,7 @@ class NDS {
 
   std::string query(const Query &query);
   std::string pipeline(const Pipeline &pipeline);
+  std::string augmented_series(const AugmentedSeries &augmented_series);
 
   std::string schema() const;
 
@@ -135,8 +137,8 @@ class NDS {
  private:
   std::string serialize(const Query &query, subset_ctn &subsets, const RangePivot &root) const;
   std::string serialize_pipeline(const Pipeline &pipeline,
-                                 subset_ctn &source_ctn,
-                                 subset_ctn &dest_ctn,
+                                 const subset_ctn &source_ctn,
+                                 const subset_ctn &dest_ctn,
                                  const RangePivot &root) const;
 
   range_ctn get_range(const subset_ctn &subsets, CopyOption &option) const;

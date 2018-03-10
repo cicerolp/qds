@@ -4,7 +4,8 @@
 
 #pragma once
 
-#define RAPIDJSON_SSE42
+#define RAPIDJSON_SSE2
+#define RAPIDJSON_HAS_STDSTRING 1
 
 // Windows specific defines
 #define NOMINMAX
@@ -55,6 +56,7 @@
 // rapidjson
 #include <rapidjson/stringbuffer.h>
 #include <rapidjson/writer.h>
+#include <rapidjson/document.h>
 
 // dynarray
 #include <robbepop/dynarray.hpp>

@@ -12,6 +12,7 @@ class NDSInstances : public Singleton<NDSInstances> {
 
   std::string query(const Query &query);
   std::string pipeline(const Pipeline &pipeline);
+  std::string augmented_series(const AugmentedSeries &augmented_series);
 
   std::string schema(const std::string &url) const;
 

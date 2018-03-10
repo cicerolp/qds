@@ -1,4 +1,5 @@
 #include "Server.h"
+#include "AugmentedSeries.h"
 
 void Server::run(server_opts opts) {
   Server::getInstance().nds_opts = opts;
@@ -41,6 +42,8 @@ void Server::handler(mg_connection* conn, int ev, void* p) {
         printJson(conn, NDSInstances::getInstance().query(Query(uri)));
       } else if (tokens[2] == "pipeline") {
         printJson(conn, NDSInstances::getInstance().pipeline(Pipeline(uri)));
+      } else if (tokens[2] == "augmented_series") {
+        printJson(conn, NDSInstances::getInstance().augmented_series(AugmentedSeries(uri)));
       } else {
         printJson(conn, "[]");
       }

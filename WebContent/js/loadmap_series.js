@@ -5,6 +5,7 @@ var uBound = 23;
 var sliderRT = false;
 
 var root = "./api";
+var _augmented_seriesURL = root + "/augmented_series";
 var _pipelineURL = root + "/pipeline";
 var _queryURL = root + "/query/dataset=" + _schema;
 
@@ -273,10 +274,30 @@ function a_getQuery() {
                     break;
 
                 case "time-series": {
-                    var query = "/aggr=count" + region + where + tseries + "/group=" + entry.field.name;
+                    //var query = "/aggr=count" + region + where + tseries + "/group=" + entry.field.name;
+                    var query = _augmented_seriesURL +
+                        "/series=crs_dep_time.(978307200:86400:365:86400)" +
+                        "/pipeline/join=right_join" +
+
+                        "/source/aggr=average.dep_delay_g" +
+                        "/dataset=on_time_performance" +
+                        //region +
+                        //"/const=origin_airport.tile.(0:0:0:15)" +
+                        "/const=origin_airport.region.(67004:97273:67132:97413:18)" +
+                        where +
+                        "/group=origin_airport" +
+
+                        "/destination/aggr=inverse.dep_delay_t.($)" +
+                        "/dataset=on_time_performance" +
+                        //region +
+                        //"/const=origin_airport.tile.(0:0:0:15)" +
+                        "/const=origin_airport.region.(67004:97273:67132:97413:18)" +
+                        where +
+                        "/group=origin_airport";
+
                     $.ajax({
                         type: 'GET',
-                        url: _queryURL + query,
+                        url: query,
                         dataType: "json",
                         success: function (data) {
                             loadLineChart(data, entry);
