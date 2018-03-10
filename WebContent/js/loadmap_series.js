@@ -138,7 +138,7 @@ function updateDataRestrictions() {
             var lat1 = b._southWest.lat;
             var lon1 = b._northEast.lng;
 
-            var z = map.getZoom() + 8;
+            var z = map.getZoom() + 1;
 
             var x0 = roundtile(lon2tilex(lon0, z), z);
             var x1 = roundtile(lon2tilex(lon1, z), z);
@@ -276,22 +276,22 @@ function a_getQuery() {
                 case "time-series": {
                     //var query = "/aggr=count" + region + where + tseries + "/group=" + entry.field.name;
                     var query = _augmented_seriesURL +
-                        "/series=crs_dep_time.(1388534400:86400:365:86400)" +
-                        "/pipeline/join=right_join" +
+                        "/series=pickup_datetime.(1351728000:14400:200:14400)" +
+                        "/pipeline/join=right_join/threshold=100" +
 
-                        "/source/aggr=average.dep_delay_g" +
-                        "/dataset=on_time_performance" +
-                        "/const=origin_airport.tile.(0:0:0:15)" +
+                        "/source/aggr=average.total_amount_g" +
+                        "/dataset=yellow_tripdata" +
+                        "/const=pickup.tile.(0:0:0:16)" +
                         region + // overwrite previous const
                         where +
-                        "/group=origin_airport" +
+                        "/group=pickup" +
 
-                        "/destination/aggr=inverse.dep_delay_t.($)" +
-                        "/dataset=on_time_performance" +
-                        "/const=origin_airport.tile.(0:0:0:15)" +
+                        "/destination/aggr=inverse.total_amount_t.($)" +
+                        "/dataset=yellow_tripdata" +
+                        "/const=pickup.tile.(0:0:0:16)" +
                         region + // overwrite previous const
                         where +
-                        "/group=origin_airport";
+                        "/group=pickup";
 
                     $.ajax({
                         type: 'GET',
