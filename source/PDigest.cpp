@@ -182,9 +182,6 @@ float PDigest::asinApproximation(float x) {
 uint32_t AgrrPDigest::merge(size_t payload_index, const Pivot &pivot) {
   uint32_t count = pivot.size();
 
-  _buffer_mean.clear();
-  _buffer_weight.clear();
-
 #ifdef PDIGEST_OPTIMIZE_ARRAY
   const auto &payload = pivot.get_payload(payload_index);
 
@@ -229,20 +226,15 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const Pivot &pivot) {
     std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
 #endif // PDIGEST_OPTIMIZE_ARRAY
 
-  // insert p-digest data
-  _buffer_mean.insert(_buffer_mean.end(), _mean.begin(), _mean.begin() + _lastUsedCell);
-  _buffer_weight.insert(_buffer_weight.end(), _weight.begin(), _weight.begin() + _lastUsedCell);
-
-  merge_buffer_data();
+  if (_buffer_mean.size() >= PDIGEST_BUFFER_SIZE) {
+    merge_buffer_data();
+  }
 
   return count;
 }
 
 uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) {
   uint32_t count = 0;
-
-  _buffer_mean.clear();
-  _buffer_weight.clear();
 
 #ifdef PDIGEST_OPTIMIZE_ARRAY
   auto it = it_lower;
@@ -302,16 +294,18 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, cons
   }*/
 #endif // PDIGEST_OPTIMIZE_ARRAY
 
-  // insert p-digest data
-  _buffer_mean.insert(_buffer_mean.end(), _mean.begin(), _mean.begin() + _lastUsedCell);
-  _buffer_weight.insert(_buffer_weight.end(), _weight.begin(), _weight.begin() + _lastUsedCell);
-
-  merge_buffer_data();
+  if (_buffer_mean.size() >= PDIGEST_BUFFER_SIZE) {
+    merge_buffer_data();
+  }
 
   return count;
 }
 
-float AgrrPDigest::quantile(float q) const {
+float AgrrPDigest::quantile(float q) {
+  if (_buffer_mean.size() > 0) {
+    merge_buffer_data();
+  }
+
   if (_lastUsedCell == 0 && _weight[_lastUsedCell] == 0) {
     // no centroids means no data, no way to get a quantile
     return std::numeric_limits<float>::quiet_NaN();
@@ -362,7 +356,11 @@ float AgrrPDigest::quantile(float q) const {
   return PDigest::weightedAverage(_mean[n - 1], z1, _max, z2);
 }
 
-float AgrrPDigest::inverse(float value) const {
+float AgrrPDigest::inverse(float value) {
+  if (_buffer_mean.size() > 0) {
+    merge_buffer_data();
+  }
+
   if (_lastUsedCell == 0 && _weight[_lastUsedCell] == 0) {
     // no centroids means no data, no way to get a quantile
     return std::numeric_limits<float>::quiet_NaN();
@@ -400,6 +398,10 @@ float AgrrPDigest::inverse(float value) const {
 }
 
 void AgrrPDigest::merge_buffer_data() {
+  // insert p-digest data
+  _buffer_mean.insert(_buffer_mean.end(), _mean.begin(), _mean.begin() + _lastUsedCell);
+  _buffer_weight.insert(_buffer_weight.end(), _weight.begin(), _weight.begin() + _lastUsedCell);
+
   int32_t incomingCount = _buffer_mean.size();
 
   auto inOrder = PDigest::sort_indexes(_buffer_mean);
@@ -458,6 +460,9 @@ void AgrrPDigest::merge_buffer_data() {
     _min = std::min(_min, _mean[0]);
     _max = std::max(_max, _mean[_lastUsedCell - 1]);
   }
+
+  _buffer_mean.clear();
+  _buffer_weight.clear();
 }
 
 #endif // ENABLE_PDIGEST

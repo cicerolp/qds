@@ -245,7 +245,7 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
     auto parameters = AgrrPDigest::get_parameters(_expr);
 
     if (_expr.first == "quantile") {
-      for (const auto &pair : _map) {
+      for (auto &pair : _map) {
         for (auto &q : parameters) {
           writer.StartArray();
           write_value(pair.first, writer);
@@ -256,7 +256,7 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
       }
 
     } else if (_expr.first == "inverse") {
-      for (const auto &pair : _map) {
+      for (auto &pair : _map) {
         for (auto &q : parameters) {
           writer.StartArray();
           write_value(pair.first, writer);
@@ -272,14 +272,14 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
     auto parameters = AgrrPDigest::get_parameters(_expr);
 
     if (_expr.first == "quantile") {
-      for (const auto &pair : _map) {
+      for (auto &pair : _map) {
         for (auto &q : parameters) {
           raw.emplace_back(pair.second.payload.quantile(q));
         }
       }
 
     } else if (_expr.first == "inverse") {
-      for (const auto &pair : _map) {
+      for (auto &pair : _map) {
         for (auto &q : parameters) {
           raw.emplace_back(pair.second.payload.inverse(q));
         }

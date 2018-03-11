@@ -15,9 +15,12 @@ option(NDS_SHARE_PAYLOAD "Enable Payload Sharing" ON)
 
 # p-digest
 option(ENABLE_PDIGEST "Enable p-digest" ON)
+
 option(PDIGEST_OPTIMIZE_ARRAY "Enable p-digest array optimization" ON)
 option(PDIGEST_PIECE_WISE_APPROXIMATION "Enable p-digest Piece Wise Approximation" ON)
+
 set(PDIGEST_COMPRESSION "50.f" CACHE STRING "Set p-digest Compression (float)")
+set(PDIGEST_BUFFER_FACTOR "5" CACHE STRING "Set p-digest Buffer Size (N * PDIGEST_ARRAY_SIZE)")
 
 # gaussian
 option(ENABLE_GAUSSIAN "Enable Gaussian" ON)
