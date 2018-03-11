@@ -138,7 +138,6 @@ std::string NDS::pipeline(const Pipeline &pipeline) {
 
 std::string NDS::augmented_series(const AugmentedSeries &augmented_series) {
 #ifdef ENABLE_GPERF
-<<<<<<< HEAD
   ProfilerStart("perf.prof");
 #endif
 
@@ -151,11 +150,6 @@ std::string NDS::augmented_series(const AugmentedSeries &augmented_series) {
   auto &bounds = augmented_series.get_bounds();
   auto &dimension = augmented_series.get_dimension();
 
-=======
-  ProfilerStart("augmented_series.prof");
-#endif
-
->>>>>>> 4b183b7252a714bc7f4459778727b7fd9b35615e
   // serialization
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
