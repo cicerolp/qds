@@ -92,8 +92,7 @@ struct spatial_t {
       uint64_t y_min = y * n;
       uint64_t y_max = y_min + n;
 
-      return x_min <= other.x && x_max >= other.x && y_min <= other.y &&
-          y_max >= other.y;
+      return x_min <= other.x && x_max >= other.x && y_min <= other.y && y_max >= other.y;
     } else if (other.z == z) {
       return x == other.x && y == other.y;
     } else {

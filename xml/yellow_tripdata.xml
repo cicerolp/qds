@@ -18,7 +18,7 @@
         </categorical>
         <temporal>
             <index>pickup_datetime</index>
-            <bin>86400</bin>
+            <bin>14400</bin>
             <offset>22</offset>
         </temporal>
         <spatial>

@@ -275,7 +275,7 @@ function a_getQuery() {
 
                 case "time-series": {
                     //var query = "/aggr=count" + region + where + tseries + "/group=" + entry.field.name;
-                    var query = _augmented_seriesURL +
+                    /*var query = _augmented_seriesURL +
                         "/series=pickup_datetime.(1351728000:14400:200:14400)" +
                         "/pipeline/join=right_join/threshold=100" +
 
@@ -289,6 +289,44 @@ function a_getQuery() {
                         "/destination/aggr=inverse.total_amount_t.($)" +
                         "/dataset=yellow_tripdata" +
                         "/const=pickup.tile.(0:0:0:16)" +
+                        region + // overwrite previous const
+                        where +
+                        "/group=pickup";*/
+
+                    /*// on_time_performance_2001
+                    var query = _augmented_seriesURL +
+                        "/series=crs_dep_time.(978307200:86400:365:86400)" +
+                        "/pipeline/join=right_join" +
+
+                        "/source/aggr=average.dep_delay_g" +
+                        "/dataset=on_time_performance" +
+                        "/const=origin_airport.tile.(0:0:0:15)" +
+                        region + // overwrite previous const
+                        where +
+                        "/group=origin_airport" +
+
+                        "/destination/aggr=inverse.dep_delay_t.($)" +
+                        "/dataset=on_time_performance" +
+                        "/const=origin_airport.tile.(0:0:0:15)" +
+                        region + // overwrite previous const
+                        where +
+                        "/group=origin_airport";*/
+
+                    // yellow_tripdata_2011_10
+                    var query = _augmented_seriesURL +
+                        "/series=pickup_datetime.(1317427200:14400:200:14400)" +
+                        "/pipeline/join=right_join/threshold=100" +
+
+                        "/source/aggr=average.total_amount_g" +
+                        "/dataset=yellow_tripdata" +
+                        "/const=pickup.tile.(0:0:0:18)" +
+                        region + // overwrite previous const
+                        where +
+                        "/group=pickup" +
+
+                        "/destination/aggr=inverse.total_amount_t.($)" +
+                        "/dataset=yellow_tripdata" +
+                        "/const=pickup.tile.(0:0:0:18)" +
                         region + // overwrite previous const
                         where +
                         "/group=pickup";

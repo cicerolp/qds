@@ -26,7 +26,7 @@ bool Spatial::query(const Query &query, subset_ctn &subsets) const {
         subset.option = CopyValueFromSubset;
       }
 
-      _tree->query_tile(tile.tile, tile.resolution, subset.container, 0);
+      _tree->query_tile(tile.tile, tile.resolution, subset.container);
 
     } else if (clausule->first == "region") {
       auto region = parse_region(clausule->second);
@@ -35,7 +35,7 @@ bool Spatial::query(const Query &query, subset_ctn &subsets) const {
         subset.option = CopyValueFromSubset;
       }
 
-      _tree->query_region(region, subset.container, 0);
+      _tree->query_region(region, subset.container);
     }
 
     if (!subset.container.empty()) {

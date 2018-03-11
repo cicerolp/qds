@@ -68,8 +68,7 @@ uint32_t SpatialElement::expand(NDS &nds,
       auto tile = get_tile(value.x * 2, value.y * 2, next_level, i);
 
       // share pivot between child and parent
-      _container[i] =
-          std::make_unique<SpatialElement>(nds, data, tmp_ctn[i], parent, tile);
+      _container[i] = std::make_unique<SpatialElement>(nds, data, tmp_ctn[i], parent, tile);
 
       pivots_count += _container[i]->expand(nds, data, range, links, bin);
     }
@@ -82,62 +81,59 @@ uint32_t SpatialElement::expand(NDS &nds,
   return pivots_count;
 }
 
-void SpatialElement::query_tile(const spatial_t &tile, uint64_t resolution,
-                                bined_ctn &subset, uint64_t zoom) const {
+void SpatialElement::query_tile(const spatial_t &tile, uint64_t resolution, bined_ctn &subset) const {
   const spatial_t &value = (*reinterpret_cast<const spatial_t *>(&_el.value));
 
   if (value.contains(tile)) {
-    if (value.leaf || zoom == tile.z) {
-      return aggregate_tile(tile.z + resolution, subset, zoom);
+    if (value.leaf || value.z == tile.z) {
+      return aggregate_tile(tile.z + resolution, subset);
     } else {
       if (_container[0] != nullptr)
-        _container[0]->query_tile(tile, resolution, subset, zoom + 1);
+        _container[0]->query_tile(tile, resolution, subset);
       if (_container[1] != nullptr)
-        _container[1]->query_tile(tile, resolution, subset, zoom + 1);
+        _container[1]->query_tile(tile, resolution, subset);
       if (_container[2] != nullptr)
-        _container[2]->query_tile(tile, resolution, subset, zoom + 1);
+        _container[2]->query_tile(tile, resolution, subset);
       if (_container[3] != nullptr)
-        _container[3]->query_tile(tile, resolution, subset, zoom + 1);
+        _container[3]->query_tile(tile, resolution, subset);
     }
   }
 }
 
-void SpatialElement::query_region(const region_t &region, bined_ctn &subset,
-                                  uint64_t zoom) const {
+void SpatialElement::query_region(const region_t &region, bined_ctn &subset) const {
   const spatial_t &value = (*reinterpret_cast<const spatial_t *>(&_el.value));
 
   if (region.intersect(value)) {
-    if (zoom == region.z || value.leaf) {
+    if (value.z == region.z || value.leaf) {
       subset.emplace_back(&_el);
     } else if (region.cover(value)) {
       subset.emplace_back(&_el);
     } else {
       if (_container[0] != nullptr)
-        _container[0]->query_region(region, subset, zoom + 1);
+        _container[0]->query_region(region, subset);
       if (_container[1] != nullptr)
-        _container[1]->query_region(region, subset, zoom + 1);
+        _container[1]->query_region(region, subset);
       if (_container[2] != nullptr)
-        _container[2]->query_region(region, subset, zoom + 1);
+        _container[2]->query_region(region, subset);
       if (_container[3] != nullptr)
-        _container[3]->query_region(region, subset, zoom + 1);
+        _container[3]->query_region(region, subset);
     }
   }
 }
 
-void SpatialElement::aggregate_tile(uint64_t resolution, bined_ctn &subset,
-                                    uint64_t zoom) const {
+void SpatialElement::aggregate_tile(uint64_t resolution, bined_ctn &subset) const {
   const spatial_t &value = (*reinterpret_cast<const spatial_t *>(&_el.value));
 
-  if (zoom == resolution || value.leaf) {
+  if (value.z == resolution || value.leaf) {
     subset.emplace_back(&_el);
   } else {
     if (_container[0] != nullptr)
-      _container[0]->aggregate_tile(resolution, subset, zoom + 1);
+      _container[0]->aggregate_tile(resolution, subset);
     if (_container[1] != nullptr)
-      _container[1]->aggregate_tile(resolution, subset, zoom + 1);
+      _container[1]->aggregate_tile(resolution, subset);
     if (_container[2] != nullptr)
-      _container[2]->aggregate_tile(resolution, subset, zoom + 1);
+      _container[2]->aggregate_tile(resolution, subset);
     if (_container[3] != nullptr)
-      _container[3]->aggregate_tile(resolution, subset, zoom + 1);
+      _container[3]->aggregate_tile(resolution, subset);
   }
 }
