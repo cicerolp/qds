@@ -53,6 +53,11 @@ function color_tile(entry) {
 
     entry.context.clearRect(0, 0, 256, 256);
 
+    // Create a circular clipping path
+    entry.context.beginPath();
+    entry.context.arc(128, 128, 60, 0, Math.PI * 2, true);
+    entry.context.clip();
+    
     var fs = pickDrawFuncs();
 
     entry.data.forEach(function (d) {

@@ -10,7 +10,7 @@ var datasetTimeStep       = 0;
 var geoConstraints = [];
 
 //vars
-var currentDataset = "yellow_cabs"
+var currentDataset = "flights"
 var datasetInfo    = undefined;
 var ndsInterface   = undefined;
 
@@ -20,6 +20,8 @@ var activeTemporalDimension    = undefined;
 var activeSpatialDimension     = undefined;
 var activePayloadDimension     = undefined;
 
+var mapIndexToName = {"177":"AA","302":"Alaska Airlines","343":"JetBlue","526":"Delta", "1067":"SkyWest","1432":"United","1444":"US Airways","1529":"Southwest"};
+
 //
 var inverseQuantileScale = d3.scaleQuantile().domain([0,1]).range(d3.schemeRdBu[7]);
 
@@ -27,15 +29,10 @@ function getAlias(dimension,value){
     return datasetInfo.aliases[dimension][value];
 }
 
-/*******************
- * Query Functions *
- *******************/
-
-function queryEquiDepthPlot(){
-    //http://localhost:7000/api/query/dataset=green_tripdata_2013/aggr=count/aggr=quantile.(0.5)/const=payment_type.values.(all)/group=payment_type
-    //[[[0,354622],[1,728901],[2,4475],[3,3180]],[[0,5.0,29.94832992553711],[1,5.0,32.01000213623047],[2,5.0,35.29999923706055],[3,5.0,31.049999237060548]]]
-    var q = new NDSQuery(datasetInfo.datasetName,undefined,
+function queryBoxPlot(){
+    var q = new NDSQuery(datasetInfo.datasetName,activeCategoricalDimension,
 			 function(queryReturn){
+			     //debugger
 			     var counts = {};
 			     if(queryReturn.length != 2){
 				 console.log("error")
@@ -49,25 +46,27 @@ function queryEquiDepthPlot(){
 			     var data = [];
 
 			     if(numEntries > 0){
-				 if(false){
+				 if(true){
+				     console.log(queryReturn);
 				     //
-				     var prevEntry = result[0];
+				     var currentKey = result[0][0];
+				     var currentBin = [mapIndexToName[result[0][0]],result[0][2]];
 				     var bins = [];
+				     
 				     for(var i = 1 ; i < numEntries ; ++i){
 					 var entry = result[i];
-					 if(prevEntry[0] == entry[0]){
-					     var totalCount = counts[entry[0]];
-					     bins.push({"lower":prevEntry[2],"upper":entry[2],"density":(1.0/(entry[1]-prevEntry[1]))});
+					 if(currentKey == entry[0]){
+					     currentBin.push(entry[2]);
 					 }
 					 else{
-					     data.push({"label":prevEntry[0],"bins":bins});
-					     bins = [];
+					     bins.push(currentBin);
+					     currentBin = [mapIndexToName[entry[0]],entry[2]];
+					     currentKey = entry[0];
 					 }
-
-					 prevEntry = entry;
 				     }
-				     debugger
-				     data.push({"label":prevEntry[0],"bins":bins});
+				     
+				     bins.push(currentBin);				    
+				     data = bins;
 				 }
 				 else{
 				     //
@@ -76,10 +75,113 @@ function queryEquiDepthPlot(){
 				     for(var i = 1 ; i < numEntries ; ++i){
 					 var entry = result[i];
 					 var totalCount = counts[entry[0]];
+					 
 					 bins.push({"lower":prevEntry[1],"upper":entry[1],"density":(1.0/(1+entry[1]-prevEntry[1]))});
 					 prevEntry = entry;
 				     }
-				     console.log("bins",bins);
+				     console.log("bins",bins.map(d=>d.density));
+				     data.push({"label":"0","bins":bins});
+				 }
+				 //TODO:normalize
+			     }
+
+
+			     
+			     if(false){
+				 data = data.map(d=>{
+				     d.label = getAlias(activeCategoricalDimension,d.label);
+				     return d;
+				 })
+			     }
+
+
+
+			     
+			     //boxPlotWidget.setYAxisLabel(datasetInfo.payloadsScreenNames[activePayloadDimension]);
+			     console.log(data);
+			     boxPlotWidget.setData(data);
+			 });
+    q.addAggregation("quantile",activePayloadDimension + "_t");
+    q.addAggregation("count");
+    //q.setPayload({"quantiles":d3.range(11).map(d=>0.1*d)});
+    q.setPayload({"quantiles":d3.range(5).map(d=>0.25*d)});
+    //q.setPayload({"quantiles":d3.range(5).map(d=>0.25*d)});
+    //
+    q.addConstraint("time_interval",activeTemporalDimension,timeConstraint);
+    q.addConstraint("categorical",activeCategoricalDimension,{"values":Object.keys(mapIndexToName)});
+    //q.addConstraint("categorical",activeCategoricalDimension,{"values":["all"]});
+    if(geoConstraints.length > 0){
+	q.addConstraint("region",activeSpatialDimension,{"zoom":19,"geometry":[geoConstraints[0].geometry[4], geoConstraints[0].geometry[1],geoConstraints[0].geometry[0],geoConstraints[0].geometry[5]]});
+    }
+    //
+    // console.log("===>",activePayloadDimension);
+    //console.log(q.toString());
+    ndsInterface.query(q);
+
+
+}
+
+function updateBoxPlot(data){
+    debugger
+}
+
+/*******************
+ * Query Functions *
+ *******************/
+
+function queryEquiDepthPlot(){
+    //http://localhost:7000/api/query/dataset=green_tripdata_2013/aggr=count/aggr=quantile.(0.5)/const=payment_type.values.(all)/group=payment_type
+    //[[[0,354622],[1,728901],[2,4475],[3,3180]],[[0,5.0,29.94832992553711],[1,5.0,32.01000213623047],[2,5.0,35.29999923706055],[3,5.0,31.049999237060548]]]
+    var q = new NDSQuery(datasetInfo.datasetName,activeCategoricalDimension,
+			 function(queryReturn){
+			     //debugger
+			     var counts = {};
+			     if(queryReturn.length != 2){
+				 console.log("error")
+				 return;
+			     }
+			     queryReturn[1].forEach(d=>{counts[d[0]]=d[1]});
+			     //console.log("totalcounts",counts);
+			     var result = queryReturn[0];
+			     var numEntries = result.length;
+			     //{"lower":0,"upper":0.1  ,"density":0.25}
+			     var data = [];
+
+			     if(numEntries > 0){
+				 if(true){
+				     console.log(queryReturn);
+				     //
+				     var prevEntry = result[0];
+				     var bins = [];
+				     
+				     for(var i = 1 ; i < numEntries ; ++i){
+					 var entry = result[i];
+					 if(prevEntry[0] == entry[0]){
+					     var totalCount = counts[entry[0]];
+					     bins.push({"lower":prevEntry[2],"upper":entry[2],"density":(1.0/(1+entry[2]-prevEntry[2]))});
+					 }
+					 else{
+					     data.push({"label":mapIndexToName[prevEntry[0]],"bins":bins});
+					     bins = [];
+					 }
+
+					 prevEntry = entry;
+				     }
+				     
+				     data.push({"label":mapIndexToName[prevEntry[0]],"bins":bins});
+				 }
+				 else{
+				     //
+				     var prevEntry = result[0];
+				     var bins = [];
+				     for(var i = 1 ; i < numEntries ; ++i){
+					 var entry = result[i];
+					 var totalCount = counts[entry[0]];
+					 
+					 bins.push({"lower":prevEntry[1],"upper":entry[1],"density":(1.0/(1+entry[1]-prevEntry[1]))});
+					 prevEntry = entry;
+				     }
+				     console.log("bins",bins.map(d=>d.density));
 				     data.push({"label":"0","bins":bins});
 				 }
 				 //TODO:normalize
@@ -98,27 +200,40 @@ function queryEquiDepthPlot(){
 
 			     
 			     equidepthWidget.setYAxisLabel(datasetInfo.payloadsScreenNames[activePayloadDimension]);
+			     console.log(data);
 			     equidepthWidget.setData(data);
 			 });
     q.addAggregation("quantile",activePayloadDimension + "_t");
     q.addAggregation("count");
-    q.setPayload({"quantiles":d3.range(11).map(d=>0.1*d)});
+    //q.setPayload({"quantiles":d3.range(11).map(d=>0.1*d)});
+    q.setPayload({"quantiles":d3.range(5).map(d=>0.25*d)});
+    //q.setPayload({"quantiles":d3.range(5).map(d=>0.25*d)});
     //
     q.addConstraint("time_interval",activeTemporalDimension,timeConstraint);
+    q.addConstraint("categorical",activeCategoricalDimension,{"values":Object.keys(mapIndexToName)});
     //q.addConstraint("categorical",activeCategoricalDimension,{"values":["all"]});
     if(geoConstraints.length > 0){
 	q.addConstraint("region",activeSpatialDimension,{"zoom":19,"geometry":[geoConstraints[0].geometry[4], geoConstraints[0].geometry[1],geoConstraints[0].geometry[0],geoConstraints[0].geometry[5]]});
     }
     //
-    console.log("===>",activePayloadDimension);
-    console.log(q.toString());
+    // console.log("===>",activePayloadDimension);
+    //console.log(q.toString());
     ndsInterface.query(q);
 
 }
 
 function completeCurve(curve,defaultMinTime,defaultMaxTime,step,auxFactor){
+    
     if(auxFactor == undefined)
 	auxFactor = 1;
+
+    // if(true){
+    // 	var newCurve = [];
+    // 	d3.range(curve.length).forEach(i=>{
+    // 	    newCurve.push([auxFactor*curve[i][0],curve[i][1]]);
+    // 	});
+    // 	return newCurve;
+    // }
     
     if(curve.length == 0){
 	var minTime = defaultMinTime;
@@ -177,7 +292,7 @@ function queryBandPlot(){
 				     data[i%numQuantiles].push([result[i][0],result[i][2]])
 				 }
 			     }
-
+			     
 			     //
 			     data = data.map(curve=>completeCurve(curve,initialTimeConstraint.lower,initialTimeConstraint.upper,datasetInfo.timeStep,1000));
 			     
@@ -219,11 +334,12 @@ function queryBandPlot(){
 			     //
 			     bandPlotWidget.setYAxisLabel(datasetInfo.payloadsScreenNames[activePayloadDimension]);
 			     bandPlotWidget.setData(bands,[{"curve":medianCurve,"color":"black"},
-							   {"curve":averageCurve,"color":"blue"}]);
+			      				   {"curve":averageCurve,"color":"blue"}]);
+			     //bandPlotWidget.setData(bands,[{"curve":medianCurve,"color":"black"}]);
 			 });
     //
     q.addAggregation("quantile",activePayloadDimension + "_t");
-    q.setPayload({"quantiles":[0.25,0.5,0.75]});
+    q.setPayload({"quantiles":[0.1,0.25,0.5,0.75,0.9]});
     q.addAggregation("average",activePayloadDimension + "_g");
     //
     q.addConstraint("time_interval",activeTemporalDimension,timeConstraint);
@@ -231,13 +347,14 @@ function queryBandPlot(){
 	q.addConstraint("region",activeSpatialDimension,{"zoom":19,"geometry":[geoConstraints[0].geometry[4], geoConstraints[0].geometry[1],geoConstraints[0].geometry[0],geoConstraints[0].geometry[5]]});
     }
     //
-    console.log(q.toString());
+    //console.log(q.toString());
     ndsInterface.query(q);
 }
 
 function updateSystem(){
     queryBandPlot();
     queryEquiDepthPlot();
+    queryBoxPlot();
     var ndsLayer = myMap.getLayer("ndsLayer");
     ndsLayer.repaint();
 }
@@ -271,6 +388,7 @@ function mapSelectionChanged(mapConstraints){
     //
     queryEquiDepthPlot();
     queryBandPlot();
+    queryBoxPlot();
 }
 
 function setTemporalConstraint(constraint){
@@ -378,8 +496,8 @@ function initializeSystem(){
 
     
     //add boxplot histogram
-    // var boxPlotWidgetDiv = d3.select("body").append("div").attr("id","boxPlotWidget");
-    // boxPlotWidget = new BoxPlotWidget(boxPlotWidgetDiv,"boxPlotWidget");
+    var boxPlotWidgetDiv = d3.select("body").append("div").attr("id","boxPlotWidget");
+    boxPlotWidget = new BoxPlotWidget(boxPlotWidgetDiv,"boxPlotWidget");
 
     //add equidepth histogram
     var equidepthWidgetDiv = d3.select("body").append("div").attr("id","equidepthWidget");
@@ -399,7 +517,7 @@ function initializeSystem(){
     // timeSeriesWidget = new TimeSeriesWidget(equidepthWidgetDiv,"equidepthWidgetDiv");
     
     //
-    // queryBoxPlot();
+    queryBoxPlot();
     queryEquiDepthPlot();
     queryBandPlot();
 }
@@ -419,8 +537,7 @@ function initializeSystem(){
     timeConstraint             = {"lower":initialTimeConstraint.lower,"upper":initialTimeConstraint.upper};
     datasetTimeStep            = datasetInfo.timeStep; 
     
-    
     //
-    ndsInterface = new NDSInterface("localhost",7001,d=>{console.log("creation of NDS interface done!")});
+    ndsInterface = new NDSInterface("localhost",7000,d=>{console.log("creation of NDS interface done!")});
     initializeSystem();
 })()

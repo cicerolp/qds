@@ -62,21 +62,21 @@
 #boxPlotWidget {
     position: relative;
     left: 1120px;
-    top: 1100px;
+    top: -400px;
     display: block;
 }
 
 #equidepthWidget {
     position: relative;
     left: 1120px;
-    top: -1050px;
+    top: -1300px;
     display: block;
 }
 
 #bandWidget {
     position: relative;
     left: 1120px;
-    top: -950px;
+    top: -1300px;
     display: block;
 }
 

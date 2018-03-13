@@ -34,6 +34,17 @@ class BoxPlot{
 	    .attr("transform","translate("+(this.margins.left+5) + ",0)");
 
 	//
+	var widget = this;
+	this.transform = d3.zoomTransform(container);
+	var zoom = d3.zoom()
+	    .on("zoom", function(){
+		widget.zoomed(widget,d3.event);
+	    });
+
+	container.call(zoom);
+
+	
+	//
 	this.canvas.append("text").attr("id",widgetID + "_labelXAxis");
 	this.canvas.append("text").attr("id",widgetID + "_labelYAxis");
 	this.xLabel = "";
@@ -42,6 +53,11 @@ class BoxPlot{
 	this.updatePlot();
     }
 
+    zoomed(widget,event){
+	widget.transform = event.transform;
+	widget.updatePlot();
+    }
+    
     setXAxisLabel(xLabel){
 	this.xLabel = xLabel;
     }
@@ -62,6 +78,11 @@ class BoxPlot{
 	    .style("text-anchor", "middle")
 	    .text(this.xLabel);
 	//text label for the y axis
+	var yScale = this.transform.rescaleY(this.yScale);
+	this.yAxis.scale(yScale);
+	this.canvas.selectAll(".yAxis").call(this.yAxis);
+
+	
 	this.yAxis(this.canvas.select(".yAxis"));
 	this.canvas.select("#" + this.widgetID + "_labelYAxis")
 	    .attr("transform", "rotate(-90)")
@@ -91,7 +112,8 @@ class BoxPlot{
 	    .selectAll(".spine")
 	    .data(this.data);
 
-	console.log(this.xScale.domain());
+
+	var yScale = this.transform.rescaleY(this.yScale);
 	
 	spines.exit().remove();
 	spines
@@ -100,9 +122,9 @@ class BoxPlot{
 	    .attr("class","spine")
 	    .merge(spines)
 	    .attr("x1",(function(d){return this.xScale(d[0])+this.xScale.bandwidth()/2}).bind(this))
-	    .attr("y1",(function(d,i){return this.yScale(d[1]);}).bind(this))
+	    .attr("y1",(function(d,i){return yScale(d[1]);}).bind(this))
 	    .attr("x2",(function(d){return this.xScale(d[0])+this.xScale.bandwidth()/2}).bind(this))
-	    .attr("y2",(function(d,i){return this.yScale(d[5]);}).bind(this))
+	    .attr("y2",(function(d,i){return yScale(d[5]);}).bind(this))
 	    .attr("stroke","black");
 
 	//bodies
@@ -116,8 +138,8 @@ class BoxPlot{
 	    .attr("class","body")
 	    .attr("width",this.xScale.bandwidth())
 	    .attr("x",(d=>this.xScale(d[0])).bind(this))
-	    .attr("y",(d=>this.yScale(d[4])).bind(this))
-	    .attr("height",(d=>this.yScale(d[2])-this.yScale(d[4])).bind(this))
+	    .attr("y",(d=>yScale(d[4])).bind(this))
+	    .attr("height",(d=>yScale(d[2])-yScale(d[4])).bind(this))
 	    .attr("stroke","black")
 	    .attr("fill","white");
 
@@ -130,9 +152,9 @@ class BoxPlot{
 	    .attr("class","median")
 	    .merge(medians)
 	    .attr("x1",(function(d){return this.xScale(d[0])}).bind(this))
-	    .attr("y1",(function(d,i){return this.yScale(d[3]);}).bind(this))
+	    .attr("y1",(function(d,i){return yScale(d[3]);}).bind(this))
 	    .attr("x2",(function(d){return this.xScale(d[0])+this.xScale.bandwidth()}).bind(this))
-	    .attr("y2",(function(d,i){return this.yScale(d[3]);}).bind(this))
+	    .attr("y2",(function(d,i){return yScale(d[3]);}).bind(this))
 	    .attr("stroke","black");
 	
     }

@@ -14,7 +14,7 @@ function heatmap_layer(value) {
         currTileValue = value;
 
         var context = canvas.getContext('2d');
-        context.globalCompositeOperation = 'color';
+        context.globalCompositeOperation = 'darken';
 
         // [dimension_name].tile.([x]:[y]:[z]:[resolution])
 
@@ -31,12 +31,12 @@ function heatmap_layer(value) {
 	    _pipelineURL +
 	    "/join=right_join" + 
                 "/threshold=" + curr_join_threshold +
-                "/source/aggr=average.dep_delay_g/dataset=" +                 
+                "/source/aggr=average.total_amount_g/dataset=" +                 
                 _schema + map_const + map_group +
-		"/const=crs_dep_time.interval.(1511481600:1511568000)" +
-                	    
-                "/destination/aggr=inverse.dep_delay_t.($)/dataset=" + 
-                _schema + map_const + map_group + query_const,
+		"/const=pickup_datetime.interval.(1414785600:1414800000)" +                	    
+                "/destination/aggr=inverse.total_amount_t.($)/dataset=" +
+                _schema + map_const + map_group// + query_const
+	    + "/const=pickup_datetime.sequence.(1412294400:86400:5:604800)",
 
 	    
 
@@ -102,8 +102,8 @@ function color_tile(entry) {
         var x1 = (lon2tilex(lon1, entry.tile_zoom) - entry.tile_x) * 256;
         var y1 = (lat2tiley(lat1, entry.tile_zoom) - entry.tile_y) * 256;
 
-	if(d[4] < 0)
-	    console.log("****",d);
+	// if(d[4] < 0)
+	//     console.log("****",d);
 	
         var datum = {
             data_zoom: d[2],
@@ -131,9 +131,30 @@ function pickDrawFuncs() {
 
             return "rgba(" + r + "," + g + "," + b + "," + 1.0 + ")";
         },
-        bbb: d3.scale.threshold()
-            .domain([0.0, 0.25, 0.75])
-            .range(['rgba(152,78,163,0.75)', 'rgba(228,26,28,0.75)','rgba(55,126,184,0.75)','rgba(77,175,74,0.75)']),
+        bbb:function(v){
+	    if(v < 0)
+		return 'rgba(228,26,28,1.0)'
+	    else{
+		if(0.25 <= v && v<= 0.75){
+		    return "rgba(107,174,214,1.0)";
+		}
+		else{
+		    return "rgba(33,113,181,1.0)";
+		}
+
+		// //var depth = Math.abs(0.5-v);
+		// var f = d3.scale.quantize().domain([0,0.5]).range(["rgba(239,243,255,0.75)",
+		// 						    //"rgba(189,215,231,0.75)",
+		// 						    "rgba(107,174,214,0.75)",
+		// 						    "rgba(33,113,181,0.75)"])
+		//return f(depth);
+	    }
+
+	}
+	,
+	// d3.scale.threshold()
+        //     .domain([0.0, 0.25, 0.75])
+        //     .range(['rgba(136,86,167,0.75)', 'rgba(228,26,28,0.75)','rgba(55,126,184,0.75)','rgba(77,175,74,0.75)']),
 
         debug: function (count) {
             return "rgba(256,256,256,1.0)";
@@ -143,7 +164,7 @@ function pickDrawFuncs() {
 
     var drawfuncs = {
         circle: function draw_circle(context, datum) {
-            var radius = 2.0;
+            var radius = datum.x1-datum.x0;
             var midx = (datum.x0 + datum.x1) / 2;
             var midy = (datum.y0 + datum.y1) / 2;
             context.beginPath();

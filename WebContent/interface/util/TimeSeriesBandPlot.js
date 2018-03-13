@@ -113,6 +113,11 @@ class TimeSeriesBandPlot{
 	    .attr("y",(canvasHeight + this.margins.top + 20))
 	    .style("text-anchor", "middle")
 	    .text(this.xLabel);
+
+	// this.canvas.select(".xAxis")
+	//     .selectAll("text").style("font-size","18px"); //To change the font size of texts
+
+	
 	//text label for the y axis
 	this.yAxis(this.canvas.select(".yAxis"));
 	this.canvas.select("#" + this.widgetID + "_labelYAxis")

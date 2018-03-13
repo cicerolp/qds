@@ -24,7 +24,7 @@ var datasets = {
 	
     },
     "yellow_cabs":{
-	"datasetName":"yellow_tripdata_2011_10",
+	"datasetName":"yellow_tripdata",
 	"timeStep":14400,
 	"initialTimeConstraint":{"lower":1317427200,"upper":1320105600},
 	"temporalDimension":["pickup_datetime"],
@@ -49,14 +49,14 @@ var datasets = {
 	
     },
     "flights":{
-	"datasetName":"on_time_performance_2016",
+	"datasetName":"on_time_performance",
 	"timeStep":86400,
-	"initialTimeConstraint":{"lower":1451606400,"upper":1483228800},
+	"initialTimeConstraint":{"lower":1388534400,"upper":1420070400},
 	"temporalDimension":["crs_dep_time"],
 	"spatialDimension":["origin_airport","dest_airport"],
-	"categoricalDimension":["cancelled","diverted,unique_carrier"],
-	"payloads":["arr_delay","arr_delay_minutes","actual_elapsed_time","air_time","distance"],
-	"payloadsScreenNames":{"arr_delay": "Arrival Delay", "arr_delay_minutes": "Arrival Delay (min)", "actual_elapsed_time":"Actual Elapsed Time", "air_time": "Air Time", "distance": "Distance"},
+	"categoricalDimension":["unique_carrier","airline","cancelled","diverted"],
+	"payloads":["arr_delay","dep_delay"],
+	"payloadsScreenNames":{"arr_delay": "Arrival Delay", "dep_delay": "DepartureDelay"},
 	"aliases":{"payment_type":{"0":"Credit",
 				   "1":"Cash",
 				   "2":"No Charge",

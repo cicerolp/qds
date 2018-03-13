@@ -3,7 +3,7 @@
     <name>yellow_tripdata</name>
     <bytes>46</bytes>
     <files>
-        <file>yellow_tripdata_2011_10.nds</file>
+        <file>yellow_tripdata_2001_10.nds</file>
     </files>
     <schema>
         <categorical>
@@ -18,7 +18,7 @@
         </categorical>
         <temporal>
             <index>pickup_datetime</index>
-            <bin>86400</bin>
+            <bin>14400</bin>
             <offset>22</offset>
         </temporal>
         <spatial>

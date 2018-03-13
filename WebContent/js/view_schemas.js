@@ -47,7 +47,7 @@ var view_schemas = {
     },
 
     "yellow_tripdata": {
-        PLOTTING: "black",
+        PLOTTING: "white",
         PLOTTING_MODE: "rect",
         PLOTTING_COLOR_SCALE: "bbb",
         PLOTTING_TRANSFORM: "density_scaling",
