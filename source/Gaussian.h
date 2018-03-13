@@ -18,6 +18,8 @@ class Gaussian : public Payload {
 
 class AggrGaussian : public AgrrPayload {
  public:
+  virtual ~AggrGaussian() = default;
+
   inline bool empty() const override {
     return count_i.size() == 0;
   }

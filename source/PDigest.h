@@ -101,6 +101,8 @@ class PDigest : public Payload {
 
 class AgrrPDigest : public AgrrPayload {
  public:
+  virtual ~AgrrPDigest() = default;
+
   inline bool empty() const override {
     return _lastUsedCell == 0;
   }

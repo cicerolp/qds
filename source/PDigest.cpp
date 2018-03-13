@@ -45,11 +45,7 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
 
     float projectedW = wSoFar + proposedWeight;
 
-    bool addThis = false;
-
-    addThis = projectedW <= wLimit;
-
-    if (addThis) {
+    if (projectedW <= wLimit) {
       weight_equals_one = false;
 
       // next point will fit
@@ -86,6 +82,8 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
     // payload does not contains weight array
     payload.emplace_back(0.f);
 
+    assert(payload.size() == (lastUsedCell + 1));
+
   } else {
     payload.reserve(lastUsedCell * 2 + 1);
 
@@ -95,6 +93,8 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
 
     // payload contains weight array
     payload.emplace_back(1.f);
+
+    assert(payload.size() == (lastUsedCell * 2 + 1));
   }
 #else
   payload.reserve(lastUsedCell * 2);
@@ -192,7 +192,7 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const Pivot &pivot) {
 
     size_t curr = _buffer_mean.size();
     _buffer_mean.resize(curr + payload_size);
-    _buffer_weight.resize(curr + payload_size);
+    _buffer_weight.reserve(curr + payload_size);
 
     // insert mean data
     std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
@@ -250,10 +250,10 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, cons
 
       size_t curr = _buffer_mean.size();
       _buffer_mean.resize(curr + payload_size);
-      _buffer_weight.resize(curr + payload_size);
+      _buffer_weight.reserve(curr + payload_size);
 
       // insert mean data
-      std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload.upper - payload.lower);
+      std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
       // insert weight data
       _buffer_weight.insert(_buffer_weight.end(), payload_size, 1.f);
 
@@ -273,7 +273,7 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, cons
     ++it;
   }
 #else
-  /*auto it = it_lower;
+  auto it = it_lower;
   // insert payload data
   while (it != it_upper) {
     count += (*it).size();
@@ -291,7 +291,7 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, cons
       std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
 
     ++it;
-  }*/
+  }
 #endif // PDIGEST_OPTIMIZE_ARRAY
 
   if (_buffer_mean.size() >= PDIGEST_BUFFER_SIZE) {
@@ -306,19 +306,14 @@ float AgrrPDigest::quantile(float q) {
     merge_buffer_data();
   }
 
-  if (_lastUsedCell == 0 && _weight[_lastUsedCell] == 0) {
+  if (_lastUsedCell == 0) {
     // no centroids means no data, no way to get a quantile
     return std::numeric_limits<float>::quiet_NaN();
-
-  } else if (_lastUsedCell == 0) {
-    // with one data point, all quantiles lead to Rome
-    return _mean[0];
   }
 
   // we know that there are at least two centroids now
   int32_t n = _lastUsedCell;
 
-  //float totalWeight = std::accumulate(_weight.begin(), _weight.begin() + _lastUsedCell, 0.f);
   float totalWeight = 0.f;
   for (auto i = 0; i < _lastUsedCell; ++i) {
     totalWeight += _weight[i];
@@ -361,7 +356,7 @@ float AgrrPDigest::inverse(float value) {
     merge_buffer_data();
   }
 
-  if (_lastUsedCell == 0 && _weight[_lastUsedCell] == 0) {
+  if (_lastUsedCell == 0) {
     // no centroids means no data, no way to get a quantile
     return std::numeric_limits<float>::quiet_NaN();
   }

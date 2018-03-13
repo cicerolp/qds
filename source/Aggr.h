@@ -14,6 +14,7 @@ class Aggr {
  public:
   Aggr() = default;
   Aggr(const Query::aggr_expr &expr, size_t __index) : _expr(expr), _payload_index(__index) {};
+  virtual ~Aggr() = default;
 
  protected:
   virtual inline void write_value(uint64_t value, json &writer) const {
@@ -40,6 +41,7 @@ class Aggr {
 class AggrGroupBy : public Aggr {
  public:
   AggrGroupBy(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
+  virtual ~AggrGroupBy() = default;
 
   virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) = 0;
 
@@ -79,6 +81,7 @@ class AggrSummarize : public Aggr {
  public:
   AggrSummarize() = default;
   AggrSummarize(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
+  virtual ~AggrSummarize() = default;
 
   virtual void merge(const pivot_it &it_lower, const pivot_it &it_upper) = 0;
   virtual void merge(const range_it &it_lower, const range_it &it_upper) = 0;
@@ -106,6 +109,7 @@ class AggrCountGroupBy : public AggrGroupBy {
  public:
   AggrCountGroupBy(const Query::aggr_expr &expr, size_t __index) :
       AggrGroupBy(expr, __index) {}
+  virtual ~AggrCountGroupBy() = default;
 
   virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) override {
     auto it = it_lower;
@@ -152,6 +156,7 @@ class AggrCountSummarize : public AggrSummarize {
   AggrCountSummarize() = default;
   AggrCountSummarize(const Query::aggr_expr &expr, size_t __index) :
       AggrSummarize(expr, __index) {}
+  virtual ~AggrCountSummarize() = default;
 
   void merge(const pivot_it &it_lower, const pivot_it &it_upper) override {
     auto it = it_lower;
@@ -186,6 +191,7 @@ class AggrPayloadGroupBy : public AggrGroupBy {
  public:
   AggrPayloadGroupBy(const Query::aggr_expr &expr, size_t __index) :
       AggrGroupBy(expr, __index) {}
+  virtual ~AggrPayloadGroupBy() = default;
 
   void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) override {
     uint32_t count = _map[value].payload.merge(_payload_index, it_lower, it_upper);
@@ -218,6 +224,7 @@ class AggrPayloadSummarize : public AggrSummarize {
   AggrPayloadSummarize() = default;
   AggrPayloadSummarize(const Query::aggr_expr &expr, size_t __index) :
       AggrSummarize(expr, __index) {}
+  virtual ~AggrPayloadSummarize() = default;
 
   void merge(const pivot_it &it_lower, const pivot_it &it_upper) override {
     _map.merge(_payload_index, it_lower, it_upper);
@@ -240,6 +247,7 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
  public:
   AggrPDigestGroupBy(const Query::aggr_expr &expr, size_t __index) :
       AggrPayloadGroupBy(expr, __index) {}
+  virtual ~AggrPDigestGroupBy() = default;
 
   void output(json &writer) override {
     auto parameters = AgrrPDigest::get_parameters(_expr);
@@ -436,6 +444,7 @@ class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
   AggrPDigestSummarize() = default;
   AggrPDigestSummarize(const Query::aggr_expr &expr, size_t __index) :
       AggrPayloadSummarize(expr, __index) {}
+  virtual ~AggrPDigestSummarize() = default;
 
   void output(json &writer) override {
     output(AgrrPDigest::get_parameters(_expr), writer);
@@ -484,6 +493,7 @@ class AggrGaussianGroupBy : public AggrPayloadGroupBy<AggrGaussian> {
  public:
   AggrGaussianGroupBy(const Query::aggr_expr &expr, size_t __index) :
       AggrPayloadGroupBy(expr, __index) {}
+  virtual ~AggrGaussianGroupBy() = default;
 
   void output(json &writer) override {
     if (_expr.first == "variance") {
@@ -525,6 +535,7 @@ class AggrGaussianSummarize : public AggrPayloadSummarize<AggrGaussian> {
   AggrGaussianSummarize() = default;
   AggrGaussianSummarize(const Query::aggr_expr &expr, size_t __index) :
       AggrPayloadSummarize(expr, __index) {}
+  virtual ~AggrGaussianSummarize() = default;
 
   void output(json &writer) override {
     if (_expr.first == "variance") {
