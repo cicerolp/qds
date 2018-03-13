@@ -539,7 +539,7 @@ class AggrGaussianSummarize : public AggrPayloadSummarize<AggrGaussian> {
     }
   }
 
-  virtual pipe_ctn get_pipe() {
+  virtual pipe_ctn get_pipe() override {
     if (_expr.first == "variance") {
       return {_map.variance()};
     } else if (_expr.first == "average") {

@@ -59,4 +59,6 @@ std::string NDSInstances::schema(const std::string &url) const {
       }
     }
   }
+
+  return "[]";
 }

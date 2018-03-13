@@ -1,6 +1,8 @@
 project(nds)
 cmake_minimum_required(VERSION 3.0)
 
+set (CMAKE_CXX_STANDARD 17)
+
 option(ENABLE_GPERF "Enable Gperftools Profiler" OFF)
 
 # nds options
