@@ -192,7 +192,7 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const Pivot &pivot) {
 
     size_t curr = _buffer_mean.size();
     _buffer_mean.resize(curr + payload_size);
-    _buffer_weight.reserve(curr + payload_size);
+    // _buffer_weight.reserve(curr + payload_size);
 
     // insert mean data
     std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
@@ -250,7 +250,7 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, cons
 
       size_t curr = _buffer_mean.size();
       _buffer_mean.resize(curr + payload_size);
-      _buffer_weight.reserve(curr + payload_size);
+      // _buffer_weight.reserve(curr + payload_size);
 
       // insert mean data
       std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
