@@ -50,8 +50,8 @@ var datasets = {
     },
     "flights":{
 	"datasetName":"on_time_performance",
-	"timeStep":86400,
-	"initialTimeConstraint":{"lower":1388534400,"upper":1420070400},
+	"timeStep":86400, 
+	"initialTimeConstraint":{"lower":1483228800,"upper":1514851200},
 	"temporalDimension":["crs_dep_time"],
 	"spatialDimension":["origin_airport","dest_airport"],
 	"categoricalDimension":["unique_carrier","airline","cancelled","diverted"],

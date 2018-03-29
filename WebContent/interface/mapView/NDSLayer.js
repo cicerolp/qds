@@ -216,6 +216,9 @@ L.GridLayer.CanvasCircles = L.GridLayer.extend({
 	}
 
 	//
+	//query.addConstraint("categorical","unique_carrier",{"values":["1432"]});
+	query.addConstraint("categorical","unique_carrier",{"values":Object.keys(mapIndexToName)});
+	
 	query.setThreshold(this.options.queryThreshold);
 	query.tile = [tileInTotalResolution[0],tileInTotalResolution[1],totalResolution];
 	//console.log(query.toString());

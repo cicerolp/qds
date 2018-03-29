@@ -20,9 +20,13 @@ var activeTemporalDimension    = undefined;
 var activeSpatialDimension     = undefined;
 var activePayloadDimension     = undefined;
 
-var mapIndexToName = {"177":"AA","302":"Alaska Airlines","343":"JetBlue","526":"Delta", "1067":"SkyWest","1432":"United","1444":"US Airways","1529":"Southwest"};
+//var mapIndexToName = {"177":"AA","302":"Alaska Airlines","343":"JetBlue","526":"Delta", "714":"Hawaiian Airlines","1067":"SkyWest","1432":"United","1444":"US Airways","1489":"Virgin America","1529":"Southwest"};
+
+var mapIndexToName = {"526":"Delta","302":"Alaska Airlines","1432":"United","1067":"SkyWest","177":"AA","1529":"Southwest","343":"JetBlue"};
+
 
 //
+//http://localhost:7000/api/query/dataset=on_time_performance/aggr=inverse.arr_delay_t.(15)/const=crs_dep_time.interval.(1483239600:1509418800)/const=unique_carrier.values.(177:302:343:526:1067:1432:1529)//group=unique_carrier
 var inverseQuantileScale = d3.scaleQuantile().domain([0,1]).range(d3.schemeRdBu[7]);
 
 function getAlias(dimension,value){
@@ -60,7 +64,8 @@ function queryBoxPlot(){
 					 }
 					 else{
 					     bins.push(currentBin);
-					     currentBin = [mapIndexToName[entry[0]],entry[2]];
+					     label = (entry[0] in mapIndexToName)?mapIndexToName[entry[0]]:entry[0]
+					     currentBin = [label,entry[2]];
 					     currentKey = entry[0];
 					 }
 				     }
@@ -98,7 +103,8 @@ function queryBoxPlot(){
 
 			     
 			     //boxPlotWidget.setYAxisLabel(datasetInfo.payloadsScreenNames[activePayloadDimension]);
-			     console.log(data);
+			     console.log("=======+>",data);
+			     data = [data[2],data[6],data[0],data[4],data[5],data[1],data[3]];
 			     boxPlotWidget.setData(data);
 			 });
     q.addAggregation("quantile",activePayloadDimension + "_t");
@@ -141,7 +147,12 @@ function queryEquiDepthPlot(){
 				 return;
 			     }
 			     queryReturn[1].forEach(d=>{counts[d[0]]=d[1]});
-			     //console.log("totalcounts",counts);
+			     //
+			     var _values = Object.values(counts);
+			     var _sum = 0;
+			     _values.forEach(d=>{_sum += d;})
+			     console.log("**** totalcounts",_sum);
+			     //
 			     var result = queryReturn[0];
 			     var numEntries = result.length;
 			     //{"lower":0,"upper":0.1  ,"density":0.25}
@@ -205,8 +216,8 @@ function queryEquiDepthPlot(){
 			 });
     q.addAggregation("quantile",activePayloadDimension + "_t");
     q.addAggregation("count");
-    //q.setPayload({"quantiles":d3.range(11).map(d=>0.1*d)});
-    q.setPayload({"quantiles":d3.range(5).map(d=>0.25*d)});
+    q.setPayload({"quantiles":d3.range(11).map(d=>0.1*d)});
+    //q.setPayload({"quantiles":d3.range(5).map(d=>0.25*d)});
     //q.setPayload({"quantiles":d3.range(5).map(d=>0.25*d)});
     //
     q.addConstraint("time_interval",activeTemporalDimension,timeConstraint);
@@ -522,10 +533,16 @@ function initializeSystem(){
     queryBandPlot();
 }
 
+function loadAuxData(){
+//    d3.csv(""
+}
+
 /*******************
  * Start Execution *
  *******************/
 (function(){
+    //
+    loadAuxData();
     //
     console.log("EVV");
     datasetInfo = datasets[currentDataset];

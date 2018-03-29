@@ -23,7 +23,7 @@ class BoxPlot{
 	this.canvas
 	    .append("g")
 	    .attr("class","xAxis")
-	    .attr("transform","translate(0," + this.canvasHeight  + ")");
+	    .attr("transform","translate(0," + (5+this.canvasHeight)  + ")");
 
 	//
 	this.yScale = d3.scaleLinear().range([this.canvasHeight,0]);
@@ -31,7 +31,7 @@ class BoxPlot{
 	this.canvas
 	    .append("g")
 	    .attr("class","yAxis")
-	    .attr("transform","translate("+(this.margins.left+5) + ",0)");
+	    .attr("transform","translate("+(this.margins.left+15) + ",0)");
 
 	//
 	var widget = this;
