@@ -5,6 +5,18 @@ function loadLineChart(data, entry) {
         data = data[0];
     }
 
+    var sorted = data.slice(0, data.length);
+
+    sorted.sort(function (a,b){
+        return b[1] - a[1];
+    });
+
+    for (var i = 0; i < Math.min(10, sorted.length); ++i) {
+        console.log(new Date(sorted[i][0] * 1000).toUTCString() + ":" + sorted[i][1])
+    }
+
+    console.log("----------------------")
+
     var margin = {
         top: 10,
         right: 40,

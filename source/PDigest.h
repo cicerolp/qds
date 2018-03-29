@@ -101,6 +101,8 @@ class PDigest : public Payload {
 
 class AgrrPDigest : public AgrrPayload {
  public:
+  virtual ~AgrrPDigest() = default;
+
   inline bool empty() const override {
     return _lastUsedCell == 0;
   }
@@ -108,8 +110,8 @@ class AgrrPDigest : public AgrrPayload {
   uint32_t merge(size_t payload_index, const Pivot &pivot) override;
   uint32_t merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) override;
 
-  float quantile(float q) const;
-  float inverse(float value) const;
+  float quantile(float q);
+  float inverse(float value);
 
   static inline pipe_ctn get_parameters(const Query::aggr_expr &expr) {
     auto clausule = boost::trim_copy_if(expr.second.second, boost::is_any_of("()"));

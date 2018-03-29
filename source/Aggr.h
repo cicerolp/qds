@@ -14,6 +14,7 @@ class Aggr {
  public:
   Aggr() = default;
   Aggr(const Query::aggr_expr &expr, size_t __index) : _expr(expr), _payload_index(__index) {};
+  virtual ~Aggr() = default;
 
  protected:
   virtual inline void write_value(uint64_t value, json &writer) const {
@@ -40,21 +41,29 @@ class Aggr {
 class AggrGroupBy : public Aggr {
  public:
   AggrGroupBy(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
+  virtual ~AggrGroupBy() = default;
 
   virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) = 0;
 
   virtual void output(json &writer) = 0;
+  virtual void output(std::vector<float> &raw) {
+    return;
+  }
 
   virtual void output_one_way(uint64_t value, const pipe_ctn &pipe, json &writer) {
     writer.StartArray();
-    // empty
     writer.EndArray();
+  };
+  virtual void output_one_way(uint64_t value, const pipe_ctn &pipe, std::vector<float> &raw) {
+    return;
   };
 
   virtual void output_two_way(uint64_t value, const pipe_ctn &pipe, json &writer, uint32_t threshold) {
     writer.StartArray();
-    // empty
     writer.EndArray();
+  };
+  virtual void output_two_way(uint64_t value, const pipe_ctn &pipe, std::vector<float> &raw, uint32_t threshold) {
+    return;
   };
 
   virtual std::vector<uint64_t> get_mapped_values(uint32_t threshold) const = 0;
@@ -72,18 +81,26 @@ class AggrSummarize : public Aggr {
  public:
   AggrSummarize() = default;
   AggrSummarize(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
+  virtual ~AggrSummarize() = default;
 
   virtual void merge(const pivot_it &it_lower, const pivot_it &it_upper) = 0;
   virtual void merge(const range_it &it_lower, const range_it &it_upper) = 0;
-  virtual void output(json &writer) = 0;
 
-  virtual pipe_ctn get_pipe() {
-    return pipe_ctn();
+  virtual void output(json &writer) = 0;
+  virtual void output(std::vector<float> &raw) {
+    return;
   }
 
   virtual void output(const pipe_ctn &pipe, json &writer) {
     return;
   };
+  virtual void output(const pipe_ctn &pipe, std::vector<float> &raw) {
+    return;
+  };
+
+  virtual pipe_ctn get_pipe() {
+    return pipe_ctn();
+  }
 };
 
 // count
@@ -92,6 +109,7 @@ class AggrCountGroupBy : public AggrGroupBy {
  public:
   AggrCountGroupBy(const Query::aggr_expr &expr, size_t __index) :
       AggrGroupBy(expr, __index) {}
+  virtual ~AggrCountGroupBy() = default;
 
   virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) override {
     auto it = it_lower;
@@ -138,6 +156,7 @@ class AggrCountSummarize : public AggrSummarize {
   AggrCountSummarize() = default;
   AggrCountSummarize(const Query::aggr_expr &expr, size_t __index) :
       AggrSummarize(expr, __index) {}
+  virtual ~AggrCountSummarize() = default;
 
   void merge(const pivot_it &it_lower, const pivot_it &it_upper) override {
     auto it = it_lower;
@@ -172,6 +191,7 @@ class AggrPayloadGroupBy : public AggrGroupBy {
  public:
   AggrPayloadGroupBy(const Query::aggr_expr &expr, size_t __index) :
       AggrGroupBy(expr, __index) {}
+  virtual ~AggrPayloadGroupBy() = default;
 
   void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) override {
     uint32_t count = _map[value].payload.merge(_payload_index, it_lower, it_upper);
@@ -204,6 +224,7 @@ class AggrPayloadSummarize : public AggrSummarize {
   AggrPayloadSummarize() = default;
   AggrPayloadSummarize(const Query::aggr_expr &expr, size_t __index) :
       AggrSummarize(expr, __index) {}
+  virtual ~AggrPayloadSummarize() = default;
 
   void merge(const pivot_it &it_lower, const pivot_it &it_upper) override {
     _map.merge(_payload_index, it_lower, it_upper);
@@ -226,12 +247,13 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
  public:
   AggrPDigestGroupBy(const Query::aggr_expr &expr, size_t __index) :
       AggrPayloadGroupBy(expr, __index) {}
+  virtual ~AggrPDigestGroupBy() = default;
 
   void output(json &writer) override {
     auto parameters = AgrrPDigest::get_parameters(_expr);
 
     if (_expr.first == "quantile") {
-      for (const auto &pair : _map) {
+      for (auto &pair : _map) {
         for (auto &q : parameters) {
           writer.StartArray();
           write_value(pair.first, writer);
@@ -242,13 +264,32 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
       }
 
     } else if (_expr.first == "inverse") {
-      for (const auto &pair : _map) {
+      for (auto &pair : _map) {
         for (auto &q : parameters) {
           writer.StartArray();
           write_value(pair.first, writer);
           writer.Double(q);
           writer.Double(pair.second.payload.inverse(q));
           writer.EndArray();
+        }
+      }
+    }
+  }
+
+  void output(std::vector<float> &raw) override {
+    auto parameters = AgrrPDigest::get_parameters(_expr);
+
+    if (_expr.first == "quantile") {
+      for (auto &pair : _map) {
+        for (auto &q : parameters) {
+          raw.emplace_back(pair.second.payload.quantile(q));
+        }
+      }
+
+    } else if (_expr.first == "inverse") {
+      for (auto &pair : _map) {
+        for (auto &q : parameters) {
+          raw.emplace_back(pair.second.payload.inverse(q));
         }
       }
     }
@@ -305,6 +346,37 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
     }
   }
 
+  void output_one_way(uint64_t value, const pipe_ctn &pipe, std::vector<float> &raw) override {
+    if (pipe.empty()) {
+      if (_expr.first == "quantile") {
+        raw.emplace_back(std::numeric_limits<float>::quiet_NaN());
+      } else if (_expr.first == "inverse") {
+        raw.emplace_back(-1.0);
+      }
+
+    } else {
+      auto it = _map.find(value);
+
+      if (_expr.first == "quantile") {
+        for (auto &q : pipe) {
+          if (it != _map.end()) {
+            raw.emplace_back((*it).second.payload.quantile(q));
+          } else {
+            raw.emplace_back(std::numeric_limits<float>::quiet_NaN());
+          }
+        }
+      } else if (_expr.first == "inverse") {
+        for (auto &q : pipe) {
+          if (it != _map.end()) {
+            raw.emplace_back((*it).second.payload.inverse(q));
+          } else {
+            raw.emplace_back(-1.0);
+          }
+        }
+      }
+    }
+  }
+
   void output_two_way(uint64_t value, const pipe_ctn &pipe, json &writer, uint32_t threshold) override {
     auto it = _map.find(value);
 
@@ -324,6 +396,22 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
           writer.Double(q);
           writer.Double((*it).second.payload.inverse(q));
           writer.EndArray();
+        }
+      }
+    }
+  }
+
+  void output_two_way(uint64_t value, const pipe_ctn &pipe, std::vector<float> &raw, uint32_t threshold) override {
+    auto it = _map.find(value);
+
+    if (it != _map.end() && (*it).second.count >= threshold) {
+      if (_expr.first == "quantile") {
+        for (auto &q : pipe) {
+          raw.emplace_back((*it).second.payload.quantile(q));
+        }
+      } else if (_expr.first == "inverse") {
+        for (auto &q : pipe) {
+          raw.emplace_back((*it).second.payload.inverse(q));
         }
       }
     }
@@ -356,6 +444,7 @@ class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
   AggrPDigestSummarize() = default;
   AggrPDigestSummarize(const Query::aggr_expr &expr, size_t __index) :
       AggrPayloadSummarize(expr, __index) {}
+  virtual ~AggrPDigestSummarize() = default;
 
   void output(json &writer) override {
     output(AgrrPDigest::get_parameters(_expr), writer);
@@ -404,6 +493,7 @@ class AggrGaussianGroupBy : public AggrPayloadGroupBy<AggrGaussian> {
  public:
   AggrGaussianGroupBy(const Query::aggr_expr &expr, size_t __index) :
       AggrPayloadGroupBy(expr, __index) {}
+  virtual ~AggrGaussianGroupBy() = default;
 
   void output(json &writer) override {
     if (_expr.first == "variance") {
@@ -445,6 +535,7 @@ class AggrGaussianSummarize : public AggrPayloadSummarize<AggrGaussian> {
   AggrGaussianSummarize() = default;
   AggrGaussianSummarize(const Query::aggr_expr &expr, size_t __index) :
       AggrPayloadSummarize(expr, __index) {}
+  virtual ~AggrGaussianSummarize() = default;
 
   void output(json &writer) override {
     if (_expr.first == "variance") {
@@ -459,7 +550,7 @@ class AggrGaussianSummarize : public AggrPayloadSummarize<AggrGaussian> {
     }
   }
 
-  virtual pipe_ctn get_pipe() {
+  virtual pipe_ctn get_pipe() override {
     if (_expr.first == "variance") {
       return {_map.variance()};
     } else if (_expr.first == "average") {

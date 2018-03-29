@@ -50,7 +50,12 @@ struct DimensionSchema {
   std::string index;
 };
 
-using payload_t = stde::dynarray<float>;
+struct payload_t {
+  payload_t(float *__lower, float *__upper) : lower(__lower), upper(__upper) {};
+  float *lower;
+  float *upper;
+};
+
 using payload_ctn = float *;
 
 using pivot_ctn = stde::dynarray<Pivot>;
@@ -87,8 +92,7 @@ struct spatial_t {
       uint64_t y_min = y * n;
       uint64_t y_max = y_min + n;
 
-      return x_min <= other.x && x_max >= other.x && y_min <= other.y &&
-          y_max >= other.y;
+      return x_min <= other.x && x_max >= other.x && y_min <= other.y && y_max >= other.y;
     } else if (other.z == z) {
       return x == other.x && y == other.y;
     } else {
@@ -193,8 +197,12 @@ struct interval_t {
     return bound[0] <= lower && bound[1] >= upper;
   }
 
+  inline std::string to_string() const {
+    return std::to_string(bound[0]) + ":" + std::to_string(bound[1]);
+  }
+
   friend std::ostream &operator<<(std::ostream &os, const interval_t &obj) {
-    return os << obj.bound[0] << "/" << obj.bound[1];
+    return os << obj.bound[0] << ":" << obj.bound[1];
   }
 
   std::array<temporal_t, 2> bound;

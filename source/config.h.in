@@ -7,6 +7,8 @@
 
 #include <cmath>
 
+#cmakedefine ENABLE_GPERF
+
 // nds options
 #cmakedefine NDS_ENABLE_PAYLOAD
 
@@ -27,6 +29,9 @@
         #cmakedefine PDIGEST_PIECE_WISE_APPROXIMATION
         #define PDIGEST_COMPRESSION @PDIGEST_COMPRESSION@
         #define PDIGEST_ARRAY_SIZE ((uint32_t)@PDIGEST_COMPRESSION@ * 2)
+
+        #define PDIGEST_BUFFER_FACTOR @PDIGEST_BUFFER_FACTOR@
+        #define PDIGEST_BUFFER_SIZE PDIGEST_BUFFER_FACTOR * PDIGEST_ARRAY_SIZE
     #endif // ENABLE_PDIGEST
 #endif // ENABLE_PDIGEST
 

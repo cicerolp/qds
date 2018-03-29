@@ -26,6 +26,16 @@ std::string NDSInstances::pipeline(const Pipeline &pipeline) {
   }
 }
 
+std::string NDSInstances::augmented_series(const AugmentedSeries &augmented_series) {
+  auto cube = get_instance(augmented_series.get_pipeline().get_dataset());
+
+  if (!cube) {
+    return ("[]");
+  } else {
+    return cube->augmented_series(augmented_series);
+  }
+}
+
 std::string NDSInstances::schema(const std::string &url) const {
   boost::char_separator<char> sep("/");
   boost::tokenizer<boost::char_separator<char> > tokens(url, sep);
@@ -49,4 +59,6 @@ std::string NDSInstances::schema(const std::string &url) const {
       }
     }
   }
+
+  return "[]";
 }
