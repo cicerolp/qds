@@ -26,6 +26,10 @@ class BoxPlot{
 	    .attr("transform","translate(0," + (5+this.canvasHeight)  + ")");
 
 	//
+	this.mouseLine = -1;
+	this.colors = [];
+	
+	//
 	this.yScale = d3.scaleLinear().range([this.canvasHeight,0]);
 	this.yAxis  = d3.axisLeft(this.yScale);
 	this.canvas
@@ -43,6 +47,7 @@ class BoxPlot{
 
 	container.call(zoom);
 
+	container.on("mousemove",(this.moved).bind(this));
 	
 	//
 	this.canvas.append("text").attr("id",widgetID + "_labelXAxis");
@@ -53,6 +58,22 @@ class BoxPlot{
 	this.updatePlot();
     }
 
+    setMouseMovedCallback(f){
+	this.mouseMovedCallback = f;
+    }
+    
+    moved(){
+	var precisionRound = function(number, precision) {
+	    var factor = Math.pow(10, precision);
+	    return Math.round(number * factor) / factor;
+	}	
+ 	this.mouseLine = precisionRound(d3.mouse(this.canvas.node())[1],1);
+	if(this.mouseMovedCallback)
+	    this.mouseMovedCallback(this.mouseLine);
+	
+	this.updatePlot();
+    }
+    
     zoomed(widget,event){
 	widget.transform = event.transform;
 	widget.updatePlot();
@@ -93,9 +114,10 @@ class BoxPlot{
 	    .text(this.yLabel);
     }
 
-    setData(newData){
+    setData(newData,colors){
 	//
 	this.data = newData;//.map(d=>[d.key,d.values]);
+	this.colors = colors;
 	//
 	this.xScale.domain(this.data.map(d=>d[0]));
 	this.yScale.domain([0, d3.max(this.data.map(d=>d[5]))]);
@@ -141,7 +163,12 @@ class BoxPlot{
 	    .attr("y",(d=>yScale(d[4])).bind(this))
 	    .attr("height",(d=>yScale(d[2])-yScale(d[4])).bind(this))
 	    .attr("stroke","black")
-	    .attr("fill","white");
+	    .attr("fill",(function(d,i){
+		if(this.colors && this.colors.length > 0)
+		    return this.colors[i];
+		else
+		    return "white";
+		}).bind(this));
 
 	//
 	var medians= this.canvas.selectAll(".median").data(this.data);
@@ -158,10 +185,30 @@ class BoxPlot{
 	    .attr("stroke","black");
 	
     }
+
+    updateMouseLine(){
+//	debugger
+	var mLine = this.canvas.selectAll(".mouseLine").data([this.mouseLine]);
+	mLine.remove();
+
+	mLine = this.canvas.selectAll(".mouseLine").data([this.mouseLine]);
+
+	mLine.enter()
+	    .append("line")
+	    .merge(mLine)
+	    .attr("class","mouseLine")
+	    .attr("x1",20)
+	    .attr("x2",1000)
+	    .attr("y1",d=>d)
+	    .attr("y2",d=>d)
+	    .attr("stroke","red")
+	    .attr("stroke-width",2);
+    }
     
     updatePlot(){
 	this.updateAxis();
 	this.updateBars();
+	this.updateMouseLine();
     }
 }
 
