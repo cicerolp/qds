@@ -3,22 +3,12 @@
     <name>yellow_tripdata</name>
     <bytes>46</bytes>
     <files>
-        <file>yellow_tripdata_2011_10.nds</file>
+        <file>yellow_tripdata_2014_10.nds</file>
     </files>
     <schema>
-        <categorical>
-            <index>passenger_count</index>
-            <bin>4</bin>
-            <offset>0</offset>
-        </categorical>
-        <categorical>
-            <index>payment_type</index>
-            <bin>6</bin>
-            <offset>4</offset>
-        </categorical>
         <temporal>
             <index>pickup_datetime</index>
-            <bin>14400</bin>
+            <bin>3600</bin>
             <offset>22</offset>
         </temporal>
         <spatial>
@@ -26,16 +16,6 @@
             <bin>1</bin>
             <offset>6</offset>
         </spatial>
-        <payload>
-            <index>trip_distance_t</index>
-            <bin>0</bin>
-            <offset>30</offset>
-        </payload>
-        <payload>
-            <index>trip_distance_g</index>
-            <bin>1</bin>
-            <offset>30</offset>
-        </payload>
         <payload>
             <index>total_amount_t</index>
             <bin>0</bin>

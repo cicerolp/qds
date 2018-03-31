@@ -11,11 +11,6 @@
             <bin>4</bin>
             <offset>0</offset>
         </categorical>
-        <categorical>
-            <index>payment_type</index>
-            <bin>6</bin>
-            <offset>4</offset>
-        </categorical>
         <temporal>
             <index>pickup_datetime</index>
             <bin>14400</bin>
