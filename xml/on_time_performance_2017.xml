@@ -7,24 +7,9 @@
     </files>
     <schema>
         <categorical>
-            <index>cancelled</index>
-            <bin>2</bin>
-            <offset>0</offset>
-        </categorical>
-        <categorical>
-            <index>diverted</index>
-            <bin>2</bin>
-            <offset>2</offset>
-        </categorical>
-        <categorical>
             <index>unique_carrier</index>
             <bin>1639</bin>
             <offset>4</offset>
-        </categorical>
-        <categorical>
-            <index>origin_airport_id</index>
-            <bin>6437</bin>
-            <offset>6</offset>
         </categorical>
         <temporal>
             <index>crs_dep_time</index>

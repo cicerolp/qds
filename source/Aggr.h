@@ -257,7 +257,7 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
         for (auto &q : parameters) {
           writer.StartArray();
           write_value(pair.first, writer);
-          writer.Double(q);
+          // writer.Double(q);
           writer.Double(pair.second.payload.quantile(q));
           writer.EndArray();
         }
@@ -268,7 +268,7 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
         for (auto &q : parameters) {
           writer.StartArray();
           write_value(pair.first, writer);
-          writer.Double(q);
+          // writer.Double(q);
           writer.Double(pair.second.payload.inverse(q));
           writer.EndArray();
         }
@@ -300,13 +300,13 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
       if (_expr.first == "quantile") {
         writer.StartArray();
         write_value(value, writer);
-        writer.String("NaN");
+        // writer.String("NaN");
         writer.String("NaN");
         writer.EndArray();
       } else if (_expr.first == "inverse") {
         writer.StartArray();
         write_value(value, writer);
-        writer.String("NaN");
+        // writer.String("NaN");
         writer.Double(-1.0);
         writer.EndArray();
       }
@@ -318,7 +318,7 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
         for (auto &q : pipe) {
           writer.StartArray();
           write_value(value, writer);
-          writer.Double(q);
+          // writer.Double(q);
 
           if (it != _map.end()) {
             writer.Double((*it).second.payload.quantile(q));
@@ -332,7 +332,7 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
         for (auto &q : pipe) {
           writer.StartArray();
           write_value(value, writer);
-          writer.Double(q);
+          // writer.Double(q);
 
           if (it != _map.end()) {
             writer.Double((*it).second.payload.inverse(q));
@@ -385,7 +385,7 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
         for (auto &q : pipe) {
           writer.StartArray();
           write_value(value, writer);
-          writer.Double(q);
+          // writer.Double(q);
           writer.Double((*it).second.payload.quantile(q));
           writer.EndArray();
         }
@@ -393,7 +393,7 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
         for (auto &q : pipe) {
           writer.StartArray();
           write_value(value, writer);
-          writer.Double(q);
+          // writer.Double(q);
           writer.Double((*it).second.payload.inverse(q));
           writer.EndArray();
         }
@@ -454,14 +454,14 @@ class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
     if (_expr.first == "quantile") {
       for (auto &q : pipe) {
         writer.StartArray();
-        writer.Double(q);
+        // writer.Double(q);
         writer.Double(_map.quantile(q));
         writer.EndArray();
       }
     } else if (_expr.first == "inverse") {
       for (auto &q : pipe) {
         writer.StartArray();
-        writer.Double(q);
+        // writer.Double(q);
         writer.Double(_map.inverse(q));
         writer.EndArray();
       }
