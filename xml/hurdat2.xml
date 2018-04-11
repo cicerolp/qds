@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<name>hurdat2</name>
+	<bytes>46</bytes>
+	<file>hurdat2.nds</file>
+	<schema>
+		<categorical>
+			<index>hurricane</index>
+			<bin>764</bin>
+			<offset>0</offset>
+		</categorical>
+		<temporal>
+			<index>datetime</index>
+			<bin>3600</bin>
+			<offset>2</offset>
+		</temporal>
+		<temporal>
+			<index>datetime_begin</index>
+			<bin>3600</bin>
+			<offset>6</offset>
+		</temporal>
+		<temporal>
+			<index>datetime_end</index>
+			<bin>3600</bin>
+			<offset>10</offset>
+		</temporal>
+		<spatial>
+			<index>coord</index>
+			<bin>1</bin>
+			<offset>14</offset>
+		</spatial>
+		<spatial>
+			<index>coord_begin</index>
+			<bin>1</bin>
+			<offset>22</offset>
+		</spatial>
+		<spatial>
+			<index>coord_end</index>
+			<bin>1</bin>
+			<offset>30</offset>
+		</spatial>
+
+		<payload>
+			<index>wind_t</index>
+			<bin>0</bin>
+			<offset>38</offset>
+		</payload>
+		<payload>
+			<index>pressure_t</index>
+			<bin>0</bin>
+			<offset>42</offset>
+		</payload>
+
+		<payload>
+			<index>wind_g</index>
+			<bin>0</bin>
+			<offset>38</offset>
+		</payload>
+		<payload>
+			<index>pressure_g</index>
+			<bin>0</bin>
+			<offset>42</offset>
+		</payload>
+	</schema>
+</config>
