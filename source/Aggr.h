@@ -468,6 +468,18 @@ class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
     }
   }
 
+  void output(const pipe_ctn &pipe, std::vector<float> &raw) override {
+    if (_expr.first == "quantile") {
+      for (auto &q : pipe) {
+        raw.emplace_back(_map.quantile(q));
+      }
+    } else if (_expr.first == "inverse") {
+      for (auto &q : pipe) {
+        raw.emplace_back(_map.inverse(q));
+      }
+    }
+  }
+
   pipe_ctn get_pipe() override {
     pipe_ctn pipe;
 
