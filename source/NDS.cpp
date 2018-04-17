@@ -136,6 +136,182 @@ std::string NDS::pipeline(const Pipeline &pipeline) {
   return serialize_pipeline(pipeline, source_ctn, dest_ctn, root);
 }
 
+std::string get_values(std::vector<uint16_t> cluster) {
+  std::string values;
+  for (auto v: cluster) {
+    values += std::to_string(v) + ":";
+  }
+  values = values.substr(0, values.size() - 1);
+
+  return values;
+}
+
+NDS::GroupBy<AggrGroupByCtn> NDS::get_cluter_grop_by(const Query &query) const {
+  subset_ctn ctn;
+
+  // validadion of destionation
+  validation(query, ctn);
+
+  // range and subset from destination
+  CopyOption option = DefaultCopy;
+
+  auto range = get_range(ctn, option);
+  auto subset = get_subset(ctn);
+
+  auto aggr = get_aggr_group_by(query);
+  do_group_by(aggr, range, subset, option);
+
+  return GroupBy<AggrGroupByCtn>(aggr, range, subset);
+}
+
+uint32_t NDS::get_cluster(const Query &query, const std::vector<NDS::GroupBy<AggrGroupByCtn>> &clusters) {
+
+  auto value_group_by = get_cluter_grop_by(query);
+
+  int32_t threshold = 0;
+
+  std::vector<float> raw;
+  std::vector<double> values;
+
+  for (auto &cluster : clusters) {
+
+    // summarize
+    if (false /*!pipeline.get_source().group_by()*/) {
+    } else {
+      auto groups = std::make_pair(value_group_by, cluster);
+
+      // clear buffers
+      raw.clear();
+
+      if (false /*pipeline.get_join() == "inner_join"*/) {
+        // group_by_inner_join(groups, raw, pipeline.get_threshold());
+      } else if (true /*pipeline.get_join() == "left_join"*/) {
+        group_by_left_join(groups, raw, threshold);
+      } else if (false /*pipeline.get_join() == "right_join"*/) {
+        // group_by_right_join(groups, raw, pipeline.get_threshold());
+      }
+
+      double accum = 0;
+      for (auto &elt : raw) {
+        accum += elt;
+      }
+
+      values.emplace_back(std::fabs((accum / raw.size()) - 0.5));
+    }
+  }
+
+  auto result = std::min_element(std::begin(values), std::end(values));
+  return std::distance(std::begin(values), result);;
+}
+
+std::string NDS::clustering(const Clustering &clustering) {
+  auto n_clusters = 2;
+
+  uint32_t mid = 764 / n_clusters;
+
+  std::vector<std::vector<uint16_t>> clusters;
+  std::vector<std::vector<uint16_t>> clusters_end(n_clusters);
+
+  for (auto i = 0; i < n_clusters; ++i) {
+    clusters.emplace_back(mid);
+  }
+
+  // initialize clusters
+  auto start_value = 0;
+  for (auto &cluster : clusters) {
+    std::iota(cluster.begin(), cluster.end(), start_value);
+
+    start_value += mid;
+  }
+
+  std::vector<NDS::GroupBy<AggrGroupByCtn>> clusters_group_by;
+
+  // serialization
+  rapidjson::StringBuffer buffer;
+  rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+
+  // start json
+  writer.StartArray();
+  writer.StartArray();
+
+  auto iterations = 100;
+  while (iterations--) {
+    /*std::cout << iterations;
+    for (auto index = 0; index < clusters.size(); ++index) {
+      std::cout << ":" << clusters[index].size();
+    }
+    std::cout << std::endl;*/
+
+    // initialize values
+    clusters_group_by.clear();
+
+    for (auto &cluster : clusters) {
+      std::stringstream query;
+      query << "/destination/dataset=" << clustering.get_dataset() <<
+            "/const=hurricane.values.(" << get_values(cluster) + ")" <<
+            "/aggr=inverse.wind_t.($)" <<
+            "/const=coord.tile.(0:0:0:6)/group=coord";
+
+      clusters_group_by.emplace_back(get_cluter_grop_by(Query(query.str())));
+    }
+
+    bool equal = true;
+    for (auto index = 0; index < clusters.size(); ++index) {
+      for (auto &value : clusters[index]) {
+
+        // raw data buffer
+        std::vector<float> raw;
+        RangePivot root(_root[0]);
+
+        std::stringstream source;
+        source << "/source/dataset=" << clustering.get_dataset() <<
+               "/aggr=average.wind_g" <<
+               "/const=hurricane.values.(" << std::to_string(value) + ")" <<
+               "/const=coord.tile.(0:0:0:6)/group=coord";
+
+        auto i = get_cluster(Query(source.str()), clusters_group_by);
+
+        if (i != index) {
+          equal = false;
+        }
+
+        clusters_end[i].emplace_back(value);
+      }
+    }
+
+    if (equal) {
+      break;
+    }
+
+    for (auto index = 0; index < clusters.size(); ++index) {
+      // refresh clusters
+      clusters[index].swap(clusters_end[index]);
+
+      // clear temporary clusters
+      clusters_end[index].clear();
+    }
+  }
+
+  for (auto &cluster : clusters) {
+    writer.StartArray();
+
+    // TODO remove sort
+    gfx::timsort(cluster.begin(), cluster.end());
+
+    for (auto &value : cluster) {
+      writer.Uint(value);
+    }
+    writer.EndArray();
+  }
+
+  // end json
+  writer.EndArray();
+  writer.EndArray();
+  auto output = buffer.GetString();
+
+  return output;
+}
+
 std::string NDS::augmented_series(const AugmentedSeries &augmented_series) {
 #ifdef ENABLE_GPERF
   ProfilerStart("perf.prof");
@@ -526,7 +702,10 @@ std::string NDS::schema() const {
   return buffer.GetString();
 }
 
-void NDS::group_by_query(const AggrGroupByCtn &aggrs, json &writer, const range_ctn &range, const bined_ctn &subset) const {
+void NDS::group_by_query(const AggrGroupByCtn &aggrs,
+                         json &writer,
+                         const range_ctn &range,
+                         const bined_ctn &subset) const {
   for (auto &aggr : aggrs) {
     writer.StartArray();
     aggr->output(writer);
@@ -658,7 +837,10 @@ void NDS::do_group_by(AggrGroupByCtn &aggrs,
   }
 }
 
-void NDS::summarize_query(const AggrSummarizeCtn &aggrs, json &writer, const range_ctn &range, const bined_ctn &subset) const {
+void NDS::summarize_query(const AggrSummarizeCtn &aggrs,
+                          json &writer,
+                          const range_ctn &range,
+                          const bined_ctn &subset) const {
   for (auto &aggr : aggrs) {
     writer.StartArray();
     aggr->output(writer);
@@ -766,4 +948,3 @@ AggrSummarizeCtn NDS::get_aggr_summarize(const Query &query) const {
 
   return aggr_ctn;
 }
-

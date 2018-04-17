@@ -4,10 +4,13 @@
 #include "Payload.h"
 #include "Dimension.h"
 #include "Pivot.h"
+
+#include "Schema.h"
+
 #include "Query.h"
 #include "Pipeline.h"
+#include "Clustering.h"
 #include "AugmentedSeries.h"
-#include "Schema.h"
 
 using AggrSummarizeCtn = std::vector<std::shared_ptr<AggrSummarize>>;
 using AggrGroupByCtn = std::vector<std::shared_ptr<AggrGroupBy>>;
@@ -21,6 +24,7 @@ class NDS {
 
   std::string query(const Query &query);
   std::string pipeline(const Pipeline &pipeline);
+  std::string clustering(const Clustering &clustering);
   std::string augmented_series(const AugmentedSeries &augmented_series);
 
   std::string schema() const;
@@ -236,6 +240,11 @@ class NDS {
 
   AggrGroupByCtn get_aggr_group_by(const Query &query) const;
   AggrSummarizeCtn get_aggr_summarize(const Query &query) const;
+
+  // clustering
+  GroupBy<AggrGroupByCtn> get_cluter_grop_by(const Query &query) const;
+
+  uint32_t get_cluster(const Query &query, const std::vector<GroupBy<AggrGroupByCtn>> &clusters);
 
   pivot_ctn _root;
   std::vector<std::unique_ptr<Payload>> _payload;

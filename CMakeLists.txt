@@ -58,7 +58,8 @@ set(SRC_LIST
         source/PDigest.cpp
         source/Gaussian.cpp
         source/Pipeline.cpp
-        source/AugmentedSeries.cpp)
+        source/AugmentedSeries.cpp
+        source/Clustering.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS})
 
