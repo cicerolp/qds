@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
 	<name>iris</name>
-	<bytes>34</bytes>
+	<bytes>36</bytes>
 	<file>iris.nds</file>
 	<schema>
 		<categorical>
@@ -9,55 +9,62 @@
 			<bin>3</bin>
 			<offset>0</offset>
 		</categorical>
+		<categorical>
+			<index>id</index>
+			<bin>150</bin>
+			<offset>2</offset>
+		</categorical>
 		<spatial>
 			<index>sepal</index>
 			<bin>1</bin>
-			<offset>2</offset>
+			<offset>4</offset>
 		</spatial>
 		<spatial>
 			<index>petal</index>
 			<bin>1</bin>
-			<offset>10</offset>
+			<offset>12</offset>
 		</spatial>
+
 		<payload>
 			<index>sepal_length_t</index>
 			<bin>0</bin>
-			<offset>18</offset>
+			<offset>20</offset>
 		</payload>
 		<payload>
 			<index>sepal_width_t</index>
 			<bin>0</bin>
-			<offset>22</offset>
+			<offset>24</offset>
 		</payload>
 		<payload>
 			<index>petal_length_t</index>
 			<bin>0</bin>
-			<offset>26</offset>
+			<offset>28</offset>
 		</payload>
 		<payload>
 			<index>petal_width_t</index>
 			<bin>0</bin>
-			<offset>30</offset>
+			<offset>32</offset>
 		</payload>
+
 		<payload>
 			<index>sepal_length_g</index>
 			<bin>1</bin>
-			<offset>18</offset>
+			<offset>20</offset>
 		</payload>
 		<payload>
 			<index>sepal_width_g</index>
 			<bin>1</bin>
-			<offset>22</offset>
+			<offset>24</offset>
 		</payload>
 		<payload>
 			<index>petal_length_g</index>
 			<bin>1</bin>
-			<offset>26</offset>
+			<offset>28</offset>
 		</payload>
 		<payload>
 			<index>petal_width_g</index>
 			<bin>1</bin>
-			<offset>30</offset>
+			<offset>32</offset>
 		</payload>
 	</schema>
 </config>

@@ -303,11 +303,11 @@ std::string NDS::clustering(const Clustering &clustering) {
 
   auto iterations = clustering.get_iterations();
   while (iterations--) {
-    std::cout << clustering.get_iterations() - iterations;
+    /*std::cout << clustering.get_iterations() - iterations;
     for (auto index = 0; index < clusters.size(); ++index) {
       std::cout << ":" << clusters[index].size();
     }
-    std::cout << std::endl;
+    std::cout << std::endl;*/
 
     bool equal = true;
 
@@ -385,9 +385,6 @@ std::string NDS::clustering(const Clustering &clustering) {
 
   for (auto &cluster : clusters) {
     writer.StartArray();
-
-    // TODO remove sort
-    gfx::timsort(cluster.begin(), cluster.end());
 
     for (auto &value : cluster) {
       writer.Uint(value);
