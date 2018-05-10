@@ -30,14 +30,20 @@ class Clustering {
     return _group_by;
   }
 
-  std::string get_aggr_gaussian() const;
+  inline const std::string &get_group_by_clausule() const {
+    return _group_by_clausule;
+  }
 
-  std::string get_aggr_pdigest() const;
+  std::string get_aggr_source() const;
+
+  std::string get_aggr_destination() const;
 
  protected:
   std::string _dataset;
 
   std::string _group_by;
+  std::string _group_by_clausule;
+
   std::string _cluster_by;
 
   std::uint32_t _clusters{2};

@@ -20,7 +20,7 @@ class AggrGaussian : public AgrrPayload {
  public:
   virtual ~AggrGaussian() = default;
 
-  inline bool empty() const override {
+  inline bool empty() override {
     return count_i.size() == 0;
   }
 

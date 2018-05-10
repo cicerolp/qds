@@ -238,10 +238,19 @@ class NDS {
 
   void summarize_pipe(const GroupCtn<AggrSummarizeCtn> &groups, std::vector<float> &raw) const;
 
+  // payload equality
+
+  void summarize_equal(const GroupCtn<AggrSummarizeCtn> &groups, std::vector<float> &raw) const;
+
+  void left_join_equal(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw) const;
+  void right_join_equal(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw) const;
+
   AggrGroupByCtn get_aggr_group_by(const Query &query) const;
   AggrSummarizeCtn get_aggr_summarize(const Query &query) const;
 
   // clustering
+  std::vector<std::vector<uint16_t>> initialize_clusters(size_t n_clusters, size_t size) const;
+
   GroupBy<AggrGroupByCtn> get_cluster_grop_by(const Query &query) const;
   uint32_t get_cluster_by_group(const Query &query, const std::vector<GroupBy<AggrGroupByCtn>> &clusters);
 

@@ -4,6 +4,30 @@
 uint32_t g_Quadtree_Depth{18};
 
 int main(int argc, char *argv[]) {
+  /*static const float radius = 10.f;
+
+  for (auto theta = 0.0; theta <= 2.0 * M_PI; theta += (2.0 * M_PI) / 20.0) {
+
+    // pdigest c1
+    auto theta_c1 = 0;
+    auto x1 = radius * std::cos(theta_c1);
+    auto y1 = radius * std::sin(theta_c1);
+
+    // pdigest c2
+    auto theta_c2 = theta;
+    auto x2 = radius * std::cos(theta_c2);
+    auto y2 = radius * std::sin(theta_c2);
+
+
+    auto d = std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+
+    std::cout << d << std::endl;
+
+  }
+
+  exit(0);*/
+
+
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // categorical //
   // [dimension_name].values.([value_0]:[value_1]:...:[value_N])

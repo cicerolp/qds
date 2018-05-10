@@ -31,11 +31,17 @@ void Clustering::parse(const std::string &url) {
       } else if (key == "cluster_by") {
         _cluster_by = value;
       } else if (key == "group_by") {
-        _group_by= value;
+        auto equals_idx = value.find_first_of(".");
+
+        if (std::string::npos != equals_idx) {
+          _group_by = value.substr(0, equals_idx);
+          _group_by_clausule = "/const=" + _group_by + "." + value.substr(equals_idx + 1) + "/group=" + _group_by;
+        }
+
       } else if (key == "clusters") {
         _clusters = std::stoul(value);
       } else if (key == "iterations") {
-        _group_by= std::stoul(value);
+        _iterations = std::stoul(value);
       } else if (key == "fields") {
         auto clausule = boost::trim_copy_if(value, boost::is_any_of("()"));
 
@@ -50,22 +56,30 @@ void Clustering::parse(const std::string &url) {
   }
 }
 
-std::string Clustering::get_aggr_gaussian() const {
+std::string Clustering::get_aggr_source() const {
   std::stringstream aggr;
 
   for (auto &d : _fields) {
-    aggr << "/aggr=average." << d << "_g";
+    aggr << "/aggr=sector." << d << "_t";
   }
+
+  /*for (auto &d : _fields) {
+    aggr << "/aggr=average." << d << "_g";
+  }*/
 
   return aggr.str();
 }
 
-std::string Clustering::get_aggr_pdigest() const {
+std::string Clustering::get_aggr_destination() const {
   std::stringstream aggr;
 
   for (auto &d : _fields) {
-    aggr << "/aggr=inverse." << d << "_t.($)";
+    aggr << "/aggr=sector." << d << "_t";
   }
+
+  /*for (auto &d : _fields) {
+    aggr << "/aggr=inverse." << d << "_t.($)";
+  }*/
 
   return aggr.str();
 }

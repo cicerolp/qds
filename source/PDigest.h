@@ -103,12 +103,62 @@ class AgrrPDigest : public AgrrPayload {
  public:
   virtual ~AgrrPDigest() = default;
 
-  inline bool empty() const override {
+  inline bool empty() override {
+    if (_buffer_mean.size() > 0) {
+      merge_buffer_data();
+    }
+
     return _lastUsedCell == 0;
   }
 
   uint32_t merge(size_t payload_index, const Pivot &pivot) override;
   uint32_t merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) override;
+
+  inline size_t get_size() {
+    if (_buffer_mean.size() > 0) {
+      merge_buffer_data();
+    }
+
+    return (size_t) _lastUsedCell;
+  }
+
+  inline float get_denser_sector() {
+    if (_buffer_mean.size() > 0) {
+      merge_buffer_data();
+    }
+
+    // (2 * PI) / number of sectors
+    static const double increment = (2.0 * M_PI) / 10.0;
+
+    float sector = 0.f;
+    float max_inv = 0.f;
+    float prev_inv = 0.f;
+
+    for (auto curr_angle = increment; curr_angle < 2.0 * M_PI; curr_angle += increment) {
+      float inv = inverse(curr_angle);
+
+      if (inv - prev_inv > max_inv) {
+        sector = curr_angle;
+        max_inv = inv - prev_inv;
+      }
+
+      prev_inv = inv;
+    }
+
+    if (1 - prev_inv > max_inv) {
+      sector = 2.0 * M_PI;
+    }
+
+    return sector;
+  };
+
+  inline const std::array<float, PDIGEST_ARRAY_SIZE> &get_centroids() {
+    if (_buffer_mean.size() > 0) {
+      merge_buffer_data();
+    }
+
+    return _mean;
+  };
 
   float quantile(float q);
   float inverse(float value);

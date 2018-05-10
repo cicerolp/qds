@@ -66,10 +66,23 @@ class AggrGroupBy : public Aggr {
     return;
   };
 
+  virtual void equality_one_way(uint64_t value, void *payload, json &writer) {
+    writer.StartArray();
+    writer.EndArray();
+  }
+  virtual void equality_one_way(uint64_t value, void *payload, std::vector<float> &raw) {
+    return;
+  }
+
+  virtual std::vector<uint64_t> get_mapped_values() const = 0;
   virtual std::vector<uint64_t> get_mapped_values(uint32_t threshold) const = 0;
 
   virtual pipe_ctn get_pipe(uint64_t value, uint32_t threshold) {
     return pipe_ctn();
+  }
+
+  virtual void *get_payload(uint64_t value) {
+    return nullptr;
   }
 };
 
@@ -98,8 +111,16 @@ class AggrSummarize : public Aggr {
     return;
   };
 
+  virtual void equality(const pipe_ctn &pipe, void *payload, std::vector<float> &raw) {
+    return;
+  }
+
   virtual pipe_ctn get_pipe() {
     return pipe_ctn();
+  }
+
+  virtual void *get_payload() {
+    return nullptr;
   }
 };
 
@@ -127,8 +148,20 @@ class AggrCountGroupBy : public AggrGroupBy {
     }
   }
 
+  std::vector<uint64_t> get_mapped_values() const override {
+    std::vector<uint64_t> mapped_keys;
+    mapped_keys.reserve(_map.size());
+
+    for (const auto &elt: _map) {
+      mapped_keys.emplace_back(elt.first);
+    }
+    return mapped_keys;
+  }
+
   std::vector<uint64_t> get_mapped_values(uint32_t threshold) const override {
     std::vector<uint64_t> mapped_keys;
+    mapped_keys.reserve(_map.size());
+
     for (const auto &elt: _map) {
       if (elt.second >= threshold) {
         mapped_keys.emplace_back(elt.first);
@@ -148,7 +181,9 @@ class AggrCountGroupBy : public AggrGroupBy {
   }
 
  protected:
-  std::map<uint64_t, uint32_t> _map;
+  // [key] -> [count]
+  // std::map<uint64_t, uint32_t> _map;
+  std::unordered_map<uint64_t, uint32_t> _map;
 };
 
 class AggrCountSummarize : public AggrSummarize {
@@ -198,14 +233,36 @@ class AggrPayloadGroupBy : public AggrGroupBy {
     _map[value].count += count;
   }
 
+  std::vector<uint64_t> get_mapped_values() const override {
+    std::vector<uint64_t> mapped_keys;
+    mapped_keys.reserve(_map.size());
+
+    for (const auto &elt: _map) {
+      mapped_keys.emplace_back(elt.first);
+    }
+    return mapped_keys;
+  }
+
   std::vector<uint64_t> get_mapped_values(uint32_t threshold) const override {
     std::vector<uint64_t> mapped_keys;
+    mapped_keys.reserve(_map.size());
+
     for (const auto &elt: _map) {
       if (elt.second.count >= threshold) {
         mapped_keys.emplace_back(elt.first);
       }
     }
     return mapped_keys;
+  }
+
+  virtual void *get_payload(uint64_t value) override {
+    auto it = _map.find(value);
+
+    if (it == _map.end()) {
+      return nullptr;
+    } else {
+      return &(*it).second.payload;
+    }
   }
 
  protected:
@@ -215,7 +272,8 @@ class AggrPayloadGroupBy : public AggrGroupBy {
   };
 
   // [key] -> [count, payload]
-  std::map<uint64_t, payload_pair_t> _map;
+  // std::map<uint64_t, payload_pair_t> _map;
+  std::unordered_map<uint64_t, payload_pair_t> _map;
 };
 
 template<typename T>
@@ -235,6 +293,10 @@ class AggrPayloadSummarize : public AggrSummarize {
     while (it != it_upper) {
       _map.merge(_payload_index, (*it++).pivot);
     }
+  }
+
+  virtual void *get_payload() override {
+    return &_map;
   }
 
  protected:
@@ -273,6 +335,13 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
           writer.EndArray();
         }
       }
+    } else if (_expr.first == "sector") {
+      for (auto &pair : _map) {
+        writer.StartArray();
+        write_value(pair.first, writer);
+        writer.Double(pair.second.payload.get_denser_sector());
+        writer.EndArray();
+      }
     }
   }
 
@@ -285,12 +354,15 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
           raw.emplace_back(pair.second.payload.quantile(q));
         }
       }
-
     } else if (_expr.first == "inverse") {
       for (auto &pair : _map) {
         for (auto &q : parameters) {
           raw.emplace_back(pair.second.payload.inverse(q));
         }
+      }
+    } else if (_expr.first == "sector") {
+      for (auto &pair : _map) {
+        raw.emplace_back(pair.second.payload.get_denser_sector());
       }
     }
   }
@@ -417,6 +489,47 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
     }
   }
 
+  void equality_one_way(uint64_t value, void *payload, json &writer) override {
+    writer.StartArray();
+    // TODO implement
+    writer.EndArray();
+  }
+  void equality_one_way(uint64_t value, void *payload, std::vector<float> &raw) override {
+    static const float radius = 1.f;
+
+    float accum = 0.f;
+    auto pdigest = (AgrrPDigest *) payload;
+
+    auto it = _map.find(value);
+
+    if (pdigest == nullptr) {
+      // it != _map.end()
+      raw.emplace_back(2.f * radius);
+    } else {
+      // Kolmogorov–Smirnov test
+      if (_expr.first == "sector") {
+        if (it != _map.end()) {
+          // pdigest c1
+          auto theta_c1 = pdigest->get_denser_sector();
+          auto x1 = radius * std::cos(theta_c1);
+          auto y1 = radius * std::sin(theta_c1);
+
+          // pdigest c2
+          auto theta_c2 = (*it).second.payload.get_denser_sector();
+          auto x2 = radius * std::cos(theta_c2);
+          auto y2 = radius * std::sin(theta_c2);
+
+          auto d = std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+
+          raw.emplace_back(d);
+        } else {
+          // it == _map.end()
+          raw.emplace_back(2.f * radius);
+        }
+      }
+    }
+  }
+
   pipe_ctn get_pipe(uint64_t value, uint32_t threshold) override {
     pipe_ctn pipe;
     auto it = _map.find(value);
@@ -432,6 +545,8 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
         for (auto &q : parameters) {
           pipe.emplace_back((*it).second.payload.inverse(q));
         }
+      } else if (_expr.first == "sector") {
+        pipe.emplace_back((*it).second.payload.get_denser_sector());
       }
     }
 
@@ -480,6 +595,34 @@ class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
     }
   }
 
+  void equality(const pipe_ctn &pipe, void *payload, std::vector<float> &raw) override {
+    static const float radius = 1.f;
+
+    if (_expr.first == "sector") {
+      auto pdigest = (AgrrPDigest *) payload;
+      raw.emplace_back(pdigest->get_denser_sector());
+    }
+
+    if (_expr.first == "sector") {
+      auto pdigest = (AgrrPDigest *) payload;
+
+      // pdigest c1
+      auto theta_c1 = pdigest->get_denser_sector();
+      auto x1 = radius * std::cos(theta_c1);
+      auto y1 = radius * std::sin(theta_c1);
+
+      for (auto &q : pipe) {
+        // pdigest c2
+        auto x2 = radius * std::cos(q);
+        auto y2 = radius * std::sin(q);
+
+        auto d = std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+
+        raw.emplace_back(d);
+      }
+    }
+  }
+
   pipe_ctn get_pipe() override {
     pipe_ctn pipe;
 
@@ -493,6 +636,8 @@ class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
       for (auto &q : parameters) {
         pipe.emplace_back(_map.inverse(q));
       }
+    } else if (_expr.first == "sector") {
+      pipe.emplace_back(_map.get_denser_sector());
     }
 
     return pipe;

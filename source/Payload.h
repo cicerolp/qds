@@ -28,7 +28,7 @@ class AgrrPayload {
   AgrrPayload() = default;
   virtual ~AgrrPayload() = default;
 
-  virtual inline bool empty() const = 0;
+  virtual inline bool empty() = 0;
 
   virtual uint32_t merge(size_t payload_index, const Pivot &pivot) = 0;
   virtual uint32_t merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) = 0;
