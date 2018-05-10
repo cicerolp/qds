@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<name>cvrr-i5sim3</name>
+	<bytes>18</bytes>
+	<file>cvrr-i5sim3-normalized.nds</file>
+	<schema>
+		<categorical>
+			<index>trajectory</index>
+			<bin>1600</bin>
+			<offset>0</offset>
+		</categorical>
+		<spatial>
+			<index>coord</index>
+			<bin>1</bin>
+			<offset>2</offset>
+		</spatial>
+		<payload>
+			<index>direction_t</index>
+			<bin>0</bin>
+			<offset>10</offset>
+		</payload>
+		<payload>
+			<index>speed_t</index>
+			<bin>0</bin>
+			<offset>14</offset>
+		</payload>
+		<payload>
+			<index>direction_g</index>
+			<bin>1</bin>
+			<offset>10</offset>
+		</payload>
+		<payload>
+			<index>speed_g</index>
+			<bin>1</bin>
+			<offset>14</offset>
+		</payload>
+	</schema>
+</config>
