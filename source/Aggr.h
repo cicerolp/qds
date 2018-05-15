@@ -111,7 +111,7 @@ class AggrSummarize : public Aggr {
     return;
   };
 
-  virtual void equality(const pipe_ctn &pipe, void *payload, std::vector<float> &raw) {
+  virtual void equality(void *payload, std::vector<float> &raw) {
     return;
   }
 
@@ -497,35 +497,58 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
   void equality_one_way(uint64_t value, void *payload, std::vector<float> &raw) override {
     static const float radius = 1.f;
 
-    float accum = 0.f;
+    auto it = _map.find(value);
     auto pdigest = (AgrrPDigest *) payload;
 
-    auto it = _map.find(value);
+    if (_expr.first == "sector") {
+      if (pdigest == nullptr) {
+        // it != _map.end()
+        // right_join
+        raw.emplace_back(-2.f * radius);
+      } else if (it != _map.end()) {
+        // pdigest c1
+        auto theta_c1 = (*it).second.payload.get_denser_sector();
+        auto x1 = radius * std::cos(theta_c1);
+        auto y1 = radius * std::sin(theta_c1);
 
-    if (pdigest == nullptr) {
-      // it != _map.end()
-      raw.emplace_back(2.f * radius);
-    } else {
+        // pdigest c2
+        auto theta_c2 = pdigest->get_denser_sector();
+        auto x2 = radius * std::cos(theta_c2);
+        auto y2 = radius * std::sin(theta_c2);
+
+        auto distance = std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+
+        raw.emplace_back((2.f * radius) - distance);
+      } else {
+        // it == _map.end()
+        // left_join
+        raw.emplace_back(-2.f * radius);
+      }
+
+    } else if (_expr.first == "ks") {
       // Kolmogorov–Smirnov test
-      if (_expr.first == "sector") {
-        if (it != _map.end()) {
-          // pdigest c1
-          auto theta_c1 = pdigest->get_denser_sector();
-          auto x1 = radius * std::cos(theta_c1);
-          auto y1 = radius * std::sin(theta_c1);
+      if (pdigest == nullptr) {
+        // it != _map.end()
+        // right_join
+        raw.emplace_back(-2.f);
+      } else if (it != _map.end()) {
+        auto distance = 0.f;
 
-          // pdigest c2
-          auto theta_c2 = (*it).second.payload.get_denser_sector();
-          auto x2 = radius * std::cos(theta_c2);
-          auto y2 = radius * std::sin(theta_c2);
-
-          auto d = std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
-
-          raw.emplace_back(d);
-        } else {
-          // it == _map.end()
-          raw.emplace_back(2.f * radius);
+        // pdigest c1
+        for (auto &centroid: (*it).second.payload.get_centroids()) {
+          distance = std::max(distance, std::fabs((*it).second.payload.inverse(centroid) - pdigest->inverse(centroid)));
         }
+
+        // pdigest c2
+        for (auto &centroid: pdigest->get_centroids()) {
+          distance = std::max(distance, std::fabs((*it).second.payload.inverse(centroid) - pdigest->inverse(centroid)));
+        }
+
+        raw.emplace_back(1.f - distance);
+      } else {
+        // it == _map.end()
+        // left_join
+        raw.emplace_back(-2.f);
       }
     }
   }
@@ -595,31 +618,41 @@ class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
     }
   }
 
-  void equality(const pipe_ctn &pipe, void *payload, std::vector<float> &raw) override {
+  void equality(void *payload, std::vector<float> &raw) override {
     static const float radius = 1.f;
 
-    if (_expr.first == "sector") {
-      auto pdigest = (AgrrPDigest *) payload;
-      raw.emplace_back(pdigest->get_denser_sector());
-    }
+    auto pdigest = (AgrrPDigest *) payload;
 
     if (_expr.first == "sector") {
-      auto pdigest = (AgrrPDigest *) payload;
-
       // pdigest c1
-      auto theta_c1 = pdigest->get_denser_sector();
+      auto theta_c1 = _map.get_denser_sector();
       auto x1 = radius * std::cos(theta_c1);
       auto y1 = radius * std::sin(theta_c1);
 
-      for (auto &q : pipe) {
-        // pdigest c2
-        auto x2 = radius * std::cos(q);
-        auto y2 = radius * std::sin(q);
+      // pdigest c2
+      auto theta_c2 = pdigest->get_denser_sector();
+      auto x2 = radius * std::cos(theta_c2);
+      auto y2 = radius * std::sin(theta_c2);
 
-        auto d = std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+      auto distance = std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 
-        raw.emplace_back(d);
+      raw.emplace_back((2.f * radius) - distance);
+
+    } else if (_expr.first == "ks") {
+      // Kolmogorov–Smirnov test
+      auto distance = 0.f;
+
+      // pdigest c1
+      for (auto &centroid: _map.get_centroids()) {
+        distance = std::max(distance, std::fabs(_map.inverse(centroid) - pdigest->inverse(centroid)));
       }
+
+      // pdigest c2
+      for (auto &centroid: pdigest->get_centroids()) {
+        distance = std::max(distance, std::fabs(_map.inverse(centroid) - pdigest->inverse(centroid)));
+      }
+
+      raw.emplace_back(1.f - distance);
     }
   }
 

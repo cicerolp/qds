@@ -178,10 +178,15 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(size_t n_clusters, s
   }*/
 
   // initialization step
-  for (auto i = 0; i < values.size();) {
+  /*for (auto i = 0; i < values.size();) {
     for (auto &cluster : clusters) {
       cluster.emplace_back(values[i++]);
     }
+  }*/
+
+  size_t obj = 0;
+  for (auto &cluster : clusters) {
+    cluster.emplace_back(values[obj++]);
   }
 
   return clusters;
@@ -219,14 +224,14 @@ uint32_t NDS::get_cluster_by_group(const Query &query, const std::vector<NDS::Gr
     // clear buffers
     raw.clear();
 
-    // right_join_equal(groups, raw);
-    left_join_equal(groups, raw);
+    right_join_equal(groups, raw);
+    // left_join_equal(groups, raw);
 
     double accum = std::accumulate(raw.begin(), raw.end(), 0.0);
     values.emplace_back(accum / raw.size());
   }
 
-  auto result = std::min_element(std::begin(values), std::end(values));
+  auto result = std::max_element(std::begin(values), std::end(values));
   return std::distance(std::begin(values), result);
 }
 
@@ -261,13 +266,13 @@ uint32_t NDS::get_cluster_by_summarize(const Query &query,
     // clear buffers
     raw.clear();
 
-    summarize_pipe(groups, raw);
+    summarize_equal(groups, raw);
 
     double accum = std::accumulate(raw.begin(), raw.end(), 0.0);
     values.emplace_back(accum / raw.size());
   }
 
-  auto result = std::min_element(std::begin(values), std::end(values));
+  auto result = std::max_element(std::begin(values), std::end(values));
   return std::distance(std::begin(values), result);
 }
 
@@ -276,8 +281,8 @@ std::string NDS::clustering(const Clustering &clustering) {
   ProfilerStart("perf.prof");
 #endif
 
-  auto cluster_size = _dimension[_dimension_index[clustering.get_cluster_by()]]->get_schema().bin;
-  auto clusters = initialize_clusters(clustering.get_clusters(), cluster_size);
+  auto n_objects = _dimension[_dimension_index[clustering.get_cluster_by()]]->get_schema().bin;
+  auto clusters = initialize_clusters(clustering.get_clusters(), n_objects);
 
   std::vector<std::vector<uint16_t>> clusters_update(clustering.get_clusters());
 
@@ -322,6 +327,25 @@ std::string NDS::clustering(const Clustering &clustering) {
         )));
       }
 
+      for (auto obj = 0; obj < n_objects; ++obj) {
+        // raw data buffer
+        std::vector<float> raw;
+
+        auto query = left_base + "/const=" + clustering.get_cluster_by() + ".values.(" + std::to_string(obj) + ")";
+
+        auto centroid = get_cluster_by_summarize(Query(query), clusters_summarize);
+
+        clusters_update[centroid].emplace_back(obj);
+      }
+
+      /*std::vector<NDS::GroupBy<AggrSummarizeCtn>> clusters_summarize;
+
+      for (auto &cluster : clusters) {
+        clusters_summarize.emplace_back(get_cluster_summarize(Query(
+            right_base + "/const=" + clustering.get_cluster_by() + ".values.(" + get_values(cluster) + ")"
+        )));
+      }
+
       for (auto index = 0; index < clusters.size(); ++index) {
         for (auto &value : clusters[index]) {
 
@@ -338,7 +362,7 @@ std::string NDS::clustering(const Clustering &clustering) {
 
           clusters_update[c].emplace_back(value);
         }
-      }
+      }*/
     } else {
       std::vector<NDS::GroupBy<AggrGroupByCtn>> clusters_group_by;
 
@@ -348,7 +372,18 @@ std::string NDS::clustering(const Clustering &clustering) {
         )));
       }
 
-      for (auto index = 0; index < clusters.size(); ++index) {
+      for (auto obj = 0; obj < n_objects; ++obj) {
+        // raw data buffer
+        std::vector<float> raw;
+
+        auto query = left_base + "/const=" + clustering.get_cluster_by() + ".values.(" + std::to_string(obj) + ")";
+
+        auto centroid = get_cluster_by_group(Query(query), clusters_group_by);
+
+        clusters_update[centroid].emplace_back(obj);
+      }
+
+      /*for (auto index = 0; index < clusters.size(); ++index) {
         for (auto &value : clusters[index]) {
 
           // raw data buffer
@@ -358,22 +393,20 @@ std::string NDS::clustering(const Clustering &clustering) {
 
           auto c = get_cluster_by_group(Query(query), clusters_group_by);
 
-          /*std::cout << "index: " << c << std::endl;*/
-
           if (c != index) {
             equal = false;
           }
 
           clusters_update[c].emplace_back(value);
         }
-      }
+      }*/
     }
 
     // TODO verify small change ratio
 
-    if (equal) {
+    /*if (equal) {
       break;
-    }
+    }*/
 
     // update step
     for (auto i = 0; i < clusters.size(); ++i) {
@@ -900,10 +933,9 @@ void NDS::group_by_right_join(const GroupCtn<AggrGroupByCtn> &groups,
 void NDS::summarize_equal(const GroupCtn<AggrSummarizeCtn> &groups, std::vector<float> &raw) const {
   for (auto &source_aggr : groups.first.aggrs) {
     auto payload = source_aggr->get_payload();
-    auto pipe = source_aggr->get_pipe();
 
     for (auto &dest_aggr : groups.second.aggrs) {
-      dest_aggr->equality(pipe, payload, raw);
+      dest_aggr->equality(payload, raw);
     }
   }
 }
@@ -1041,7 +1073,7 @@ AggrGroupByCtn NDS::get_aggr_group_by(const Query &query) const {
     }
 
 #ifdef ENABLE_PDIGEST
-    if (expr.first == "quantile" || expr.first == "inverse" || expr.first == "ks" || expr.first == "centroid") {
+    if (expr.first == "quantile" || expr.first == "inverse" || expr.first == "sector" || expr.first == "ks") {
       aggr_ctn.emplace_back(std::make_shared<AggrPDigestGroupBy>(expr, get_payload_index(expr.second)));
     }
 #endif // ENABLE_PDIGEST
@@ -1068,7 +1100,7 @@ AggrSummarizeCtn NDS::get_aggr_summarize(const Query &query) const {
     }
 
 #ifdef ENABLE_PDIGEST
-    if (expr.first == "quantile" || expr.first == "inverse" || expr.first == "ks" || expr.first == "centroid") {
+    if (expr.first == "quantile" || expr.first == "inverse" || expr.first == "sector" || expr.first == "ks") {
       aggr_ctn.emplace_back(std::make_shared<AggrPDigestSummarize>(expr, get_payload_index(expr.second)));
     }
 #endif // ENABLE_PDIGEST

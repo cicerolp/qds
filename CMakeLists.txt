@@ -9,7 +9,7 @@ option(ENABLE_GPERF "Enable Gperftools Profiler" OFF)
 option(NDS_ENABLE_PAYLOAD "Enable Payload" ON)
 
 # nds tweaks
-option(NDS_OPTIMIZE_LEAF "Enable Spatial Element Leaf Optimization" ON)
+option(NDS_OPTIMIZE_LEAF "Enable Spatial Element Leaf Optimization" OFF)
 
 # nds sharing
 option(NDS_SHARE_PIVOT "Enable Pivot Sharing" ON)

@@ -149,7 +149,7 @@ class AgrrPDigest : public AgrrPayload {
       sector = 2.0 * M_PI;
     }
 
-    return sector;
+    return sector - (increment / 2.0);
   };
 
   inline const std::array<float, PDIGEST_ARRAY_SIZE> &get_centroids() {

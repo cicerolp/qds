@@ -60,7 +60,7 @@ std::string Clustering::get_aggr_source() const {
   std::stringstream aggr;
 
   for (auto &d : _fields) {
-    aggr << "/aggr=sector." << d << "_t";
+    aggr << "/aggr=ks." << d << "_t";
   }
 
   /*for (auto &d : _fields) {
@@ -74,7 +74,7 @@ std::string Clustering::get_aggr_destination() const {
   std::stringstream aggr;
 
   for (auto &d : _fields) {
-    aggr << "/aggr=sector." << d << "_t";
+    aggr << "/aggr=ks." << d << "_t";
   }
 
   /*for (auto &d : _fields) {
