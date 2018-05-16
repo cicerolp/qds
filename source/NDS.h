@@ -249,13 +249,13 @@ class NDS {
   AggrSummarizeCtn get_aggr_summarize(const Query &query) const;
 
   // clustering
-  std::vector<std::vector<uint16_t>> initialize_clusters(size_t n_clusters, size_t size) const;
+  std::vector<std::vector<uint16_t>> initialize_clusters(const Clustering &clustering, size_t n_objs);
 
   GroupBy<AggrGroupByCtn> get_cluster_grop_by(const Query &query) const;
-  uint32_t get_cluster_by_group(const Query &query, const std::vector<GroupBy<AggrGroupByCtn>> &clusters);
+  std::vector<float> get_raw_by_group(const Query &query, const std::vector<GroupBy<AggrGroupByCtn>> &clusters);
 
   GroupBy<AggrSummarizeCtn> get_cluster_summarize(const Query &query) const;
-  uint32_t get_cluster_by_summarize(const Query &query, const std::vector<GroupBy<AggrSummarizeCtn>> &clusters);
+  std::vector<float> get_raw_by_summarize(const Query &query, const std::vector<GroupBy<AggrSummarizeCtn>> &clusters);
 
   pivot_ctn _root;
   std::vector<std::unique_ptr<Payload>> _payload;

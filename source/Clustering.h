@@ -14,7 +14,7 @@ class Clustering {
     return _dataset;
   }
 
-  inline uint32_t get_clusters() const {
+  inline uint32_t get_n_clusters() const {
     return _clusters;
   }
 

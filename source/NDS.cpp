@@ -153,40 +153,122 @@ std::string get_values(std::vector<uint16_t> cluster) {
   return values;
 }
 
-std::vector<std::vector<uint16_t>> NDS::initialize_clusters(size_t n_clusters, size_t size) const {
-  /*uint32_t mid = cluster_by_range / clustering.get_clusters();*/
+std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &clustering, size_t n_objs) {
+  /*std::vector<std::vector<uint16_t>> clusters(clustering.get_n_clusters());
 
-  std::vector<std::vector<uint16_t>> clusters(n_clusters);
-
-  std::vector<uint16_t> values(size);
+  std::vector<uint16_t> values(n_objs);
   std::iota(values.begin(), values.end(), 0);
 
   // std::srand(unsigned(std::time(0)));
   std::srand(100);
   std::random_shuffle(values.begin(), values.end());
 
-  /*for (auto i = 0; i < clustering.get_clusters(); ++i) {
-    clusters.emplace_back(mid);
-  }
-
-  // initialize clusters
-  auto start_value = 0;
-  for (auto &cluster : clusters) {
-    std::iota(cluster.begin(), cluster.end(), start_value);
-
-    start_value += mid;
-  }*/
-
-  // initialization step
-  /*for (auto i = 0; i < values.size();) {
-    for (auto &cluster : clusters) {
-      cluster.emplace_back(values[i++]);
-    }
-  }*/
-
+  // choose one object per centroid
   size_t obj = 0;
   for (auto &cluster : clusters) {
     cluster.emplace_back(values[obj++]);
+  }*/
+
+  std::vector<std::vector<uint16_t>> clusters;
+
+  std::random_device rd;
+  std::mt19937 mt_random(rd());
+
+  float total_distance = 0.f;
+
+  std::vector<bool> objs_skip(n_objs, false);
+  std::vector<float> objs_distance(n_objs, 0.f);
+
+  // queries bases
+  std::string right_base = "/destination/dataset=" +
+      clustering.get_dataset() +
+      clustering.get_aggr_destination() +
+      clustering.get_group_by_clausule();
+
+  std::string left_base = "/source/dataset=" +
+      clustering.get_dataset() +
+      clustering.get_aggr_source() +
+      clustering.get_group_by_clausule();
+
+  // step 1 - choose first cluster center uniformly at random from data points
+  auto initial_centroid = std::uniform_int_distribution<uint16_t>(0, n_objs - 1)(mt_random);
+  /*auto initial_centroid = 0;*/
+
+  clusters.push_back({initial_centroid});
+  objs_skip[initial_centroid] = true;
+
+  uint32_t selected_k = 1;
+
+  // repeat steps 2 and 3 until k centers have been chosen
+  while (selected_k != clustering.get_n_clusters()) {
+    // reset total distance
+    total_distance = 0.f;
+
+    if (clustering.get_group_by_clausule().empty()) {
+      std::vector<NDS::GroupBy<AggrSummarizeCtn>> clusters_summarize;
+
+      for (auto &cluster : clusters) {
+        clusters_summarize.emplace_back(get_cluster_summarize(
+            Query(right_base + "/const=" + clustering.get_cluster_by() + ".values.(" + get_values(cluster) + ")")
+        ));
+      }
+
+      for (uint16_t obj = 0; obj < n_objs; ++obj) {
+        auto query = left_base + "/const=" + clustering.get_cluster_by() + ".values.(" + std::to_string(obj) + ")";
+
+        auto values = get_raw_by_summarize(Query(query), clusters_summarize);
+
+        // step 2 - for each obs x, compute distance d(x) to nearest cluster center
+        auto distance = (*std::min_element(std::begin(values), std::end(values)));
+
+        objs_distance[obj] = distance * distance;
+        total_distance += objs_distance[obj];
+      }
+
+    } else {
+      std::vector<NDS::GroupBy<AggrGroupByCtn>> clusters_group_by;
+
+      for (auto &cluster : clusters) {
+        clusters_group_by.emplace_back(get_cluster_grop_by(
+            Query(right_base + "/const=" + clustering.get_cluster_by() + ".values.(" + get_values(cluster) + ")")
+        ));
+      }
+
+      for (uint16_t obj = 0; obj < n_objs; ++obj) {
+        auto query = left_base + "/const=" + clustering.get_cluster_by() + ".values.(" + std::to_string(obj) + ")";
+
+        auto values = get_raw_by_group(Query(query), clusters_group_by);
+
+        // step 2 - for each obs x, compute distance d(x) to nearest cluster center
+        auto distance = (*std::min_element(std::begin(values), std::end(values)));
+
+        objs_distance[obj] = distance * distance;
+        total_distance += objs_distance[obj];
+      }
+    }
+
+    // step 3 - choose new cluster center from amongst data points,
+    // with probability of x being chosen propostional to d(x)^2
+
+    auto random_distance = std::uniform_real_distribution<float>(0, total_distance)(mt_random);
+
+    for (uint16_t obj = 0; obj < n_objs; ++obj) {
+      if (!objs_skip[obj]) {
+        random_distance -= objs_distance[obj];
+
+        if (random_distance <= 0.f) {
+          // select this obj as centroid
+
+          clusters.push_back({obj});
+          objs_skip[obj] = true;
+
+          selected_k++;
+
+          // stop selecting the next centroid
+          break;
+        }
+      }
+    }
   }
 
   return clusters;
@@ -210,13 +292,12 @@ NDS::GroupBy<AggrGroupByCtn> NDS::get_cluster_grop_by(const Query &query) const 
   return GroupBy<AggrGroupByCtn>(aggr, range, subset);
 }
 
-uint32_t NDS::get_cluster_by_group(const Query &query, const std::vector<NDS::GroupBy<AggrGroupByCtn>> &clusters) {
+std::vector<float> NDS::get_raw_by_group(const Query &query,
+                                         const std::vector<NDS::GroupBy<AggrGroupByCtn>> &clusters) {
   auto value_group_by = get_cluster_grop_by(query);
 
-  int32_t threshold = 0;
-
   std::vector<float> raw;
-  std::vector<double> values;
+  std::vector<float> values;
 
   for (auto &cluster : clusters) {
     auto groups = std::make_pair(value_group_by, cluster);
@@ -227,12 +308,11 @@ uint32_t NDS::get_cluster_by_group(const Query &query, const std::vector<NDS::Gr
     right_join_equal(groups, raw);
     // left_join_equal(groups, raw);
 
-    double accum = std::accumulate(raw.begin(), raw.end(), 0.0);
+    auto accum = std::accumulate(raw.begin(), raw.end(), 0.f);
     values.emplace_back(accum / raw.size());
   }
 
-  auto result = std::max_element(std::begin(values), std::end(values));
-  return std::distance(std::begin(values), result);
+  return values;
 }
 
 NDS::GroupBy<AggrSummarizeCtn> NDS::get_cluster_summarize(const Query &query) const {
@@ -253,12 +333,12 @@ NDS::GroupBy<AggrSummarizeCtn> NDS::get_cluster_summarize(const Query &query) co
   return GroupBy<AggrSummarizeCtn>(aggr, range, subset);
 }
 
-uint32_t NDS::get_cluster_by_summarize(const Query &query,
-                                       const std::vector<NDS::GroupBy<AggrSummarizeCtn>> &clusters) {
+std::vector<float> NDS::get_raw_by_summarize(const Query &query,
+                                             const std::vector<NDS::GroupBy<AggrSummarizeCtn>> &clusters) {
   auto value_summarize = get_cluster_summarize(query);
 
   std::vector<float> raw;
-  std::vector<double> values;
+  std::vector<float> values;
 
   for (auto &cluster : clusters) {
     auto groups = std::make_pair(value_summarize, cluster);
@@ -268,12 +348,11 @@ uint32_t NDS::get_cluster_by_summarize(const Query &query,
 
     summarize_equal(groups, raw);
 
-    double accum = std::accumulate(raw.begin(), raw.end(), 0.0);
+    auto accum = std::accumulate(raw.begin(), raw.end(), 0.f);
     values.emplace_back(accum / raw.size());
   }
 
-  auto result = std::max_element(std::begin(values), std::end(values));
-  return std::distance(std::begin(values), result);
+  return values;
 }
 
 std::string NDS::clustering(const Clustering &clustering) {
@@ -281,10 +360,8 @@ std::string NDS::clustering(const Clustering &clustering) {
   ProfilerStart("perf.prof");
 #endif
 
-  auto n_objects = _dimension[_dimension_index[clustering.get_cluster_by()]]->get_schema().bin;
-  auto clusters = initialize_clusters(clustering.get_clusters(), n_objects);
-
-  std::vector<std::vector<uint16_t>> clusters_update(clustering.get_clusters());
+  auto n_objs = _dimension[_dimension_index[clustering.get_cluster_by()]]->get_schema().bin;
+  auto clusters = initialize_clusters(clustering, n_objs);
 
   // serialization
   rapidjson::StringBuffer buffer;
@@ -295,129 +372,70 @@ std::string NDS::clustering(const Clustering &clustering) {
   writer.StartArray();
 
   // queries bases
-  std::stringstream query;
+  std::string right_base = "/destination/dataset=" +
+      clustering.get_dataset() +
+      clustering.get_aggr_destination() +
+      clustering.get_group_by_clausule();
 
-  query << "/destination/dataset=" << clustering.get_dataset()
-        << clustering.get_aggr_destination()
-        << clustering.get_group_by_clausule();
+  std::string left_base = "/source/dataset=" +
+      clustering.get_dataset() +
+      clustering.get_aggr_source() +
+      clustering.get_group_by_clausule();
 
-  std::string right_base = query.str();
-
-  // clear state flags
-  query.str("");
-  query.clear();
-
-  query << "/source/dataset=" << clustering.get_dataset()
-        << clustering.get_aggr_source()
-        << clustering.get_group_by_clausule();
-
-  std::string left_base = query.str();
-
+  // assignment step
   auto iterations = clustering.get_iterations();
   while (iterations--) {
-    bool equal = true;
-
-    // assignment step
     if (clustering.get_group_by_clausule().empty()) {
       std::vector<NDS::GroupBy<AggrSummarizeCtn>> clusters_summarize;
 
       for (auto &cluster : clusters) {
-        clusters_summarize.emplace_back(get_cluster_summarize(Query(
-            right_base + "/const=" + clustering.get_cluster_by() + ".values.(" + get_values(cluster) + ")"
-        )));
+        clusters_summarize.emplace_back(get_cluster_summarize(
+            Query(right_base + "/const=" + clustering.get_cluster_by() + ".values.(" + get_values(cluster) + ")")
+        ));
+
+        // clear cluster
+        cluster.clear();
       }
 
-      for (auto obj = 0; obj < n_objects; ++obj) {
-        // raw data buffer
-        std::vector<float> raw;
-
+      for (auto obj = 0; obj < n_objs; ++obj) {
         auto query = left_base + "/const=" + clustering.get_cluster_by() + ".values.(" + std::to_string(obj) + ")";
 
-        auto centroid = get_cluster_by_summarize(Query(query), clusters_summarize);
+        auto values = get_raw_by_summarize(Query(query), clusters_summarize);
 
-        clusters_update[centroid].emplace_back(obj);
+        auto centroid = std::distance(std::begin(values), std::min_element(std::begin(values), std::end(values)));
+
+        // update step
+        clusters[centroid].emplace_back(obj);
       }
 
-      /*std::vector<NDS::GroupBy<AggrSummarizeCtn>> clusters_summarize;
-
-      for (auto &cluster : clusters) {
-        clusters_summarize.emplace_back(get_cluster_summarize(Query(
-            right_base + "/const=" + clustering.get_cluster_by() + ".values.(" + get_values(cluster) + ")"
-        )));
-      }
-
-      for (auto index = 0; index < clusters.size(); ++index) {
-        for (auto &value : clusters[index]) {
-
-          // raw data buffer
-          std::vector<float> raw;
-
-          auto query = left_base + "/const=" + clustering.get_cluster_by() + ".values.(" + std::to_string(value) + ")";
-
-          auto c = get_cluster_by_summarize(Query(query), clusters_summarize);
-
-          if (c != index) {
-            equal = false;
-          }
-
-          clusters_update[c].emplace_back(value);
-        }
-      }*/
     } else {
       std::vector<NDS::GroupBy<AggrGroupByCtn>> clusters_group_by;
 
       for (auto &cluster : clusters) {
-        clusters_group_by.emplace_back(get_cluster_grop_by(Query(
-            right_base + "/const=" + clustering.get_cluster_by() + ".values.(" + get_values(cluster) + ")"
-        )));
+        clusters_group_by.emplace_back(get_cluster_grop_by(
+            Query(right_base + "/const=" + clustering.get_cluster_by() + ".values.(" + get_values(cluster) + ")")
+        ));
+
+        // clear cluster
+        cluster.clear();
       }
 
-      for (auto obj = 0; obj < n_objects; ++obj) {
-        // raw data buffer
-        std::vector<float> raw;
-
+      for (auto obj = 0; obj < n_objs; ++obj) {
         auto query = left_base + "/const=" + clustering.get_cluster_by() + ".values.(" + std::to_string(obj) + ")";
 
-        auto centroid = get_cluster_by_group(Query(query), clusters_group_by);
+        auto values = get_raw_by_group(Query(query), clusters_group_by);
 
-        clusters_update[centroid].emplace_back(obj);
+        auto centroid = std::distance(std::begin(values), std::min_element(std::begin(values), std::end(values)));
+
+        // update step
+        clusters[centroid].emplace_back(obj);
       }
-
-      /*for (auto index = 0; index < clusters.size(); ++index) {
-        for (auto &value : clusters[index]) {
-
-          // raw data buffer
-          std::vector<float> raw;
-
-          auto query = left_base + "/const=" + clustering.get_cluster_by() + ".values.(" + std::to_string(value) + ")";
-
-          auto c = get_cluster_by_group(Query(query), clusters_group_by);
-
-          if (c != index) {
-            equal = false;
-          }
-
-          clusters_update[c].emplace_back(value);
-        }
-      }*/
     }
 
     // TODO verify small change ratio
-
-    /*if (equal) {
-      break;
-    }*/
-
-    // update step
-    for (auto i = 0; i < clusters.size(); ++i) {
-      // refresh clusters
-      clusters[i].swap(clusters_update[i]);
-
-      // clear temporary clusters
-      clusters_update[i].clear();
-    }
   }
 
+  // output json
   for (auto &cluster : clusters) {
     writer.StartArray();
 
