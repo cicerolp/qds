@@ -34,10 +34,9 @@ class Aggr {
   const Query::aggr_expr _expr;
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////
-// Range
-/////////////////////////////////////////////////////////////////////////////////////////
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrGroupBy
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AggrGroupBy : public Aggr {
  public:
   AggrGroupBy(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
@@ -45,7 +44,11 @@ class AggrGroupBy : public Aggr {
 
   virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) = 0;
 
-  virtual void output(json &writer) = 0;
+  virtual void output(json &writer) {
+    writer.StartArray();
+    writer.EndArray();
+  };
+
   virtual void output(std::vector<float> &raw) {
     return;
   }
@@ -54,6 +57,7 @@ class AggrGroupBy : public Aggr {
     writer.StartArray();
     writer.EndArray();
   };
+
   virtual void output_one_way(uint64_t value, const pipe_ctn &pipe, std::vector<float> &raw) {
     return;
   };
@@ -62,6 +66,7 @@ class AggrGroupBy : public Aggr {
     writer.StartArray();
     writer.EndArray();
   };
+
   virtual void output_two_way(uint64_t value, const pipe_ctn &pipe, std::vector<float> &raw, uint32_t threshold) {
     return;
   };
@@ -69,12 +74,14 @@ class AggrGroupBy : public Aggr {
   virtual void equality_one_way(uint64_t value, void *payload, json &writer) {
     writer.StartArray();
     writer.EndArray();
-  }
+  };
+
   virtual void equality_one_way(uint64_t value, void *payload, std::vector<float> &raw) {
     return;
-  }
+  };
 
   virtual std::vector<uint64_t> get_mapped_values() const = 0;
+
   virtual std::vector<uint64_t> get_mapped_values(uint32_t threshold) const = 0;
 
   virtual pipe_ctn get_pipe(uint64_t value, uint32_t threshold) {
@@ -86,10 +93,9 @@ class AggrGroupBy : public Aggr {
   }
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////
-// Summarize
-/////////////////////////////////////////////////////////////////////////////////////////
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrSummarize
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AggrSummarize : public Aggr {
  public:
   AggrSummarize() = default;
@@ -124,27 +130,34 @@ class AggrSummarize : public Aggr {
   }
 };
 
-// count
-/////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrCountGroupBy
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AggrCountGroupBy : public AggrGroupBy {
  public:
   AggrCountGroupBy(const Query::aggr_expr &expr, size_t __index) :
       AggrGroupBy(expr, __index) {}
   virtual ~AggrCountGroupBy() = default;
 
-  virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) override {
+  void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) override {
     auto it = it_lower;
     while (it != it_upper) {
       _map[value] += (*it++).size();
     }
   }
 
-  virtual void output(json &writer) override {
+  void output(json &writer) override {
     for (const auto &pair : _map) {
       writer.StartArray();
       write_value(pair.first, writer);
       writer.Uint(pair.second);
       writer.EndArray();
+    }
+  }
+
+  void output(std::vector<float> &raw) override {
+    for (const auto &pair : _map) {
+      raw.emplace_back(pair.second);
     }
   }
 
@@ -186,6 +199,9 @@ class AggrCountGroupBy : public AggrGroupBy {
   std::unordered_map<uint64_t, uint32_t> _map;
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrCountSummarize
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AggrCountSummarize : public AggrSummarize {
  public:
   AggrCountSummarize() = default;
@@ -221,6 +237,9 @@ class AggrCountSummarize : public AggrSummarize {
 };
 
 #ifdef NDS_ENABLE_PAYLOAD
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrPayloadGroupBy
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename T>
 class AggrPayloadGroupBy : public AggrGroupBy {
  public:
@@ -276,6 +295,9 @@ class AggrPayloadGroupBy : public AggrGroupBy {
   std::unordered_map<uint64_t, payload_pair_t> _map;
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrPayloadSummarize
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename T>
 class AggrPayloadSummarize : public AggrSummarize {
  public:
@@ -305,6 +327,9 @@ class AggrPayloadSummarize : public AggrSummarize {
 #endif // NDS_ENABLE_PAYLOAD
 
 #ifdef ENABLE_PDIGEST
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrPDigestGroupBy
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
  public:
   AggrPDigestGroupBy(const Query::aggr_expr &expr, size_t __index) :
@@ -324,7 +349,6 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
           writer.EndArray();
         }
       }
-
     } else if (_expr.first == "inverse") {
       for (auto &pair : _map) {
         for (auto &q : parameters) {
@@ -577,6 +601,9 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
   }
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrPDigestSummarize
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
  public:
   AggrPDigestSummarize() = default;
@@ -679,6 +706,9 @@ class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
 #endif // ENABLE_PDIGEST
 
 #ifdef ENABLE_GAUSSIAN
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrGaussianGroupBy
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AggrGaussianGroupBy : public AggrPayloadGroupBy<AggrGaussian> {
  public:
   AggrGaussianGroupBy(const Query::aggr_expr &expr, size_t __index) :
@@ -720,6 +750,9 @@ class AggrGaussianGroupBy : public AggrPayloadGroupBy<AggrGaussian> {
   }
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrGaussianSummarize
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AggrGaussianSummarize : public AggrPayloadSummarize<AggrGaussian> {
  public:
   AggrGaussianSummarize() = default;

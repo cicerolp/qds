@@ -39,6 +39,7 @@
 #include <string>
 #include <thread>
 #include <tuple>
+#include <unordered_set>
 #include <unordered_map>
 #include <vector>
 #include <numeric>

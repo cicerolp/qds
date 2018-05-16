@@ -256,7 +256,7 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
       if (!objs_skip[obj]) {
         random_distance -= objs_distance[obj];
 
-        if (random_distance <= 0.f) {
+        if (random_distance <= 0.1f) {
           // select this obj as centroid
 
           clusters.push_back({obj});
@@ -286,7 +286,7 @@ NDS::GroupBy<AggrGroupByCtn> NDS::get_cluster_grop_by(const Query &query) const 
   auto range = get_range(ctn, option);
   auto subset = get_subset(ctn);
 
-  auto aggr = get_aggr_group_by(query);
+  auto aggr = get_aggr_group_by_ctn(query);
   do_group_by(aggr, range, subset, option);
 
   return GroupBy<AggrGroupByCtn>(aggr, range, subset);
@@ -327,7 +327,7 @@ NDS::GroupBy<AggrSummarizeCtn> NDS::get_cluster_summarize(const Query &query) co
   auto range = get_range(ctn, option);
   auto subset = get_subset(ctn);
 
-  auto aggr = get_aggr_summarize(query);
+  auto aggr = get_aggr_summarize_ctn(query);
   do_summarize(aggr, range, subset);
 
   return GroupBy<AggrSummarizeCtn>(aggr, range, subset);
@@ -494,7 +494,7 @@ std::string NDS::augmented_series(const AugmentedSeries &augmented_series) {
   // summarize
   if (!pipeline.get_source().group_by()) {
 
-    auto aggr_dest = get_aggr_summarize(pipeline.get_dest());
+    auto aggr_dest = get_aggr_summarize_ctn(pipeline.get_dest());
     do_summarize(aggr_dest, range_dest, subset_dest);
 
     for (const auto &interval : bounds) {
@@ -508,7 +508,7 @@ std::string NDS::augmented_series(const AugmentedSeries &augmented_series) {
       auto range_source = get_range(source_ctn, option_source);
       auto subset_source = get_subset(source_ctn);
 
-      auto aggr_source = get_aggr_summarize(pipeline.get_source());
+      auto aggr_source = get_aggr_summarize_ctn(pipeline.get_source());
       do_summarize(aggr_source, range_source, subset_source);
 
       auto groups = std::make_pair(GroupBy<AggrSummarizeCtn>(aggr_source, range_source, subset_source),
@@ -529,7 +529,7 @@ std::string NDS::augmented_series(const AugmentedSeries &augmented_series) {
       writer.EndArray();
     }
   } else {
-    auto aggr_dest = get_aggr_group_by(pipeline.get_dest());
+    auto aggr_dest = get_aggr_group_by_ctn(pipeline.get_dest());
     do_group_by(aggr_dest, range_dest, subset_dest, option_dest);
 
     for (const auto &interval : bounds) {
@@ -543,7 +543,7 @@ std::string NDS::augmented_series(const AugmentedSeries &augmented_series) {
       auto range_source = get_range(source_ctn, option_source);
       auto subset_source = get_subset(source_ctn);
 
-      auto aggr_source = get_aggr_group_by(pipeline.get_source());
+      auto aggr_source = get_aggr_group_by_ctn(pipeline.get_source());
       do_group_by(aggr_source, range_source, subset_source, option_source);
 
       auto groups = std::make_pair(GroupBy<AggrGroupByCtn>(aggr_source, range_source, subset_source),
@@ -604,16 +604,16 @@ std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangeP
 
     // summarize
     if (!query.group_by()) {
-      auto aggr = get_aggr_summarize(query);
+      auto aggr = get_aggr_summarize_ctn(query);
       do_summarize(aggr, range, subset);
 
-      summarize_query(aggr, writer, range, subset);
+      summarize_query(aggr, writer);
 
     } else {
-      auto aggr = get_aggr_group_by(query);
+      auto aggr = get_aggr_group_by_ctn(query);
       do_group_by(aggr, range, subset, option);
 
-      group_by_query(aggr, writer, range, subset);
+      group_by_query(aggr, writer);
     }
   }
 
@@ -654,10 +654,10 @@ std::string NDS::serialize_pipeline(const Pipeline &pipeline,
 
     // summarize
     if (!pipeline.get_source().group_by()) {
-      auto aggr_source = get_aggr_summarize(pipeline.get_source());
+      auto aggr_source = get_aggr_summarize_ctn(pipeline.get_source());
       do_summarize(aggr_source, range_source, subset_source);
 
-      auto aggr_dest = get_aggr_summarize(pipeline.get_dest());
+      auto aggr_dest = get_aggr_summarize_ctn(pipeline.get_dest());
       do_summarize(aggr_dest, range_dest, subset_dest);
 
       auto groups = std::make_pair(GroupBy<AggrSummarizeCtn>(aggr_source, range_source, subset_source),
@@ -666,10 +666,10 @@ std::string NDS::serialize_pipeline(const Pipeline &pipeline,
       summarize_pipe(groups, writer);
 
     } else {
-      auto aggr_source = get_aggr_group_by(pipeline.get_source());
+      auto aggr_source = get_aggr_group_by_ctn(pipeline.get_source());
       do_group_by(aggr_source, range_source, subset_source, option_source);
 
-      auto aggr_dest = get_aggr_group_by(pipeline.get_dest());
+      auto aggr_dest = get_aggr_group_by_ctn(pipeline.get_dest());
       do_group_by(aggr_dest, range_dest, subset_dest, option_dest);
 
       auto groups = std::make_pair(GroupBy<AggrGroupByCtn>(aggr_source, range_source, subset_source),
@@ -847,14 +847,38 @@ std::string NDS::schema() const {
   return buffer.GetString();
 }
 
-void NDS::group_by_query(const AggrGroupByCtn &aggrs,
-                         json &writer,
-                         const range_ctn &range,
-                         const bined_ctn &subset) const {
+void NDS::summarize_query(const AggrSummarizeCtn &aggrs, json &writer) const {
   for (auto &aggr : aggrs) {
     writer.StartArray();
     aggr->output(writer);
     writer.EndArray();
+  }
+}
+
+void NDS::group_by_query(const AggrGroupByCtn &aggrs, json &writer) const {
+  for (auto &aggr : aggrs) {
+    writer.StartArray();
+    aggr->output(writer);
+    writer.EndArray();
+  }
+}
+
+void NDS::group_by_data(const AggrGroupByCtn &aggrs, json &writer) const {
+  for (auto &aggr : aggrs) {
+    writer.StartArray();
+    auto data = aggr->get_mapped_values();
+    for (auto &value: data) {
+      writer.Uint64(value);
+    }
+    writer.EndArray();
+  }
+}
+void NDS::group_by_data(const AggrGroupByCtn &aggrs, std::vector<uint64_t> &raw) const {
+  for (auto &aggr : aggrs) {
+    auto data = aggr->get_mapped_values();
+    for (auto &value: data) {
+      raw.emplace_back(value);
+    }
   }
 }
 
@@ -984,6 +1008,57 @@ void NDS::right_join_equal(const GroupCtn<AggrGroupByCtn> &groups, std::vector<f
   }
 }
 
+void NDS::summarize_pipe(const GroupCtn<AggrSummarizeCtn> &groups, json &writer) const {
+  for (auto &source_aggr : groups.first.aggrs) {
+    auto pipe = source_aggr->get_pipe();
+
+    writer.StartArray();
+    for (auto &dest_aggr : groups.second.aggrs) {
+      writer.StartArray();
+      dest_aggr->output(pipe, writer);
+      writer.EndArray();
+    }
+    writer.EndArray();
+  }
+}
+
+void NDS::summarize_pipe(const GroupCtn<AggrSummarizeCtn> &groups, std::vector<float> &raw) const {
+  for (auto &source_aggr : groups.first.aggrs) {
+    auto pipe = source_aggr->get_pipe();
+
+    for (auto &dest_aggr : groups.second.aggrs) {
+      dest_aggr->output(pipe, raw);
+    }
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// common methods
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void NDS::do_summarize(AggrSummarizeCtn &aggrs, const range_ctn &range, const bined_ctn &subset) const {
+  if (subset.size() != 0) {
+    for (const auto &el : subset) {
+      pivot_it it_lower = el->ptr().begin(), it_upper;
+      range_it it_range = range.begin();
+
+      while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+        if (it_lower != it_upper) {
+          for (auto &aggr : aggrs) {
+            aggr->merge(it_lower, it_upper);
+          }
+          it_lower = it_upper;
+        }
+        ++it_range;
+      }
+    }
+  } else {
+    for (auto &aggr : aggrs) {
+      aggr->merge(range.begin(), range.end());
+    }
+  }
+}
+
 void NDS::do_group_by(AggrGroupByCtn &aggrs,
                       const range_ctn &range,
                       const bined_ctn &subset,
@@ -1021,65 +1096,33 @@ void NDS::do_group_by(AggrGroupByCtn &aggrs,
   }
 }
 
-void NDS::summarize_query(const AggrSummarizeCtn &aggrs,
-                          json &writer,
-                          const range_ctn &range,
-                          const bined_ctn &subset) const {
-  for (auto &aggr : aggrs) {
-    writer.StartArray();
-    aggr->output(writer);
-    writer.EndArray();
+AggrSummarizeCtn NDS::get_aggr_summarize_ctn(const Query &query) const {
+  std::vector<std::shared_ptr<AggrSummarize>> aggr_ctn;
+
+  // get aggregation clausule
+  auto &aggr = query.get_aggr();
+
+  for (const auto &expr : aggr) {
+    if (expr.first == "count") {
+      aggr_ctn.emplace_back(std::make_shared<AggrCountSummarize>(expr, get_payload_index(expr.second)));
+    }
+#ifdef ENABLE_PDIGEST
+    if (expr.first == "quantile" || expr.first == "inverse" || expr.first == "sector" || expr.first == "ks") {
+      aggr_ctn.emplace_back(std::make_shared<AggrPDigestSummarize>(expr, get_payload_index(expr.second)));
+    }
+#endif // ENABLE_PDIGEST
+
+#ifdef ENABLE_GAUSSIAN
+    if (expr.first == "variance" || expr.first == "average") {
+      aggr_ctn.emplace_back(std::make_shared<AggrGaussianSummarize>(expr, get_payload_index(expr.second)));
+    }
+#endif // ENABLE_GAUSSIAN
   }
+
+  return aggr_ctn;
 }
 
-void NDS::summarize_pipe(const GroupCtn<AggrSummarizeCtn> &groups, json &writer) const {
-  for (auto &source_aggr : groups.first.aggrs) {
-    auto pipe = source_aggr->get_pipe();
-
-    writer.StartArray();
-    for (auto &dest_aggr : groups.second.aggrs) {
-      writer.StartArray();
-      dest_aggr->output(pipe, writer);
-      writer.EndArray();
-    }
-    writer.EndArray();
-  }
-}
-
-void NDS::summarize_pipe(const GroupCtn<AggrSummarizeCtn> &groups, std::vector<float> &raw) const {
-  for (auto &source_aggr : groups.first.aggrs) {
-    auto pipe = source_aggr->get_pipe();
-
-    for (auto &dest_aggr : groups.second.aggrs) {
-      dest_aggr->output(pipe, raw);
-    }
-  }
-}
-
-void NDS::do_summarize(AggrSummarizeCtn &aggrs, const range_ctn &range, const bined_ctn &subset) const {
-  if (subset.size() != 0) {
-    for (const auto &el : subset) {
-      pivot_it it_lower = el->ptr().begin(), it_upper;
-      range_it it_range = range.begin();
-
-      while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-        if (it_lower != it_upper) {
-          for (auto &aggr : aggrs) {
-            aggr->merge(it_lower, it_upper);
-          }
-          it_lower = it_upper;
-        }
-        ++it_range;
-      }
-    }
-  } else {
-    for (auto &aggr : aggrs) {
-      aggr->merge(range.begin(), range.end());
-    }
-  }
-}
-
-AggrGroupByCtn NDS::get_aggr_group_by(const Query &query) const {
+AggrGroupByCtn NDS::get_aggr_group_by_ctn(const Query &query) const {
   std::vector<std::shared_ptr<AggrGroupBy>> aggr_ctn;
 
   // get aggregation clausule
@@ -1105,31 +1148,3 @@ AggrGroupByCtn NDS::get_aggr_group_by(const Query &query) const {
 
   return aggr_ctn;
 }
-
-AggrSummarizeCtn NDS::get_aggr_summarize(const Query &query) const {
-  std::vector<std::shared_ptr<AggrSummarize>> aggr_ctn;
-
-  // get aggregation clausule
-  auto &aggr = query.get_aggr();
-
-  for (const auto &expr : aggr) {
-    if (expr.first == "count") {
-      aggr_ctn.emplace_back(std::make_shared<AggrCountSummarize>(expr, get_payload_index(expr.second)));
-    }
-
-#ifdef ENABLE_PDIGEST
-    if (expr.first == "quantile" || expr.first == "inverse" || expr.first == "sector" || expr.first == "ks") {
-      aggr_ctn.emplace_back(std::make_shared<AggrPDigestSummarize>(expr, get_payload_index(expr.second)));
-    }
-#endif // ENABLE_PDIGEST
-
-#ifdef ENABLE_GAUSSIAN
-    if (expr.first == "variance" || expr.first == "average") {
-      aggr_ctn.emplace_back(std::make_shared<AggrGaussianSummarize>(expr, get_payload_index(expr.second)));
-    }
-#endif // ENABLE_GAUSSIAN
-  }
-
-  return aggr_ctn;
-}
-
