@@ -6,6 +6,8 @@
 
 class Clustering {
  public:
+  using aggr_expr = std::pair<std::string, std::vector<std::string>>;
+
   Clustering(const std::string &url);
 
   void parse(const std::string &url);
@@ -34,9 +36,7 @@ class Clustering {
     return _group_by_clausule;
   }
 
-  std::string get_aggr_source() const;
-
-  std::string get_aggr_destination() const;
+  std::string get_aggr() const;
 
  protected:
   std::string _dataset;
@@ -48,6 +48,8 @@ class Clustering {
 
   std::uint32_t _clusters{2};
   std::uint32_t _iterations{10};
-  std::vector<std::string> _fields;
+
+  // [aggr type, [fields]]
+  std::vector<aggr_expr> _aggr;
 };
 

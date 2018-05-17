@@ -519,7 +519,7 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
     writer.EndArray();
   }
   void equality_one_way(uint64_t value, void *payload, std::vector<float> &raw) override {
-    static const float radius = 1.f;
+    static const float radius = 0.5f;
 
     auto it = _map.find(value);
     auto pdigest = (AgrrPDigest *) payload;
@@ -646,7 +646,7 @@ class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
   }
 
   void equality(void *payload, std::vector<float> &raw) override {
-    static const float radius = 1.f;
+    static const float radius = 0.5f;
 
     auto pdigest = (AgrrPDigest *) payload;
 

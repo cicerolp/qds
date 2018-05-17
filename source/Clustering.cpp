@@ -42,44 +42,38 @@ void Clustering::parse(const std::string &url) {
         _clusters = std::stoul(value);
       } else if (key == "iterations") {
         _iterations = std::stoul(value);
-      } else if (key == "fields") {
-        auto clausule = boost::trim_copy_if(value, boost::is_any_of("()"));
+      } else if (key == "aggr") {
+        auto equals_idx = value.find_first_of(".");
 
-        boost::char_separator<char> sep(":");
-        boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
+        if (std::string::npos != equals_idx) {
+          aggr_expr aggr;
 
-        for (auto &v : tokens) {
-          _fields.emplace_back(v);
+          aggr.first = value.substr(0, equals_idx);
+
+          auto clausule = boost::trim_copy_if(value.substr(equals_idx + 1), boost::is_any_of("()"));
+
+          boost::char_separator<char> sep(":");
+          boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
+
+          for (auto &v : tokens) {
+            aggr.second.emplace_back(v);
+          }
+
+          _aggr.emplace_back(aggr);
         }
       }
     }
   }
 }
 
-std::string Clustering::get_aggr_source() const {
+std::string Clustering::get_aggr() const {
   std::stringstream aggr;
 
-  for (auto &d : _fields) {
-    aggr << "/aggr=sector." << d << "_t";
+  for (auto &pair : _aggr) {
+    for (auto &field: pair.second) {
+      aggr << "/aggr=" << pair.first << "." << field << "_t";
+    }
   }
-
-  /*for (auto &d : _fields) {
-    aggr << "/aggr=average." << d << "_g";
-  }*/
-
-  return aggr.str();
-}
-
-std::string Clustering::get_aggr_destination() const {
-  std::stringstream aggr;
-
-  for (auto &d : _fields) {
-    aggr << "/aggr=sector." << d << "_t";
-  }
-
-  /*for (auto &d : _fields) {
-    aggr << "/aggr=inverse." << d << "_t.($)";
-  }*/
 
   return aggr.str();
 }

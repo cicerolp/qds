@@ -173,6 +173,7 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
 
   std::random_device rd;
   std::mt19937 mt_random(rd());
+  // std::mt19937 mt_random(123);
 
   float total_distance = 0.f;
 
@@ -182,12 +183,12 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
   // queries bases
   std::string right_base = "/destination/dataset=" +
       clustering.get_dataset() +
-      clustering.get_aggr_destination() +
+      clustering.get_aggr() +
       clustering.get_group_by_clausule();
 
   std::string left_base = "/source/dataset=" +
       clustering.get_dataset() +
-      clustering.get_aggr_source() +
+      clustering.get_aggr() +
       clustering.get_group_by_clausule();
 
   // step 1 - choose first cluster center uniformly at random from data points
@@ -374,12 +375,12 @@ std::string NDS::clustering(const Clustering &clustering) {
   // queries bases
   std::string right_base = "/destination/dataset=" +
       clustering.get_dataset() +
-      clustering.get_aggr_destination() +
+      clustering.get_aggr() +
       clustering.get_group_by_clausule();
 
   std::string left_base = "/source/dataset=" +
       clustering.get_dataset() +
-      clustering.get_aggr_source() +
+      clustering.get_aggr() +
       clustering.get_group_by_clausule();
 
   // assignment step
@@ -973,36 +974,40 @@ void NDS::group_by_right_join(const GroupCtn<AggrGroupByCtn> &groups,
 }
 
 void NDS::summarize_equal(const GroupCtn<AggrSummarizeCtn> &groups, std::vector<float> &raw) const {
-  for (auto &source_aggr : groups.first.aggrs) {
-    auto payload = source_aggr->get_payload();
-
-    for (auto &dest_aggr : groups.second.aggrs) {
-      dest_aggr->equality(payload, raw);
+  if (groups.first.aggrs.size() == groups.second.aggrs.size()) {
+    auto length = groups.first.aggrs.size();
+    for (auto aggr = 0; aggr < length; ++aggr) {
+      auto payload = groups.first.aggrs[aggr]->get_payload();
+      groups.second.aggrs[aggr]->equality(payload, raw);
     }
   }
 }
 
 void NDS::left_join_equal(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw) const {
-  for (auto &source_aggr : groups.first.aggrs) {
-    // get keys from source
-    for (auto &key : source_aggr->get_mapped_values()) {
-      // get payload from sorce
-      auto payload = source_aggr->get_payload(key);
-      for (auto &dest_aggr : groups.second.aggrs) {
-        dest_aggr->equality_one_way(key, payload, raw);
+  if (groups.first.aggrs.size() == groups.second.aggrs.size()) {
+    auto length = groups.first.aggrs.size();
+    for (auto aggr = 0; aggr < length; ++aggr) {
+      // get keys from source
+      for (auto &key: groups.first.aggrs[aggr]->get_mapped_values()) {
+        // get payload from sorce
+        auto payload = groups.first.aggrs[aggr]->get_payload(key);
+        // left join
+        groups.second.aggrs[aggr]->equality_one_way(key, payload, raw);
       }
     }
   }
 }
 
 void NDS::right_join_equal(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw) const {
-  for (auto &source_aggr : groups.first.aggrs) {
-    // get keys from destination
-    for (auto &dest_aggr : groups.second.aggrs) {
-      for (auto &key : dest_aggr->get_mapped_values()) {
-        // get pipe from source
-        auto payload = source_aggr->get_payload(key);
-        dest_aggr->equality_one_way(key, payload, raw);
+  if (groups.first.aggrs.size() == groups.second.aggrs.size()) {
+    auto length = groups.first.aggrs.size();
+    for (auto aggr = 0; aggr < length; ++aggr) {
+      // get keys from destination
+      for (auto &key: groups.second.aggrs[aggr]->get_mapped_values()) {
+        // get payload from sorce
+        auto payload = groups.first.aggrs[aggr]->get_payload(key);
+        // right join
+        groups.second.aggrs[aggr]->equality_one_way(key, payload, raw);
       }
     }
   }
