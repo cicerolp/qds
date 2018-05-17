@@ -175,8 +175,8 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
     cluster.emplace_back(values[obj++]);
   }*/
 
-  std::random_device rd;
-  /*std::mt19937 mt_random(rd());*/
+  /*std::random_device rd;
+  *//*std::mt19937 mt_random(rd());*//*
   std::mt19937 mt_random(123);
 
   float total_distance = 0.f;
@@ -197,7 +197,7 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
 
   // step 1 - choose first cluster center uniformly at random from data points
   auto initial_centroid = std::uniform_int_distribution<uint16_t>(0, n_objs - 1)(mt_random);
-  /*auto initial_centroid = 0;*/
+  *//*auto initial_centroid = 0;*//*
 
   clusters.push_back({initial_centroid});
   objs_skip[initial_centroid] = true;
@@ -274,6 +274,78 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
         }
       }
     }
+  }*/
+
+
+  std::random_device rd;
+  /*std::mt19937 mt_random(rd());*/
+  std::mt19937 mt_random(123);
+
+  std::vector<float> objs_distance(n_objs, 0.f);
+
+  // queries bases
+  std::string right_base = "/destination/dataset=" +
+      clustering.get_dataset() +
+      clustering.get_aggr() +
+      clustering.get_group_by_clausule();
+
+  std::string left_base = "/source/dataset=" +
+      clustering.get_dataset() +
+      clustering.get_aggr() +
+      clustering.get_group_by_clausule();
+
+  // step 1 - choose first cluster center uniformly at random from data points
+  auto initial_centroid = std::uniform_int_distribution<uint16_t>(0, n_objs - 1)(mt_random);
+  /*auto initial_centroid = 0;*/
+
+  clusters.push_back({initial_centroid});
+
+  uint32_t selected_k = 1;
+
+  // repeat steps 2 and 3 until k centers have been chosen
+  while (selected_k != clustering.get_n_clusters()) {
+    if (clustering.get_group_by_clausule().empty()) {
+      std::vector<NDS::GroupBy<AggrSummarizeCtn>> clusters_summarize;
+
+      for (auto &cluster : clusters) {
+        clusters_summarize.emplace_back(get_cluster_summarize(
+            Query(right_base + "/const=" + clustering.get_cluster_by() + ".values.(" + get_values(cluster) + ")")
+        ));
+      }
+
+      for (uint16_t obj = 0; obj < n_objs; ++obj) {
+        auto query = left_base + "/const=" + clustering.get_cluster_by() + ".values.(" + std::to_string(obj) + ")";
+        auto values = get_raw_by_summarize(Query(query), clusters_summarize);
+
+        // step 2 - for each obs x, compute distance d(x) to nearest cluster center
+        objs_distance[obj] = (*std::min_element(std::begin(values), std::end(values)));
+      }
+
+    } else {
+      std::vector<NDS::GroupBy<AggrGroupByCtn>> clusters_group_by;
+
+      for (auto &cluster : clusters) {
+        clusters_group_by.emplace_back(get_cluster_grop_by(
+            Query(right_base + "/const=" + clustering.get_cluster_by() + ".values.(" + get_values(cluster) + ")")
+        ));
+      }
+
+      for (uint16_t obj = 0; obj < n_objs; ++obj) {
+        auto query = left_base + "/const=" + clustering.get_cluster_by() + ".values.(" + std::to_string(obj) + ")";
+        auto values = get_raw_by_group(Query(query), clusters_group_by);
+
+        // step 2 - for each obs x, compute distance d(x) to nearest cluster center
+        objs_distance[obj] = (*std::min_element(std::begin(values), std::end(values)));
+      }
+    }
+
+    // step 3 - choose new cluster center from amongst data points
+
+    auto elt = std::max_element(objs_distance.begin(), objs_distance.end());
+    uint16_t id = std::distance(objs_distance.begin(), elt);
+
+    clusters.push_back({id});
+    selected_k++;
   }
 
   return clusters;
