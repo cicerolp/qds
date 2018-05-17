@@ -127,8 +127,10 @@ class AgrrPDigest : public AgrrPayload {
       merge_buffer_data();
     }
 
+    // TODO optimize algorithm
+
     // (2 * PI) / number of sectors
-    static const double increment = (2.0 * M_PI) / 10.0;
+    static const double increment = (2.0 * M_PI) / 45.0;
 
     float sector = 0.f;
     float max_inv = 0.f;

@@ -519,6 +519,7 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
     writer.EndArray();
   }
   void equality_one_way(uint64_t value, void *payload, std::vector<float> &raw) override {
+    static const float empty = 1.0f;
     static const float radius = 0.5f;
 
     auto it = _map.find(value);
@@ -528,7 +529,7 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
       if (pdigest == nullptr) {
         // it != _map.end()
         // right_join
-        raw.emplace_back(2.f * radius);
+        raw.emplace_back(empty);
       } else if (it != _map.end()) {
         // pdigest c1
         auto theta_c1 = (*it).second.payload.get_denser_sector();
@@ -542,11 +543,11 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
 
         auto distance = std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 
-        raw.emplace_back(distance);
+        raw.emplace_back(distance * distance);
       } else {
         // it == _map.end()
         // left_join
-        raw.emplace_back(2.f * radius);
+        raw.emplace_back(empty);
       }
 
     } else if (_expr.first == "ks") {
@@ -554,7 +555,7 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
       if (pdigest == nullptr) {
         // it != _map.end()
         // right_join
-        raw.emplace_back(2.f);
+        raw.emplace_back(empty);
       } else if (it != _map.end()) {
         auto distance = 0.f;
 
@@ -568,11 +569,11 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
           distance = std::max(distance, std::fabs((*it).second.payload.inverse(centroid) - pdigest->inverse(centroid)));
         }
 
-        raw.emplace_back(distance);
+        raw.emplace_back(distance * distance);
       } else {
         // it == _map.end()
         // left_join
-        raw.emplace_back(2.f);
+        raw.emplace_back(empty);
       }
     }
   }
