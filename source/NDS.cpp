@@ -154,6 +154,12 @@ std::string get_values(std::vector<uint16_t> cluster) {
 }
 
 std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &clustering, size_t n_objs) {
+  std::vector<std::vector<uint16_t>> clusters;
+
+  if (clustering.get_aggr().empty()) {
+    return clusters;
+  }
+
   /*std::vector<std::vector<uint16_t>> clusters(clustering.get_n_clusters());
 
   std::vector<uint16_t> values(n_objs);
@@ -169,11 +175,9 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
     cluster.emplace_back(values[obj++]);
   }*/
 
-  std::vector<std::vector<uint16_t>> clusters;
-
   std::random_device rd;
-  std::mt19937 mt_random(rd());
-  // std::mt19937 mt_random(123);
+  /*std::mt19937 mt_random(rd());*/
+  std::mt19937 mt_random(123);
 
   float total_distance = 0.f;
 
@@ -220,7 +224,7 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
         auto values = get_raw_by_summarize(Query(query), clusters_summarize);
 
         // step 2 - for each obs x, compute distance d(x) to nearest cluster center
-        auto distance = (*std::min_element(std::begin(values), std::end(values)));
+        auto distance = 1.f + (*std::min_element(std::begin(values), std::end(values)));
 
         objs_distance[obj] = distance * distance;
         total_distance += objs_distance[obj];
@@ -241,7 +245,7 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
         auto values = get_raw_by_group(Query(query), clusters_group_by);
 
         // step 2 - for each obs x, compute distance d(x) to nearest cluster center
-        auto distance = (*std::min_element(std::begin(values), std::end(values)));
+        auto distance = 1.f + (*std::min_element(std::begin(values), std::end(values)));
 
         objs_distance[obj] = distance * distance;
         total_distance += objs_distance[obj];
@@ -249,7 +253,7 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
     }
 
     // step 3 - choose new cluster center from amongst data points,
-    // with probability of x being chosen propostional to d(x)^2
+    // with probability of x being chosen proportional to d(x)^2
 
     auto random_distance = std::uniform_real_distribution<float>(0, total_distance)(mt_random);
 
@@ -257,7 +261,7 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
       if (!objs_skip[obj]) {
         random_distance -= objs_distance[obj];
 
-        if (random_distance <= 0.1f) {
+        if (random_distance <= 0.0f) {
           // select this obj as centroid
 
           clusters.push_back({obj});
@@ -386,6 +390,11 @@ std::string NDS::clustering(const Clustering &clustering) {
   // assignment step
   auto iterations = clustering.get_iterations();
   while (iterations--) {
+    // keep further trajectory to repopulate empty clusters
+    size_t further_cluster;
+    size_t further_trajectory;
+    float further_distance = std::numeric_limits<float>::min();
+
     if (clustering.get_group_by_clausule().empty()) {
       std::vector<NDS::GroupBy<AggrSummarizeCtn>> clusters_summarize;
 
@@ -402,11 +411,19 @@ std::string NDS::clustering(const Clustering &clustering) {
         auto query = left_base + "/const=" + clustering.get_cluster_by() + ".values.(" + std::to_string(obj) + ")";
 
         auto values = get_raw_by_summarize(Query(query), clusters_summarize);
+        auto distance = std::min_element(std::begin(values), std::end(values));
 
-        auto centroid = std::distance(std::begin(values), std::min_element(std::begin(values), std::end(values)));
+        auto centroid = std::distance(std::begin(values), distance);
 
         // update step
         clusters[centroid].emplace_back(obj);
+
+        // keep further trajectory
+        if ((*distance) > further_distance) {
+          further_cluster = centroid;
+          further_trajectory = clusters[centroid].size() - 1;
+          further_distance = (*distance);
+        }
       }
 
     } else {
@@ -425,11 +442,31 @@ std::string NDS::clustering(const Clustering &clustering) {
         auto query = left_base + "/const=" + clustering.get_cluster_by() + ".values.(" + std::to_string(obj) + ")";
 
         auto values = get_raw_by_group(Query(query), clusters_group_by);
+        auto distance = std::min_element(std::begin(values), std::end(values));
 
-        auto centroid = std::distance(std::begin(values), std::min_element(std::begin(values), std::end(values)));
+        auto centroid = std::distance(std::begin(values), distance);
 
         // update step
         clusters[centroid].emplace_back(obj);
+
+        // keep further trajectory
+        if ((*distance) > further_distance) {
+          further_cluster = centroid;
+          further_trajectory = clusters[centroid].size() - 1;
+          further_distance = (*distance);
+        }
+      }
+    }
+
+    // repopulate (one) empty cluster
+    for (auto &cluster: clusters) {
+      if (cluster.empty()) {
+        // push into empty cluster
+        cluster.emplace_back(clusters[further_cluster][further_trajectory]);
+
+        // pop further trajectory
+        clusters[further_cluster].erase(clusters[further_cluster].begin() + further_trajectory);
+        break;
       }
     }
 
