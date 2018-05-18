@@ -523,58 +523,80 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
     static const float radius = 0.5f;
 
     auto it = _map.find(value);
-    auto pdigest = (AgrrPDigest *) payload;
+    auto lhs = &(*it).second.payload;
+    auto rhs = (AgrrPDigest *) payload;
 
-    if (_expr.first == "sector") {
-      if (pdigest == nullptr) {
-        // it != _map.end()
-        // right_join
-        raw.emplace_back(empty);
-      } else if (it != _map.end()) {
-        // pdigest c1
-        auto theta_c1 = (*it).second.payload.get_denser_sector();
+    if (rhs == nullptr) {
+      // it != _map.end()
+      // right_join
+      raw.emplace_back(empty);
+    } else if (it != _map.end()) {
+      if (_expr.first == "sector") {
+        auto theta_c1 = lhs->get_denser_sector();
         auto x1 = radius * std::cos(theta_c1);
         auto y1 = radius * std::sin(theta_c1);
 
-        // pdigest c2
-        auto theta_c2 = pdigest->get_denser_sector();
+        auto theta_c2 = rhs->get_denser_sector();
         auto x2 = radius * std::cos(theta_c2);
         auto y2 = radius * std::sin(theta_c2);
 
         auto distance = std::sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 
-        raw.emplace_back(distance * distance);
-      } else {
-        // it == _map.end()
-        // left_join
-        raw.emplace_back(empty);
-      }
+        raw.emplace_back(distance);
 
-    } else if (_expr.first == "ks") {
-      // Kolmogorov–Smirnov test
-      if (pdigest == nullptr) {
-        // it != _map.end()
-        // right_join
-        raw.emplace_back(empty);
-      } else if (it != _map.end()) {
+      } else if (_expr.first == "ks") {
+        // Kolmogorov–Smirnov test
+        auto c1 = lhs->get_centroids();
+        auto c2 = rhs->get_centroids();
+
+        auto c1_end = c1.begin() + lhs->get_size();
+        auto c2_end = c2.begin() + rhs->get_size();
+
+        // first c1 centroid that is not less than c2.front
+        auto c1_c2 = std::lower_bound(c1.begin(), c1_end, c2.front());
+
+        // first c2 centroid that is not less than c1.front
+        auto c2_c1 = std::lower_bound(c2.begin(), c2_end, c1.front());
+
         auto distance = 0.f;
 
-        // pdigest c1
-        for (auto &centroid: (*it).second.payload.get_centroids()) {
-          distance = std::max(distance, std::fabs((*it).second.payload.inverse(centroid) - pdigest->inverse(centroid)));
+        if (c1_c2 == c1_end || c2_c1 == c2_end) {
+          distance = 1.f;
+        } else {
+          distance = std::max(distance, std::fabs(lhs->inverse(*c1_c2) - rhs->inverse(*c1_c2)));
+          distance = std::max(distance, std::fabs(lhs->inverse(*c2_c1) - rhs->inverse(*c2_c1)));
+
+          for (auto iter = c1_c2; iter < c1_end; ++iter) {
+            if (distance == 1.f) break;
+            distance = std::max(distance, std::fabs(lhs->inverse(*iter) - rhs->inverse(*iter)));
+          }
+
+          for (auto iter = c2_c1; iter < c2_end; ++iter) {
+            if (distance == 1.f) break;
+            distance = std::max(distance, std::fabs(lhs->inverse(*iter) - rhs->inverse(*iter)));
+          }
         }
 
-        // pdigest c2
-        for (auto &centroid: pdigest->get_centroids()) {
-          distance = std::max(distance, std::fabs((*it).second.payload.inverse(centroid) - pdigest->inverse(centroid)));
+        raw.emplace_back(distance);
+
+        /*auto debug = 0.f;
+
+        for (auto iter = c1.begin(); iter < c1_end; ++iter) {
+          debug = std::max(debug, std::fabs(lhs->inverse(*iter) - rhs->inverse(*iter)));
+          if (debug == 1.f) break;
         }
 
-        raw.emplace_back(distance * distance);
-      } else {
-        // it == _map.end()
-        // left_join
-        raw.emplace_back(empty);
+        for (auto iter = c2.begin(); iter < c2_end; ++iter) {
+          debug = std::max(debug, std::fabs(lhs->inverse(*iter) - rhs->inverse(*iter)));
+          if (debug == 1.f) break;
+        }
+
+        assert(distance == debug);*/
       }
+    } else {
+      // it == _map.end()
+      // left_join
+      raw.emplace_back(empty);
     }
   }
 
@@ -649,16 +671,15 @@ class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
   void equality(void *payload, std::vector<float> &raw) override {
     static const float radius = 0.5f;
 
-    auto pdigest = (AgrrPDigest *) payload;
+    auto lhs = &_map;
+    auto rhs = (AgrrPDigest *) payload;
 
     if (_expr.first == "sector") {
-      // pdigest c1
-      auto theta_c1 = _map.get_denser_sector();
+      auto theta_c1 = lhs->get_denser_sector();
       auto x1 = radius * std::cos(theta_c1);
       auto y1 = radius * std::sin(theta_c1);
 
-      // pdigest c2
-      auto theta_c2 = pdigest->get_denser_sector();
+      auto theta_c2 = rhs->get_denser_sector();
       auto x2 = radius * std::cos(theta_c2);
       auto y2 = radius * std::sin(theta_c2);
 
@@ -668,16 +689,35 @@ class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
 
     } else if (_expr.first == "ks") {
       // Kolmogorov–Smirnov test
+      auto c1 = lhs->get_centroids();
+      auto c2 = rhs->get_centroids();
+
+      auto c1_end = c1.begin() + lhs->get_size();
+      auto c2_end = c2.begin() + rhs->get_size();
+
+      // first c1 centroid that is not less than c2.front
+      auto c1_c2 = std::lower_bound(c1.begin(), c1_end, c2.front());
+
+      // first c2 centroid that is not less than c1.front
+      auto c2_c1 = std::lower_bound(c2.begin(), c2_end, c1.front());
+
       auto distance = 0.f;
 
-      // pdigest c1
-      for (auto &centroid: _map.get_centroids()) {
-        distance = std::max(distance, std::fabs(_map.inverse(centroid) - pdigest->inverse(centroid)));
-      }
+      if (c1_c2 == c1_end || c2_c1 == c2_end) {
+        distance = 1.f;
+      } else {
+        distance = std::max(distance, std::fabs(lhs->inverse(*c1_c2) - rhs->inverse(*c1_c2)));
+        distance = std::max(distance, std::fabs(lhs->inverse(*c2_c1) - rhs->inverse(*c2_c1)));
 
-      // pdigest c2
-      for (auto &centroid: pdigest->get_centroids()) {
-        distance = std::max(distance, std::fabs(_map.inverse(centroid) - pdigest->inverse(centroid)));
+        for (auto iter = c1_c2; iter < c1_end; ++iter) {
+          if (distance == 1.f) break;
+          distance = std::max(distance, std::fabs(lhs->inverse(*iter) - rhs->inverse(*iter)));
+        }
+
+        for (auto iter = c2_c1; iter < c2_end; ++iter) {
+          if (distance == 1.f) break;
+          distance = std::max(distance, std::fabs(lhs->inverse(*iter) - rhs->inverse(*iter)));
+        }
       }
 
       raw.emplace_back(distance);
