@@ -8,6 +8,8 @@ option(ENABLE_GPERF "Enable Gperftools Profiler" OFF)
 # nds options
 option(NDS_ENABLE_PAYLOAD "Enable Payload" ON)
 
+option(NDS_ENABLE_CRS_SIMPLE "Enable CRS.Simple" OFF)
+
 # nds tweaks
 option(NDS_OPTIMIZE_LEAF "Enable Spatial Element Leaf Optimization" OFF)
 
@@ -24,7 +26,7 @@ set(PDIGEST_COMPRESSION "50.f" CACHE STRING "Set p-digest Compression (float)")
 set(PDIGEST_BUFFER_FACTOR "5" CACHE STRING "Set p-digest Buffer Size (N * PDIGEST_ARRAY_SIZE)")
 
 # gaussian
-option(ENABLE_GAUSSIAN "Enable Gaussian" ON)
+option(ENABLE_GAUSSIAN "Enable Gaussian" OFF)
 
 configure_file(source/config.h.in config.h)
 include_directories("${CMAKE_CURRENT_BINARY_DIR}") # To find the .h
