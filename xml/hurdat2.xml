@@ -55,21 +55,5 @@
 			<bin>0</bin>
 			<offset>46</offset>
 		</payload>
-
-		<payload>
-			<index>wind_g</index>
-			<bin>1</bin>
-			<offset>38</offset>
-		</payload>
-		<payload>
-			<index>pressure_g</index>
-			<bin>1</bin>
-			<offset>42</offset>
-		</payload>
-		<payload>
-			<index>direction_g</index>
-			<bin>1</bin>
-			<offset>46</offset>
-		</payload>
 	</schema>
 </config>
