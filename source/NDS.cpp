@@ -437,8 +437,12 @@ std::string NDS::clustering(const Clustering &clustering) {
   ProfilerStart("perf.prof");
 #endif
 
+  float threshold = 0.05;
+
   auto n_objs = _dimension[_dimension_index[clustering.get_cluster_by()]]->get_schema().bin;
   auto clusters = initialize_clusters(clustering, n_objs);
+
+  std::vector<int32_t> clusters_size(clustering.get_n_clusters(), 0);
 
   // serialization
   rapidjson::StringBuffer buffer;
@@ -530,9 +534,14 @@ std::string NDS::clustering(const Clustering &clustering) {
       }
     }
 
+    bool empty_cluster = false;
+
     // repopulate (one) empty cluster
     for (auto &cluster: clusters) {
       if (cluster.empty()) {
+        empty_cluster = true;
+        std::cout << "[debug] repopulate empty cluster with: #" << further_cluster << std::endl;
+
         // push into empty cluster
         cluster.emplace_back(clusters[further_cluster][further_trajectory]);
 
@@ -542,8 +551,30 @@ std::string NDS::clustering(const Clustering &clustering) {
       }
     }
 
-    // TODO verify small change ratio
+    std::cout << "[debug] ::";
+    for (auto &cluster: clusters) {
+      std::cout << cluster.size() << "::";
+    }
+    std::cout << std::endl;
+
+    if (!empty_cluster) {
+      size_t diff = 0;
+      for (auto i = 0; i < clusters.size(); ++i) {
+        diff += std::abs((int32_t) clusters[i].size() - clusters_size[i]);
+
+        clusters_size[i] = clusters[i].size();
+      }
+
+      if (diff / (float) n_objs <= threshold) {
+        std::cout << "[debug] diff below threshold: " << diff / (float) n_objs << " <= " << threshold << std::endl;
+        break;
+      } else {
+        std::cout << "[debug] diff above threshold: " << diff / (float) n_objs << " > " << threshold << std::endl;
+      }
+    }
   }
+
+  std::cout << "[debug] # iterations: " << clustering.get_iterations() - iterations << std::endl;
 
   // output json
   for (auto &cluster : clusters) {

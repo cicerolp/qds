@@ -219,10 +219,8 @@ class NDS {
   void do_group_by(AggrGroupByCtn &aggrs, const range_ctn &range,
                    const bined_ctn &subset, const CopyOption &option) const;
 
-
   AggrSummarizeCtn get_aggr_summarize_ctn(const Query &query) const;
   AggrGroupByCtn get_aggr_group_by_ctn(const Query &query) const;
-
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // regular queries
@@ -235,7 +233,7 @@ class NDS {
   // group_by data queries
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   void group_by_data(const AggrGroupByCtn &aggrs, json &writer) const;
-  void group_by_data(const AggrGroupByCtn &aggrs, std::vector<uint64_t > &raw) const;
+  void group_by_data(const AggrGroupByCtn &aggrs, std::vector<uint64_t> &raw) const;
 
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // pipeline queries
