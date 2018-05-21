@@ -16,26 +16,24 @@ inline uint32_t index(uint32_t x, uint32_t y) {
 }
 
 inline uint32_t lon2tilex(double lon, int z) {
-  /*uint32_t x = (lon + 180.0) / 360.0 * (1 << z);
-  return x & ((1 << z) - 1);*/
-
+#ifdef NDS_ENABLE_CRS_SIMPLE
   uint32_t x = (lon + 512.0) / 1024.0 * (1 << z);
   return x & ((1 << z) - 1);
-
-  /*uint32_t x = (lon) / 100.0 * (1 << z);
-  return x & ((1 << z) - 1);*/
+#else
+  uint32_t x = (lon + 180.0) / 360.0 * (1 << z);
+  return x & ((1 << z) - 1);
+#endif // NDS_ENABLE_CRS_SIMPLE
 }
 
 inline uint32_t lat2tiley(double lat, int z) {
-  /*static const double PI_180 = M_PI / 180.0;
-  uint32_t y = (1.0 - log(tan(lat * PI_180) + 1.0 / cos(lat * PI_180)) / M_PI) / 2.0 * (1 << z);
-  return y & ((1 << z) - 1);*/
-
+#ifdef NDS_ENABLE_CRS_SIMPLE
   uint32_t y = (lat + 512.0) / 1024.0 * (1 << z);
   return y & ((1 << z) - 1);
-
-  /*uint32_t y = (lat) / 100.0 * (1 << z);
-  return y & ((1 << z) - 1);*/
+#else
+  static const double PI_180 = M_PI / 180.0;
+  uint32_t y = (1.0 - log(tan(lat * PI_180) + 1.0 / cos(lat * PI_180)) / M_PI) / 2.0 * (1 << z);
+  return y & ((1 << z) - 1);
+#endif // NDS_ENABLE_CRS_SIMPLE
 }
 
 inline float tilex2lon(double x, int z) {
