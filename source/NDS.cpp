@@ -1,14 +1,10 @@
 #include "stdafx.h"
-#include "types.h"
 
 #include "NDS.h"
 
 #include "Categorical.h"
 #include "Spatial.h"
 #include "Temporal.h"
-
-#include "PDigest.h"
-#include "Gaussian.h"
 
 NDS::NDS(const Schema &schema) {
   std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
@@ -329,7 +325,6 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
             Query(right_base + "/const=" + clustering.get_cluster_by() + ".values.(" + get_values(cluster) + ")")
         ));
       }
-
       for (uint16_t obj = 0; obj < n_objs; ++obj) {
         auto query = left_base + "/const=" + clustering.get_cluster_by() + ".values.(" + std::to_string(obj) + ")";
         auto values = get_raw_by_group(Query(query), clusters_group_by);
@@ -437,7 +432,7 @@ std::string NDS::clustering(const Clustering &clustering) {
   ProfilerStart("perf.prof");
 #endif
 
-  float threshold = 0.05;
+  float threshold = 0.005;
 
   auto n_objs = _dimension[_dimension_index[clustering.get_cluster_by()]]->get_schema().bin;
   auto clusters = initialize_clusters(clustering, n_objs);
@@ -1005,29 +1000,38 @@ void NDS::group_by_query(const AggrGroupByCtn &aggrs, json &writer) const {
 }
 
 void NDS::group_by_data(const AggrGroupByCtn &aggrs, json &writer) const {
+  std::vector<uint64_t> keys;
+
   for (auto &aggr : aggrs) {
+    aggr->insert_mapped_keys(keys);
+
     writer.StartArray();
-    auto data = aggr->get_mapped_values();
-    for (auto &value: data) {
+    for (auto &value: keys) {
       writer.Uint64(value);
     }
     writer.EndArray();
   }
 }
 void NDS::group_by_data(const AggrGroupByCtn &aggrs, std::vector<uint64_t> &raw) const {
+  std::vector<uint64_t> keys;
+
   for (auto &aggr : aggrs) {
-    auto data = aggr->get_mapped_values();
-    for (auto &value: data) {
+    aggr->insert_mapped_keys(keys);
+    for (auto &value: keys) {
       raw.emplace_back(value);
     }
   }
 }
 
 void NDS::group_by_inner_join(const GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const {
+  std::vector<uint64_t> keys;
+
   for (auto &source_aggr : groups.first.aggrs) {
     writer.StartArray();
     // get keys from source
-    for (auto &key : source_aggr->get_mapped_values(threshold)) {
+    source_aggr->insert_mapped_keys(keys, threshold);
+
+    for (auto &key : keys) {
       // get pipe from source
       auto pipe = source_aggr->get_pipe(key, threshold);
       for (auto &dest_aggr : groups.second.aggrs) {
@@ -1039,10 +1043,14 @@ void NDS::group_by_inner_join(const GroupCtn<AggrGroupByCtn> &groups, json &writ
 }
 
 void NDS::group_by_left_join(const GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const {
+  std::vector<uint64_t> keys;
+
   for (auto &source_aggr : groups.first.aggrs) {
     writer.StartArray();
     // get keys from source
-    for (auto &key : source_aggr->get_mapped_values(0)) {
+    source_aggr->insert_mapped_keys(keys);
+
+    for (auto &key : keys) {
       // get pipe from sorce
       auto pipe = source_aggr->get_pipe(key, threshold);
       for (auto &dest_aggr : groups.second.aggrs) {
@@ -1054,11 +1062,15 @@ void NDS::group_by_left_join(const GroupCtn<AggrGroupByCtn> &groups, json &write
 }
 
 void NDS::group_by_right_join(const GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const {
+  std::vector<uint64_t> keys;
+
   for (auto &source_aggr : groups.first.aggrs) {
     writer.StartArray();
-    // get keys from destination
     for (auto &dest_aggr : groups.second.aggrs) {
-      for (auto &key : dest_aggr->get_mapped_values(threshold)) {
+      // get keys from destination
+      dest_aggr->insert_mapped_keys(keys, threshold);
+
+      for (auto &key : keys) {
         // get pipe from source
         auto pipe = source_aggr->get_pipe(key, 0);
         dest_aggr->output_one_way(key, pipe, writer);
@@ -1071,9 +1083,13 @@ void NDS::group_by_right_join(const GroupCtn<AggrGroupByCtn> &groups, json &writ
 void NDS::group_by_inner_join(const NDS::GroupCtn<std::vector<std::shared_ptr<AggrGroupBy>>> &groups,
                               std::vector<float> &raw,
                               uint32_t threshold) const {
+  std::vector<uint64_t> keys;
+
   for (auto &source_aggr : groups.first.aggrs) {
     // get keys from source
-    for (auto &key : source_aggr->get_mapped_values(threshold)) {
+    source_aggr->insert_mapped_keys(keys, threshold);
+
+    for (auto &key : keys) {
       // get pipe from source
       auto pipe = source_aggr->get_pipe(key, threshold);
       for (auto &dest_aggr : groups.second.aggrs) {
@@ -1086,9 +1102,13 @@ void NDS::group_by_inner_join(const NDS::GroupCtn<std::vector<std::shared_ptr<Ag
 void NDS::group_by_left_join(const NDS::GroupCtn<std::vector<std::shared_ptr<AggrGroupBy>>> &groups,
                              std::vector<float> &raw,
                              uint32_t threshold) const {
+  std::vector<uint64_t> keys;
+
   for (auto &source_aggr : groups.first.aggrs) {
     // get keys from source
-    for (auto &key : source_aggr->get_mapped_values(0)) {
+    source_aggr->insert_mapped_keys(keys);
+
+    for (auto &key : keys) {
       // get pipe from sorce
       auto pipe = source_aggr->get_pipe(key, threshold);
       for (auto &dest_aggr : groups.second.aggrs) {
@@ -1101,10 +1121,14 @@ void NDS::group_by_left_join(const NDS::GroupCtn<std::vector<std::shared_ptr<Agg
 void NDS::group_by_right_join(const GroupCtn<AggrGroupByCtn> &groups,
                               std::vector<float> &raw,
                               uint32_t threshold) const {
+  std::vector<uint64_t> keys;
+
   for (auto &source_aggr : groups.first.aggrs) {
-    // get keys from destination
     for (auto &dest_aggr : groups.second.aggrs) {
-      for (auto &key : dest_aggr->get_mapped_values(threshold)) {
+      // get keys from destination
+      dest_aggr->insert_mapped_keys(keys, threshold);
+
+      for (auto &key : keys) {
         // get pipe from source
         auto pipe = source_aggr->get_pipe(key, 0);
         dest_aggr->output_one_way(key, pipe, raw);
@@ -1125,10 +1149,14 @@ void NDS::summarize_equal(const GroupCtn<AggrSummarizeCtn> &groups, std::vector<
 
 void NDS::left_join_equal(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw) const {
   if (groups.first.aggrs.size() == groups.second.aggrs.size()) {
+    std::vector<uint64_t> keys;
+
     auto length = groups.first.aggrs.size();
     for (auto aggr = 0; aggr < length; ++aggr) {
       // get keys from source
-      for (auto &key: groups.first.aggrs[aggr]->get_mapped_values()) {
+      groups.first.aggrs[aggr]->insert_mapped_keys(keys);
+
+      for (auto &key: keys) {
         // get payload from sorce
         auto payload = groups.first.aggrs[aggr]->get_payload(key);
         // left join
@@ -1140,10 +1168,14 @@ void NDS::left_join_equal(const GroupCtn<AggrGroupByCtn> &groups, std::vector<fl
 
 void NDS::right_join_equal(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw) const {
   if (groups.first.aggrs.size() == groups.second.aggrs.size()) {
+    std::vector<uint64_t> keys;
+
     auto length = groups.first.aggrs.size();
     for (auto aggr = 0; aggr < length; ++aggr) {
       // get keys from destination
-      for (auto &key: groups.second.aggrs[aggr]->get_mapped_values()) {
+      groups.second.aggrs[aggr]->insert_mapped_keys(keys);
+
+      for (auto &key: keys) {
         // get payload from sorce
         auto payload = groups.first.aggrs[aggr]->get_payload(key);
         // right join

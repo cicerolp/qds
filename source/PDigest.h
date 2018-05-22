@@ -184,6 +184,7 @@ class AgrrPDigest : public AgrrPayload {
 
   // points to the first unused centroid
   uint32_t _lastUsedCell{0};
+  float _totalWeight{0.f};
 
   float _min = std::numeric_limits<float>::max();
   float _max = std::numeric_limits<float>::min();

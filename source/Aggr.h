@@ -80,9 +80,9 @@ class AggrGroupBy : public Aggr {
     return;
   };
 
-  virtual std::vector<uint64_t> get_mapped_values() const = 0;
+  virtual void insert_mapped_keys(std::vector<uint64_t> &keys) const = 0;
 
-  virtual std::vector<uint64_t> get_mapped_values(uint32_t threshold) const = 0;
+  virtual void insert_mapped_keys(std::vector<uint64_t> &keys, uint32_t threshold) const = 0;
 
   virtual pipe_ctn get_pipe(uint64_t value, uint32_t threshold) {
     return pipe_ctn();
@@ -161,26 +161,24 @@ class AggrCountGroupBy : public AggrGroupBy {
     }
   }
 
-  std::vector<uint64_t> get_mapped_values() const override {
-    std::vector<uint64_t> mapped_keys;
-    mapped_keys.reserve(_map.size());
+  void insert_mapped_keys(std::vector<uint64_t> &keys) const override {
+    keys.clear();
+    keys.reserve(_map.size());
 
     for (const auto &elt: _map) {
-      mapped_keys.emplace_back(elt.first);
+      keys.emplace_back(elt.first);
     }
-    return mapped_keys;
   }
 
-  std::vector<uint64_t> get_mapped_values(uint32_t threshold) const override {
-    std::vector<uint64_t> mapped_keys;
-    mapped_keys.reserve(_map.size());
+  void insert_mapped_keys(std::vector<uint64_t> &keys, uint32_t threshold) const override {
+    keys.clear();
+    keys.reserve(_map.size());
 
     for (const auto &elt: _map) {
       if (elt.second >= threshold) {
-        mapped_keys.emplace_back(elt.first);
+        keys.emplace_back(elt.first);
       }
     }
-    return mapped_keys;
   }
 
   pipe_ctn get_pipe(uint64_t value, uint32_t threshold) override {
@@ -252,26 +250,23 @@ class AggrPayloadGroupBy : public AggrGroupBy {
     _map[value].count += count;
   }
 
-  std::vector<uint64_t> get_mapped_values() const override {
-    std::vector<uint64_t> mapped_keys;
-    mapped_keys.reserve(_map.size());
+  void insert_mapped_keys(std::vector<uint64_t> &keys) const override {
+    keys.clear();
+    keys.reserve(_map.size());
 
     for (const auto &elt: _map) {
-      mapped_keys.emplace_back(elt.first);
+      keys.emplace_back(elt.first);
     }
-    return mapped_keys;
   }
-
-  std::vector<uint64_t> get_mapped_values(uint32_t threshold) const override {
-    std::vector<uint64_t> mapped_keys;
-    mapped_keys.reserve(_map.size());
+  void insert_mapped_keys(std::vector<uint64_t> &keys, uint32_t threshold) const override {
+    keys.clear();
+    keys.reserve(_map.size());
 
     for (const auto &elt: _map) {
       if (elt.second.count >= threshold) {
-        mapped_keys.emplace_back(elt.first);
+        keys.emplace_back(elt.first);
       }
     }
-    return mapped_keys;
   }
 
   virtual void *get_payload(uint64_t value) override {
@@ -291,7 +286,6 @@ class AggrPayloadGroupBy : public AggrGroupBy {
   };
 
   // [key] -> [count, payload]
-  // std::map<uint64_t, payload_pair_t> _map;
   std::unordered_map<uint64_t, payload_pair_t> _map;
 };
 
