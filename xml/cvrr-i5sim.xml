@@ -24,5 +24,15 @@
 			<bin>0</bin>
 			<offset>14</offset>
 		</payload>
+		<payload>
+			<index>y_t</index>
+			<bin>0</bin>
+			<offset>18</offset>
+		</payload>
+		<payload>
+			<index>x_t</index>
+			<bin>0</bin>
+			<offset>22</offset>
+		</payload>
 	</schema>
 </config>

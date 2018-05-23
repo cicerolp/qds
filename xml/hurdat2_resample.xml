@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
-	<name>hurdat2</name>
+	<name>hurdat2_resample</name>
 	<bytes>50</bytes>
-	<file>hurdat2.nds</file>
+	<file>hurdat2_resample.nds</file>
 	<schema>
 		<categorical>
 			<index>hurricane</index>
@@ -30,14 +30,19 @@
 			<offset>42</offset>
 		</payload>
 		<payload>
-			<index>y_t</index>
+			<index>direction_t</index>
 			<bin>0</bin>
 			<offset>46</offset>
 		</payload>
 		<payload>
-			<index>x_t</index>
+			<index>y_t</index>
 			<bin>0</bin>
 			<offset>50</offset>
+		</payload>
+		<payload>
+			<index>x_t</index>
+			<bin>0</bin>
+			<offset>54</offset>
 		</payload>
 	</schema>
 </config>
