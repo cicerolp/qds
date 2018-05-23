@@ -274,7 +274,7 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
 
 
   std::random_device rd;
-  /*std::mt19937 mt_random(rd());*/
+  // std::mt19937 mt_random(rd());
   std::mt19937 mt_random(123);
 
   std::vector<float> objs_distance(n_objs, 0.f);
@@ -1284,13 +1284,17 @@ AggrSummarizeCtn NDS::get_aggr_summarize_ctn(const Query &query) const {
       aggr_ctn.emplace_back(std::make_shared<AggrCountSummarize>(expr, get_payload_index(expr.second)));
     }
 #ifdef ENABLE_PDIGEST
-    if (expr.first == "quantile" || expr.first == "inverse" || expr.first == "sector" || expr.first == "ks") {
+    else if (expr.first == "quantile" ||
+        expr.first == "inverse" ||
+        expr.first == "sector" ||
+        expr.first == "ks" ||
+        expr.first == "ksw") {
       aggr_ctn.emplace_back(std::make_shared<AggrPDigestSummarize>(expr, get_payload_index(expr.second)));
     }
 #endif // ENABLE_PDIGEST
 
 #ifdef ENABLE_GAUSSIAN
-    if (expr.first == "variance" || expr.first == "average") {
+    else if (expr.first == "variance" || expr.first == "average") {
       aggr_ctn.emplace_back(std::make_shared<AggrGaussianSummarize>(expr, get_payload_index(expr.second)));
     }
 #endif // ENABLE_GAUSSIAN
@@ -1311,13 +1315,17 @@ AggrGroupByCtn NDS::get_aggr_group_by_ctn(const Query &query) const {
     }
 
 #ifdef ENABLE_PDIGEST
-    if (expr.first == "quantile" || expr.first == "inverse" || expr.first == "sector" || expr.first == "ks") {
+    else if (expr.first == "quantile" ||
+        expr.first == "inverse" ||
+        expr.first == "sector" ||
+        expr.first == "ks" ||
+        expr.first == "ksw") {
       aggr_ctn.emplace_back(std::make_shared<AggrPDigestGroupBy>(expr, get_payload_index(expr.second)));
     }
 #endif // ENABLE_PDIGEST
 
 #ifdef ENABLE_GAUSSIAN
-    if (expr.first == "variance" || expr.first == "average") {
+    else if (expr.first == "variance" || expr.first == "average") {
       aggr_ctn.emplace_back(std::make_shared<AggrGaussianGroupBy>(expr, get_payload_index(expr.second)));
     }
 #endif // ENABLE_GAUSSIAN

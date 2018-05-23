@@ -178,7 +178,7 @@ class NDS {
           index = _payload_index.at(clausule.first);
         }
       } catch (std::out_of_range) {
-        std::cerr << "error: invalid aggr" << std::endl;
+        std::cerr << "[error] invalid aggr: " << clausule.first << std::endl;
       }
     }
     return index;
