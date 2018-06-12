@@ -33,27 +33,35 @@ NDS::NDS(const Schema &schema) {
   _root[0] = Pivot(0, data.size());
 
 #ifdef NDS_ENABLE_PAYLOAD
-  for (auto i = 0; i < schema.payload.size(); ++i) {
-    const auto &info = schema.payload[i];
+  uint32_t index = 0;
+  for (const auto &info : schema.payload) {
+    auto add_to_index = [&] {
+      // store payload index
+      _payload_index[info.index] = index++;
+      // prepare payload
+      data.preparePayload(info.offset);
+    };
 
     switch (info.bin) {
       case 0: {
+#ifdef ENABLE_PDIGEST
         std::cout << "\tPayload Dimension: PDigest\n\t\t" << info << std::endl;
         _payload.emplace_back(std::make_unique<PDigest>(info));
+
+        add_to_index();
+#endif // ENABLE_PDIGEST
       }
         break;
       case 1: {
+#ifdef ENABLE_GAUSSIAN
         std::cout << "\tPayload Dimension: Gaussian\n\t\t" << info << std::endl;
         _payload.emplace_back(std::make_unique<Gaussian>(info));
+
+        add_to_index();
+#endif // ENABLE_GAUSSIAN
       }
         break;
     }
-
-    // store payload index
-    _payload_index[info.index] = i;
-
-    // prepare payload
-    data.preparePayload(info.offset);
   }
   std::cout << std::endl;
 
