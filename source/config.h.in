@@ -24,6 +24,8 @@
 
     #cmakedefine ENABLE_PDIGEST
 
+    #cmakedefine ENABLE_RAW
+
     #ifdef ENABLE_PDIGEST
         #cmakedefine PDIGEST_OPTIMIZE_ARRAY
         #cmakedefine PDIGEST_PIECE_WISE_APPROXIMATION

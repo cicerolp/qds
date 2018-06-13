@@ -7,6 +7,7 @@
 #include "Spatial.h"
 #include "Temporal.h"
 
+#include "Raw.h"
 #include "PDigest.h"
 #include "Gaussian.h"
 
@@ -59,6 +60,15 @@ NDS::NDS(const Schema &schema) {
 
         add_to_index();
 #endif // ENABLE_GAUSSIAN
+      }
+        break;
+      case 2: {
+#ifdef ENABLE_RAW
+        std::cout << "\tPayload Dimension: Raw\n\t\t" << info << std::endl;
+        _payload.emplace_back(std::make_unique<Raw>(info));
+
+        add_to_index();
+#endif // ENABLE_RAW
       }
         break;
     }
