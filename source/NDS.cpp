@@ -127,7 +127,7 @@ NDS::NDS(const Schema &schema) {
   end = std::chrono::high_resolution_clock::now();
   long long duration = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
 
-  std::cout << "\tDuration: " + std::to_string(duration) + "s\n" << std::endl;
+  data.dispose_data();
 }
 
 std::string NDS::query(const Query &query) {
@@ -544,7 +544,10 @@ std::string NDS::schema() const {
   return buffer.GetString();
 }
 
-void NDS::group_by_query(const AggrGroupByCtn &aggrs, json &writer, const range_ctn &range, const bined_ctn &subset) const {
+void NDS::group_by_query(const AggrGroupByCtn &aggrs,
+                         json &writer,
+                         const range_ctn &range,
+                         const bined_ctn &subset) const {
   for (auto &aggr : aggrs) {
     writer.StartArray();
     aggr->output(writer);
@@ -676,7 +679,10 @@ void NDS::do_group_by(AggrGroupByCtn &aggrs,
   }
 }
 
-void NDS::summarize_query(const AggrSummarizeCtn &aggrs, json &writer, const range_ctn &range, const bined_ctn &subset) const {
+void NDS::summarize_query(const AggrSummarizeCtn &aggrs,
+                          json &writer,
+                          const range_ctn &range,
+                          const bined_ctn &subset) const {
   for (auto &aggr : aggrs) {
     writer.StartArray();
     aggr->output(writer);
@@ -742,6 +748,12 @@ AggrGroupByCtn NDS::get_aggr_group_by(const Query &query) const {
       aggr_ctn.emplace_back(std::make_shared<AggrCountGroupBy>(expr, get_payload_index(expr.second)));
     }
 
+#ifdef ENABLE_RAW
+    if (expr.first == "quantile" || expr.first == "inverse") {
+      aggr_ctn.emplace_back(std::make_shared<AggrRawGroupBy>(expr, get_payload_index(expr.second)));
+    }
+#endif // ENABLE_RAW
+
 #ifdef ENABLE_PDIGEST
     if (expr.first == "quantile" || expr.first == "inverse") {
       aggr_ctn.emplace_back(std::make_shared<AggrPDigestGroupBy>(expr, get_payload_index(expr.second)));
@@ -768,6 +780,12 @@ AggrSummarizeCtn NDS::get_aggr_summarize(const Query &query) const {
     if (expr.first == "count") {
       aggr_ctn.emplace_back(std::make_shared<AggrCountSummarize>(expr, get_payload_index(expr.second)));
     }
+
+#ifdef ENABLE_RAW
+    if (expr.first == "quantile" || expr.first == "inverse") {
+      aggr_ctn.emplace_back(std::make_shared<AggrRawSummarize>(expr, get_payload_index(expr.second)));
+    }
+#endif // ENABLE_RAW
 
 #ifdef ENABLE_PDIGEST
     if (expr.first == "quantile" || expr.first == "inverse") {

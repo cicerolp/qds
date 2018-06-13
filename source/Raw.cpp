@@ -70,7 +70,7 @@ float AggrRaw::quantile(float q) {
 }
 
 float AggrRaw::inverse(float value) {
-  return 0;
+  return 0.f;
 }
 
 void AggrRaw::sort_data() {

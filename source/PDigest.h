@@ -5,11 +5,11 @@
 #pragma once
 
 #include "types.h"
-#include "Data.h"
+#include "Query.h"
 
+#include "Data.h"
 #include "Payload.h"
 
-#include "Query.h"
 
 #ifdef ENABLE_PDIGEST
 

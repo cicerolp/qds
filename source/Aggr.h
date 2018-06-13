@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Pivot.h"
+#include "Raw.h"
 #include "PDigest.h"
 #include "Gaussian.h"
 
@@ -561,3 +562,249 @@ class AggrGaussianSummarize : public AggrPayloadSummarize<AggrGaussian> {
   }
 };
 #endif // ENABLE_GAUSSIAN
+
+#ifdef ENABLE_RAW
+class AggrRawGroupBy : public AggrPayloadGroupBy<AggrRaw> {
+ public:
+  AggrRawGroupBy(const Query::aggr_expr &expr, size_t __index) :
+      AggrPayloadGroupBy(expr, __index) {}
+  virtual ~AggrRawGroupBy() = default;
+
+  void output(json &writer) override {
+    auto parameters = AggrRaw::get_parameters(_expr);
+
+    if (_expr.first == "quantile") {
+      for (auto &pair : _map) {
+        for (auto &q : parameters) {
+          writer.StartArray();
+          write_value(pair.first, writer);
+          // writer.Double(q);
+          writer.Double(pair.second.payload.quantile(q));
+          writer.EndArray();
+        }
+      }
+
+    } else if (_expr.first == "inverse") {
+      for (auto &pair : _map) {
+        for (auto &q : parameters) {
+          writer.StartArray();
+          write_value(pair.first, writer);
+          // writer.Double(q);
+          writer.Double(pair.second.payload.inverse(q));
+          writer.EndArray();
+        }
+      }
+    }
+  }
+
+  void output(std::vector<float> &raw) override {
+    auto parameters = AggrRaw::get_parameters(_expr);
+
+    if (_expr.first == "quantile") {
+      for (auto &pair : _map) {
+        for (auto &q : parameters) {
+          raw.emplace_back(pair.second.payload.quantile(q));
+        }
+      }
+
+    } else if (_expr.first == "inverse") {
+      for (auto &pair : _map) {
+        for (auto &q : parameters) {
+          raw.emplace_back(pair.second.payload.inverse(q));
+        }
+      }
+    }
+  }
+
+  void output_one_way(uint64_t value, const pipe_ctn &pipe, json &writer) override {
+    if (pipe.empty()) {
+      if (_expr.first == "quantile") {
+        writer.StartArray();
+        write_value(value, writer);
+        // writer.String("NaN");
+        writer.String("NaN");
+        writer.EndArray();
+      } else if (_expr.first == "inverse") {
+        writer.StartArray();
+        write_value(value, writer);
+        // writer.String("NaN");
+        writer.Double(-1.0);
+        writer.EndArray();
+      }
+
+    } else {
+      auto it = _map.find(value);
+
+      if (_expr.first == "quantile") {
+        for (auto &q : pipe) {
+          writer.StartArray();
+          write_value(value, writer);
+          // writer.Double(q);
+
+          if (it != _map.end()) {
+            writer.Double((*it).second.payload.quantile(q));
+          } else {
+            writer.String("NaN");
+          }
+
+          writer.EndArray();
+        }
+      } else if (_expr.first == "inverse") {
+        for (auto &q : pipe) {
+          writer.StartArray();
+          write_value(value, writer);
+          // writer.Double(q);
+
+          if (it != _map.end()) {
+            writer.Double((*it).second.payload.inverse(q));
+          } else {
+            writer.Double(-1.0);
+          }
+
+          writer.EndArray();
+        }
+      }
+    }
+  }
+
+  void output_one_way(uint64_t value, const pipe_ctn &pipe, std::vector<float> &raw) override {
+    if (pipe.empty()) {
+      if (_expr.first == "quantile") {
+        raw.emplace_back(std::numeric_limits<float>::quiet_NaN());
+      } else if (_expr.first == "inverse") {
+        raw.emplace_back(-1.0);
+      }
+
+    } else {
+      auto it = _map.find(value);
+
+      if (_expr.first == "quantile") {
+        for (auto &q : pipe) {
+          if (it != _map.end()) {
+            raw.emplace_back((*it).second.payload.quantile(q));
+          } else {
+            raw.emplace_back(std::numeric_limits<float>::quiet_NaN());
+          }
+        }
+      } else if (_expr.first == "inverse") {
+        for (auto &q : pipe) {
+          if (it != _map.end()) {
+            raw.emplace_back((*it).second.payload.inverse(q));
+          } else {
+            raw.emplace_back(-1.0);
+          }
+        }
+      }
+    }
+  }
+
+  void output_two_way(uint64_t value, const pipe_ctn &pipe, json &writer, uint32_t threshold) override {
+    auto it = _map.find(value);
+
+    if (it != _map.end() && (*it).second.count >= threshold) {
+      if (_expr.first == "quantile") {
+        for (auto &q : pipe) {
+          writer.StartArray();
+          write_value(value, writer);
+          // writer.Double(q);
+          writer.Double((*it).second.payload.quantile(q));
+          writer.EndArray();
+        }
+      } else if (_expr.first == "inverse") {
+        for (auto &q : pipe) {
+          writer.StartArray();
+          write_value(value, writer);
+          // writer.Double(q);
+          writer.Double((*it).second.payload.inverse(q));
+          writer.EndArray();
+        }
+      }
+    }
+  }
+
+  void output_two_way(uint64_t value, const pipe_ctn &pipe, std::vector<float> &raw, uint32_t threshold) override {
+    auto it = _map.find(value);
+
+    if (it != _map.end() && (*it).second.count >= threshold) {
+      if (_expr.first == "quantile") {
+        for (auto &q : pipe) {
+          raw.emplace_back((*it).second.payload.quantile(q));
+        }
+      } else if (_expr.first == "inverse") {
+        for (auto &q : pipe) {
+          raw.emplace_back((*it).second.payload.inverse(q));
+        }
+      }
+    }
+  }
+
+  pipe_ctn get_pipe(uint64_t value, uint32_t threshold) override {
+    pipe_ctn pipe;
+    auto it = _map.find(value);
+
+    if (it != _map.end() && (*it).second.count >= threshold) {
+      auto parameters = AggrRaw::get_parameters(_expr);
+
+      if (_expr.first == "quantile") {
+        for (auto &q : parameters) {
+          pipe.emplace_back((*it).second.payload.quantile(q));
+        }
+      } else if (_expr.first == "inverse") {
+        for (auto &q : parameters) {
+          pipe.emplace_back((*it).second.payload.inverse(q));
+        }
+      }
+    }
+
+    return pipe;
+  }
+};
+
+class AggrRawSummarize : public AggrPayloadSummarize<AggrRaw> {
+ public:
+  AggrRawSummarize() = default;
+  AggrRawSummarize(const Query::aggr_expr &expr, size_t __index) :
+      AggrPayloadSummarize(expr, __index) {}
+  virtual ~AggrRawSummarize() = default;
+
+  void output(json &writer) override {
+    output(AggrRaw::get_parameters(_expr), writer);
+  }
+
+  void output(const pipe_ctn &pipe, json &writer) override {
+    if (_expr.first == "quantile") {
+      for (auto &q : pipe) {
+        writer.StartArray();
+        // writer.Double(q);
+        writer.Double(_map.quantile(q));
+        writer.EndArray();
+      }
+    } else if (_expr.first == "inverse") {
+      for (auto &q : pipe) {
+        writer.StartArray();
+        // writer.Double(q);
+        writer.Double(_map.inverse(q));
+        writer.EndArray();
+      }
+    }
+  }
+
+  pipe_ctn get_pipe() override {
+    pipe_ctn pipe;
+
+    auto parameters = AggrRaw::get_parameters(_expr);
+
+    if (_expr.first == "quantile") {
+      for (auto &q : parameters) {
+        pipe.emplace_back(_map.quantile(q));
+      }
+    } else if (_expr.first == "inverse") {
+      for (auto &q : parameters) {
+        pipe.emplace_back(_map.inverse(q));
+      }
+    }
+
+    return pipe;
+  }
+};
+#endif // ENABLE_RAW

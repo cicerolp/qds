@@ -3,7 +3,18 @@
     <name>green_tripdata</name>
     <bytes>46</bytes>
     <files>
-        <file>green_tripdata_2016_01.nds</file>
+        <file>green_tripdata_2015_12.nds</file>
+        <file>green_tripdata_2015_11.nds</file>
+        <file>green_tripdata_2015_10.nds</file>
+        <file>green_tripdata_2015_09.nds</file>
+        <file>green_tripdata_2015_08.nds</file>
+        <file>green_tripdata_2015_07.nds</file>
+        <file>green_tripdata_2015_06.nds</file>
+        <file>green_tripdata_2015_05.nds</file>
+        <file>green_tripdata_2015_04.nds</file>
+        <file>green_tripdata_2015_03.nds</file>
+        <file>green_tripdata_2015_02.nds</file>
+        <file>green_tripdata_2015_01.nds</file>
     </files>
     <schema>
         <categorical>

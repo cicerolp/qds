@@ -31,6 +31,11 @@ class Data {
     return _num_elts;
   }
 
+  inline void dispose_data() {
+    _data.clear();
+    _data.resize(0);
+  }
+
  private:
   static inline bool comparator(const DataElement &bit0, const DataElement &bit1) {
     return bit0.hash < bit1.hash;

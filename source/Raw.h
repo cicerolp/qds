@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "Query.h"
+
 #include "Data.h"
 #include "Payload.h"
 
@@ -29,6 +31,20 @@ class AggrRaw : public AgrrPayload {
 
   float quantile(float q);
   float inverse(float value);
+
+  static inline pipe_ctn get_parameters(const Query::aggr_expr &expr) {
+    auto clausule = boost::trim_copy_if(expr.second.second, boost::is_any_of("()"));
+
+    boost::char_separator<char> sep(":");
+    boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
+
+    pipe_ctn pipe;
+    for (auto &q : tokens) {
+      pipe.emplace_back(std::stof(q));
+    }
+
+    return pipe;
+  }
 
  private:
   void sort_data();
