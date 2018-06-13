@@ -26,6 +26,9 @@ set(PDIGEST_BUFFER_FACTOR "5" CACHE STRING "Set p-digest Buffer Size (N * PDIGES
 # gaussian
 option(ENABLE_GAUSSIAN "Enable Gaussian" ON)
 
+# raw
+option(ENABLE_RAW "Enable Raw" OFF)
+
 configure_file(source/config.h.in config.h)
 include_directories("${CMAKE_CURRENT_BINARY_DIR}") # To find the .h
 
@@ -55,6 +58,7 @@ set(SRC_LIST
         source/SpatialElement.cpp
         source/string_util.cpp
         source/Temporal.cpp
+        source/Raw.cpp
         source/PDigest.cpp
         source/Gaussian.cpp
         source/Pipeline.cpp
