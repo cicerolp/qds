@@ -3,7 +3,9 @@ cmake_minimum_required(VERSION 3.0)
 
 set (CMAKE_CXX_STANDARD 17)
 
+# profile options
 option(ENABLE_GPERF "Enable Gperftools Profiler" OFF)
+option(ENABLE_TIMMING "Enable Timming" OFF)
 
 # nds options
 option(NDS_ENABLE_PAYLOAD "Enable Payload" ON)
