@@ -131,13 +131,19 @@ NDS::NDS(const Schema &schema) {
 }
 
 std::string NDS::query(const Query &query) {
-  subset_ctn subsets;
+  TIMER_DECLARE
 
+  subset_ctn subsets;
   RangePivot root(_root[0]);
+
+  TIMER_START
 
   if (!validation(query, subsets)) {
     root.pivot.back(0);
   }
+
+  TIMER_END
+  TIMER_OUTPUT("validation")
 
   return serialize(query, subsets, root);
 }
@@ -281,6 +287,8 @@ std::string NDS::augmented_series(const AugmentedSeries &augmented_series) {
 }
 
 std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangePivot &root) const {
+  TIMER_DECLARE
+
   // serialization
   rapidjson::StringBuffer buffer;
   rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -289,28 +297,58 @@ std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangeP
   writer.StartArray();
 
   if (root.pivot.empty()) {
+    TIMER_OUTPUT("empty")
+
     // empty response
     writer.StartArray();
     writer.EndArray();
-
   } else {
+    TIMER_START
+
     CopyOption option = DefaultCopy;
 
     auto range = get_range(subsets, option);
     auto subset = get_subset(subsets);
 
+    TIMER_END
+    TIMER_OUTPUT("restriction")
+
     // summarize
     if (!query.group_by()) {
+      TIMER_START
+
       auto aggr = get_aggr_summarize(query);
       do_summarize(aggr, range, subset);
 
+      TIMER_END
+      TIMER_OUTPUT("merge")
+
+      //
+
+      TIMER_START
+
       summarize_query(aggr, writer, range, subset);
 
+      TIMER_END
+      TIMER_OUTPUT("aggr")
+
     } else {
+      TIMER_START
+
       auto aggr = get_aggr_group_by(query);
       do_group_by(aggr, range, subset, option);
 
+      TIMER_END
+      TIMER_OUTPUT("merge")
+
+      //
+
+      TIMER_START
+
       group_by_query(aggr, writer, range, subset);
+
+      TIMER_END
+      TIMER_OUTPUT("aggr")
     }
   }
 

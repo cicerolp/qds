@@ -12,7 +12,6 @@
 
 #include <iostream>
 
-#ifdef _POSIX_TIMERS
 /*
 CLOCK_REALTIME    System-wide realtime clock. Setting this clock requires appropriate privileges.
 CLOCK_MONOTONIC    Clock that cannot be set and represents monotonic time since some unspecified starting point.
@@ -45,7 +44,6 @@ struct unixTimer {
         return diff;
     }
 };
-#endif
 
 template<typename T>
 struct stdTimer {
@@ -87,19 +85,42 @@ void inline printcsv() {} // termination version
 
 template<typename First, typename ...Rest>
 void inline printcsv(First &&first, Rest &&...rest) {
-  std::cout << std::forward<First>(first) << " ; ";
+  std::cout << std::forward<First>(first) << ";";
   printcsv(std::forward<Rest>(rest)...);
 }
 
 // prepend some extra information to the stream
 #define PRINTCSVL(...) do { \
-    std::cout << "[" << __FILE__<<":"<< std::setw(4) << __LINE__<< "] ; ";\
+    std::cout << "[" << __FILE__<< ":" << std::setw(4) << __LINE__<< "];";\
     printcsv( __VA_ARGS__ ) ; \
     std::cout << std::endl ;\
-} while (0)
+} while (0);
 
 #define PRINTCSVF(...) do { \
-    std::cout << "[ " << __FUNCTION__ <<" ] ; ";\
+    std::cout << "[" << __FUNCTION__ << "];";\
     printcsv( __VA_ARGS__ ) ; \
     std::cout << std::endl ;\
-} while (0)
+} while (0);
+
+#ifdef ENABLE_TIMMING
+  extern uint32_t TIMER_ID;
+
+  #define TIMER_DECLARE Timer timer;
+  #define TIMER_START timer.start();
+  #define TIMER_END timer.stop();
+  #define TIMER_MILLISECONDS timer.milliseconds();
+  #define TIMER_OUTPUT(...) do { \
+    PRINTCSVF("id", TIMER_ID, "ms", timer.milliseconds(), ##__VA_ARGS__) ; \
+  } while (0);
+  #define TIMER_INCR_ID do { \
+    TIMER_ID += 1 ; \
+  } while (0);
+#else
+  #define TIMER_DECLARE 0;
+  #define TIMER_START 0;
+  #define TIMER_END 0;
+  #define TIMER_MILLISECONDS 0;
+  #define TIMER_OUTPUT(...) do { \
+  } while (0);
+  #define TIMER_INCR_ID 0;
+#endif // ENABLE_TIMMING

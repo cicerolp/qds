@@ -1,9 +1,22 @@
+#include "stdafx.h"
 #include "NDSInstances.h"
 #include "Server.h"
 
 uint32_t g_Quadtree_Depth{18};
 
 int main(int argc, char *argv[]) {
+  /*
+  TIMER_DECLARE
+  TIMER_START
+
+  PRINTCSVF("FUN");
+
+  TIMER_END
+  TIMER_OUTPUT("FUN")
+
+  exit(0);
+  */
+
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // categorical //
   // [dimension_name].values.([value_0]:[value_1]:...:[value_N])
@@ -29,8 +42,14 @@ int main(int argc, char *argv[]) {
   bool server = true;
   Server::server_opts nds_opts;
   nds_opts.port = 7000;
+
+#ifdef ENABLE_TIMMING
+  nds_opts.cache = false;
+  nds_opts.multithreading = false;
+#else
   nds_opts.cache = true;
   nds_opts.multithreading = true;
+#endif // ENABLE_TIMMING
 
   std::vector<std::string> input_files;
 

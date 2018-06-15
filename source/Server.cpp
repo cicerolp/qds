@@ -1,5 +1,10 @@
+#include "stdafx.h"
 #include "Server.h"
 #include "AugmentedSeries.h"
+
+#ifdef ENABLE_TIMMING
+uint32_t TIMER_ID = 0;
+#endif // ENABLE_TIMMING
 
 void Server::run(server_opts opts) {
   Server::getInstance().nds_opts = opts;
@@ -36,6 +41,9 @@ void Server::handler(mg_connection* conn, int ev, void* p) {
       mg_serve_http(conn, hm, Server::getInstance().http_server_opts);
 
     } else if (tokens[1] == "api" && tokens.size() >= 4) {
+
+      TIMER_INCR_ID
+
       if (tokens[2] == "schema") {
         printJson(conn, NDSInstances::getInstance().schema(uri));
       } else if (tokens[2] == "query") {

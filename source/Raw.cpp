@@ -57,6 +57,11 @@ uint32_t AggrRaw::merge(size_t payload_index, const pivot_it &it_lower, const pi
 float AggrRaw::quantile(float q) {
   assert(q >= 0.0 && q <= 1.0);
 
+  if (_payload.size() == 0) {
+    // no data, no way to get a quantile
+    return std::numeric_limits<float>::quiet_NaN();
+  }
+
   sort_data();
 
   const double n  = _payload.size();
