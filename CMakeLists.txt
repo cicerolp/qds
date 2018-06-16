@@ -58,7 +58,7 @@ set(SRC_LIST
         source/Server.cpp
         source/Spatial.cpp
         source/SpatialElement.cpp
-        source/string_util.cpp
+        source/util/string_util.cpp
         source/Temporal.cpp
         source/Raw.cpp
         source/PDigest.cpp

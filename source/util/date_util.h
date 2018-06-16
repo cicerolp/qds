@@ -3,7 +3,7 @@
 
 // from http://howardhinnant.github.io/date_algorithms.html
 
-namespace date_util {
+namespace util {
 // Returns number of days since civil 1970-01-01.  Negative values indicate
 //    days prior to 1970-01-01.
 // Preconditions:  y-m-d represents a date in the civil (Gregorian) calendar
@@ -164,4 +164,4 @@ static time_t mkgmtime(int year, int mon, int mday, int hour = 0, int min = 0,
   return mkgmtime(&time);
 }
 
-}  // namespace date_util
+}  // namespace util

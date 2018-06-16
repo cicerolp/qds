@@ -71,7 +71,7 @@
 #include "types.h"
 
 // utils
-#include "util/benchmark.h"
+#include "util/benchmark_util.h"
 
 template<class T>
 auto operator<<(std::ostream &os, const T &t) -> decltype(t.print(os), os) {
