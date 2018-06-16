@@ -127,7 +127,7 @@ int main(int argc, char *argv[]) {
   std::thread instances_run(NDSInstances::run, schemas);
 
   instances_run.join();
-  std::cout << "Current Resident Size: " << getCurrentRSS() / (1024 * 1024) << " MB" << std::endl;
+  std::cout << "\nCurrent Resident Size: " << getCurrentRSS() / (1024 * 1024) << " MB" << std::endl;
 
   if (server_ptr) {
     std::cout << "Server Running... Press any key to exit." << std::endl;

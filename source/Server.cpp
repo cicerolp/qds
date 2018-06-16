@@ -42,7 +42,7 @@ void Server::handler(mg_connection* conn, int ev, void* p) {
 
     } else if (tokens[1] == "api" && tokens.size() >= 4) {
 
-      TIMER_INCR_ID
+      PRINTCSVF("id", TIMER_ID, "uri", uri)
 
       if (tokens[2] == "schema") {
         printJson(conn, NDSInstances::getInstance().schema(uri));
@@ -55,6 +55,9 @@ void Server::handler(mg_connection* conn, int ev, void* p) {
       } else {
         printJson(conn, "[]");
       }
+
+      TIMER_INCR_ID
+
     } else {
       mg_serve_http(conn, hm, Server::getInstance().http_server_opts);
     }
