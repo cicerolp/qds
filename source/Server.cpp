@@ -2,9 +2,8 @@
 #include "Server.h"
 #include "AugmentedSeries.h"
 
-#ifdef ENABLE_TIMMING
+// ENABLE_TIMMING
 uint32_t TIMER_ID = 0;
-#endif // ENABLE_TIMMING
 
 void Server::run(server_opts opts) {
   Server::getInstance().nds_opts = opts;
