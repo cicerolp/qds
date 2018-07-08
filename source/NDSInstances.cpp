@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "NDSInstances.h"
 
 void NDSInstances::run(const std::vector<Schema> &args) {

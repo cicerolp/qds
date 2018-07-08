@@ -1,4 +1,4 @@
-﻿
+﻿#include "stdafx.h"
 #include "SpatialElement.h"
 
 SpatialElement::SpatialElement(NDS &nds, Data &data, BuildPair<build_ctn> &range, BuildPair<link_ctn> &links,

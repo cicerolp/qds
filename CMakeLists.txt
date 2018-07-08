@@ -98,3 +98,6 @@ endif ()
 set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "source/stdafx.h")
 
 cotire(${PROJECT_NAME})
+
+######## Benchmarks
+add_subdirectory(benchmarks)

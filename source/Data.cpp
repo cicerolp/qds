@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "Data.h"
 #include "Schema.h"
 
