@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<name>brightkite</name>
+	<bytes>16</bytes>
+	<file>brightkite.nds</file>
+	<schema>
+		<categorical>
+			<index>day_of_week</index>
+			<bin>7</bin>
+			<offset>0</offset>
+		</categorical>
+		<categorical>
+			<index>hour_of_day</index>
+			<bin>24</bin>
+			<offset>2</offset>
+		</categorical>
+		<temporal>
+			<index>time</index>
+			<bin>604800</bin>
+			<offset>4</offset>
+		</temporal>
+		<spatial>
+			<index>coord</index>
+			<bin>32</bin>
+			<offset>8</offset>
+		</spatial>
+	</schema>
+</config>

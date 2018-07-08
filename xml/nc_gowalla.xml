@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
-	<name>brightkite</name>
+	<name>gowalla</name>
 	<bytes>16</bytes>
-	<file>brightkite.nds</file>
+	<file>gowalla.nds</file>
 	<schema>
 		<categorical>
 			<index>day_of_week</index>
@@ -16,12 +16,12 @@
 		</categorical>
 		<temporal>
 			<index>time</index>
-			<bin>14400</bin>
+			<bin>604800</bin>
 			<offset>4</offset>
 		</temporal>
 		<spatial>
 			<index>coord</index>
-			<bin>1</bin>
+			<bin>32</bin>
 			<offset>8</offset>
 		</spatial>
 	</schema>
