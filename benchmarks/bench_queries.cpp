@@ -20,9 +20,11 @@ void run_bench(const std::string &input) {
       continue;
     }
 
-    Query query(line);
+    NDSInstances::getInstance().query(Query(line));
 
-    NDSInstances::getInstance().query(query);
+    NDSInstances::getInstance().query(Query(line));
+
+    NDSInstances::getInstance().query(Query(line));
 
     TIMER_INCR_ID
   }
