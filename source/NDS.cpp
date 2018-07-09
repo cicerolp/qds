@@ -298,6 +298,8 @@ std::string NDS::serialize(const Query &query, subset_ctn &subsets, const RangeP
   writer.StartArray();
 
   if (root.pivot.empty()) {
+    TIMER_START
+    TIMER_END
     TIMER_OUTPUT("empty")
 
     // empty response
