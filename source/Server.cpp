@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include "Server.h"
+#include "NDSInstances.h"
+
 #include "AugmentedSeries.h"
 
 uint32_t g_Quadtree_Depth{18};

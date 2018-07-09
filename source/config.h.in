@@ -7,7 +7,7 @@
 
 #include <cmath>
 
-#cmakedefine ENABLE_TIMMING
+#cmakedefine ENABLE_METRICS
 #cmakedefine ENABLE_GPERF
 
 // nds options

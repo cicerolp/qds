@@ -7,14 +7,16 @@
 #include "Query.h"
 #include "Pipeline.h"
 #include "AugmentedSeries.h"
+
 #include "Schema.h"
+#include "Server.h"
 
 using AggrSummarizeCtn = std::vector<std::shared_ptr<AggrSummarize>>;
 using AggrGroupByCtn = std::vector<std::shared_ptr<AggrGroupBy>>;
 
 class NDS {
  public:
-  NDS(const Schema &schema);
+  NDS(const Schema &schema, const Server::server_opts &opts);
 
   NDS(const NDS &that) = delete;
   NDS &operator=(NDS const &) = delete;
@@ -120,10 +122,13 @@ class NDS {
     if (link == nullptr) {
       return create_link(data, binned, ctn, links);
     } else {
+      // shared pivots
+      SHARED_PIVOTS_INCR(link->size())
+
       return link;
     }
 #else
-    return create_link(data, binned, container, links);
+    return create_link(data, binned, ctn, links);
 #endif // NDS_SHARE_PIVOT
   }
 

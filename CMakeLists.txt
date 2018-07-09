@@ -5,7 +5,7 @@ set (CMAKE_CXX_STANDARD 17)
 
 # profile options
 option(ENABLE_GPERF "Enable Gperftools Profiler" OFF)
-option(ENABLE_TIMMING "Enable Timming" OFF)
+option(ENABLE_METRICS "Enable Metrics" OFF)
 
 # nds options
 option(NDS_ENABLE_PAYLOAD "Enable Payload" ON)

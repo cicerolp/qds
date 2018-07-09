@@ -30,7 +30,9 @@ int main(int argc, char *argv[]) {
 
   auto nds_opts = Server::init(argc, argv);
 
-  std::cout << nds_opts << std::endl;
+  if (nds_opts.debug_info) {
+    std::cout << nds_opts << std::endl;
+  }
 
   std::unique_ptr<std::thread> server_ptr;
 
@@ -40,13 +42,18 @@ int main(int argc, char *argv[]) {
   }
 
   // nds instances
-  std::thread instances_run(NDSInstances::run, nds_opts.schemas);
-
+  std::thread instances_run(NDSInstances::run, nds_opts);
   instances_run.join();
-  std::cout << "\nCurrent Resident Size: " << getCurrentRSS() / (1024 * 1024) << " MB" << std::endl;
+
+  if (nds_opts.debug_info) {
+    std::cout << "\nCurrent Resident Size: " << getCurrentRSS() / (1024 * 1024) << " MB" << std::endl;
+  }
 
   if (server_ptr) {
-    std::cout << "Server Running... Press any key to exit." << std::endl;
+    if (nds_opts.debug_info) {
+      std::cout << "Server Running... Press any key to exit." << std::endl;
+    }
+
     getchar();
 
     Server::getInstance().stop();

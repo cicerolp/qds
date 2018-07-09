@@ -24,3 +24,9 @@ add_executable(bench_queries ${HEADERS} ${SRC_LIST}
         bench_queries.cpp)
 
 target_link_libraries(bench_queries LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+
+
+add_executable(bench_info ${HEADERS} ${SRC_LIST}
+        bench_info.cpp)
+
+target_link_libraries(bench_info LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})

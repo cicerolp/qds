@@ -104,8 +104,10 @@ void inline printcsv(First &&first, Rest &&...rest) {
 
 extern uint32_t TIMER_ID;
 extern uint32_t TIMER_IT;
+extern uint32_t PIVOTS_N;
+extern uint32_t SHARED_PIVOTS_N;
 
-#ifdef ENABLE_TIMMING
+#ifdef ENABLE_METRICS
   #define TIMER_DECLARE Timer timer;
   #define TIMER_START timer.start();
   #define TIMER_END timer.stop();
@@ -126,6 +128,13 @@ extern uint32_t TIMER_IT;
     TIMER_IT = 0 ; \
   } while (0);
 
+  #define PIVOTS_INCR(SIZE) do { \
+    PIVOTS_N += SIZE; \
+  } while (0);
+  #define SHARED_PIVOTS_INCR(SIZE) do { \
+    SHARED_PIVOTS_N += SIZE; \
+  } while (0);
+
 #else
   #define TIMER_DECLARE 0;
   #define TIMER_START 0;
@@ -136,4 +145,8 @@ extern uint32_t TIMER_IT;
   #define TIMER_INCR_ID 0;
   #define TIMER_INCR_IT 0;
   #define TIMER_RESET_IT 0;
-#endif // ENABLE_TIMMING
+  #define PIVOTS_INCR(SIZE) do { \
+  } while (0);
+  #define SHARED_PIVOTS_INCR(SIZE) do { \
+  } while (0);
+#endif // ENABLE_METRICS

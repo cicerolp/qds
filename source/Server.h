@@ -1,9 +1,8 @@
 #pragma once
 
-#include "NDSInstances.h"
-#include "Singleton.h"
-
 #include "Query.h"
+#include "Schema.h"
+#include "Singleton.h"
 
 extern uint32_t g_Quadtree_Depth;
 
@@ -19,6 +18,8 @@ class Server : public Singleton<Server> {
 
     bool cache{true};
     bool multithreading{true};
+
+    bool debug_info{true};
 
     std::vector<Schema> schemas;
     std::vector<std::string> input_files;
@@ -71,7 +72,9 @@ class Server : public Singleton<Server> {
 
     // Declare the supported options.
     po::options_description desc("\nCommand Line Arguments");
+
     desc.add_options()("help,h", "produce help message");
+    desc.add_options()("no-log,n", "produce help message");
 
     desc.add_options()("no-server,s", "disable server")(
         "telemetry,t", "enable telemetry");
@@ -105,6 +108,10 @@ class Server : public Singleton<Server> {
     if (vm.count("help")) {
       std::cout << desc << std::endl;
       exit(0);
+    }
+
+    if (vm.count("no-log")) {
+      nds_opts.debug_info = false;
     }
 
     if (vm.count("no-server")) {

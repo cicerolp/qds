@@ -10,25 +10,25 @@
 #include "Raw.h"
 #include "PDigest.h"
 #include "Gaussian.h"
+#include "Server.h"
 
-NDS::NDS(const Schema &schema) {
-  std::chrono::time_point<std::chrono::high_resolution_clock> start, end;
-  start = std::chrono::high_resolution_clock::now();
-
+NDS::NDS(const Schema &schema, const Server::server_opts &opts) {
   uint32_t pivots_count = 0;
 
   Data data(schema);
 
-  std::cout << "Input Data: " << std::endl;
-  for (auto &file : schema.files) {
-    std::cout << "\tFile: " << file << std::endl;
-  }
-  std::cout << std::endl;
+  if (opts.debug_info) {
+    std::cout << "Input Data: " << std::endl;
+    for (auto &file : schema.files) {
+      std::cout << "\tFile: " << file << std::endl;
+    }
+    std::cout << std::endl;
 
-  std::cout << "NDS: " << std::endl;
-  std::cout << "\tName: " << schema.name << std::endl;
-  std::cout << "\tSize: " << data.size() << std::endl;
-  std::cout << std::endl;
+    std::cout << "NDS: " << std::endl;
+    std::cout << "\tName: " << schema.name << std::endl;
+    std::cout << "\tSize: " << data.size() << std::endl;
+    std::cout << std::endl;
+  }
 
   _root = pivot_ctn(1);
   _root[0] = Pivot(0, data.size());
@@ -46,7 +46,7 @@ NDS::NDS(const Schema &schema) {
     switch (info.bin) {
       case 0: {
 #ifdef ENABLE_PDIGEST
-        std::cout << "\tPayload Dimension: PDigest\n\t\t" << info << std::endl;
+        if (opts.debug_info) std::cout << "\tPayload Dimension: PDigest\n\t\t" << info << std::endl;
         _payload.emplace_back(std::make_unique<PDigest>(info));
 
         add_to_index();
@@ -55,7 +55,7 @@ NDS::NDS(const Schema &schema) {
         break;
       case 1: {
 #ifdef ENABLE_GAUSSIAN
-        std::cout << "\tPayload Dimension: Gaussian\n\t\t" << info << std::endl;
+        if (opts.debug_info) std::cout << "\tPayload Dimension: Gaussian\n\t\t" << info << std::endl;
         _payload.emplace_back(std::make_unique<Gaussian>(info));
 
         add_to_index();
@@ -64,7 +64,7 @@ NDS::NDS(const Schema &schema) {
         break;
       case 2: {
 #ifdef ENABLE_RAW
-        std::cout << "\tPayload Dimension: Raw\n\t\t" << info << std::endl;
+        if (opts.debug_info) std::cout << "\tPayload Dimension: Raw\n\t\t" << info << std::endl;
         _payload.emplace_back(std::make_unique<Raw>(info));
 
         add_to_index();
@@ -88,23 +88,25 @@ NDS::NDS(const Schema &schema) {
   for (const auto &info : schema.dimension) {
     switch (info.type) {
       case DimensionSchema::Spatial: {
-        std::cout << "\tSpatial Dimension: \n\t\t" << info << std::endl;
+        if (opts.debug_info) std::cout << "\tSpatial Dimension: \n\t\t" << info << std::endl;
         _dimension.emplace_back(std::make_unique<Spatial>(info));
       }
         break;
       case DimensionSchema::Temporal: {
-        std::cout << "\tTemporal Dimension: \n\t\t" << info << std::endl;
+        if (opts.debug_info) std::cout << "\tTemporal Dimension: \n\t\t" << info << std::endl;
         _dimension.emplace_back(std::make_unique<Temporal>(info));
       }
         break;
       case DimensionSchema::Categorical: {
-        std::cout << "\tCategorical Dimension: \n\t\t" << info << std::endl;
+        if (opts.debug_info) std::cout << "\tCategorical Dimension: \n\t\t" << info << std::endl;
         _dimension.emplace_back(std::make_unique<Categorical>(info));
       }
         break;
-      default:std::cerr << "error: invalid NDS" << std::endl;
+      default: {
+        if (opts.debug_info) std::cerr << "error: invalid NDS" << std::endl;
         std::abort();
         break;
+      }
     }
 
     uint32_t curr_count = _dimension.back()->build(*this, data, range, links);
@@ -113,7 +115,7 @@ NDS::NDS(const Schema &schema) {
     swap_and_clear<link_ctn>(links.input, links.output);
     swap_and_clear<build_ctn>(range.input, range.output);
 
-    std::cout << "\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
+    if (opts.debug_info) std::cout << "\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
   }
 
 #ifdef NDS_ENABLE_PAYLOAD
@@ -122,10 +124,9 @@ NDS::NDS(const Schema &schema) {
   }
 #endif // NDS_ENABLE_PAYLOAD
 
-  std::cout << "\n\tTotal Number of Pivots: " << pivots_count << std::endl;
+  if (opts.debug_info) std::cout << "\n\tTotal Number of Pivots: " << pivots_count << std::endl;
 
-  end = std::chrono::high_resolution_clock::now();
-  long long duration = std::chrono::duration_cast<std::chrono::seconds>(end - start).count();
+  PIVOTS_INCR(pivots_count)
 
   data.dispose_data();
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NDS.h"
+#include "Server.h"
 #include "Schema.h"
 #include "Singleton.h"
 
@@ -8,7 +9,7 @@ class NDSInstances : public Singleton<NDSInstances> {
   friend class Singleton<NDSInstances>;
 
  public:
-  static void run(const std::vector<Schema> &args);
+  static void run(const Server::server_opts &opts);
 
   std::string query(const Query &query);
   std::string pipeline(const Pipeline &pipeline);
