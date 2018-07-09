@@ -4,7 +4,7 @@
 ### SETUP THIS VARIABLES
 
 # get from date +%Y%m%d-%H%M%S
-expId="exp-queries-20180708-180023"
+expId="exp-info-20180709-142751"
 
 HOMEDIR=$(pwd)
 DATADIR=$(pwd)
