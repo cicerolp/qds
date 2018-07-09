@@ -138,7 +138,7 @@ for depth in $(seq $MAX_DEPTH $MAX_DEPTH); do
     echo '</schema></config>' >> input.xml
 
     # run test
-    NDS_DATA=${NDSDATADIR} ./bench_info --no-log -x input.xml -d ${depth} > ${TMPDIR}/${NDS_FILE}_-1_${depth}_-1_-1_${LEAF_SIZE}_${EXECID}_MEMORY.json
+    NDS_DATA=${NDSDATADIR} ./bench_info --no-log -x input.xml -d ${depth} > ${TMPDIR}/${NDS_FILE}_${EXECID}_-1_${depth}_-1_-1_${LEAF_SIZE}_MEMORY.json
 done
 
 ###############################################
@@ -172,7 +172,7 @@ for depth in $(seq $MAX_DEPTH $MAX_DEPTH); do
     echo '</schema></config>' >> input.xml
 
     # run test
-    NDS_DATA=${NDSDATADIR} ./bench_info --no-log -x input.xml -d ${depth} > ${TMPDIR}/${NDS_FILE}_-1_${depth}_-1_-1_${LEAF_SIZE}_${EXECID}_SHARING_MEMORY.json
+    NDS_DATA=${NDSDATADIR} ./bench_info --no-log -x input.xml -d ${depth} > ${TMPDIR}/${NDS_FILE}_${EXECID}_-1_${depth}_-1_-1_${LEAF_SIZE}_SHARING_MEMORY.json
 done
 
 push_to_git
