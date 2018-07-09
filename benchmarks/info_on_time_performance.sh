@@ -19,6 +19,9 @@ TMPDIR=/tmp/$expId
 # [index] -> offset
 declare -A payload_map
 
+payload_map[arr_delay]=46
+payload_map[dep_delay]=38
+
 MIN_DEPTH=$4
 MAX_DEPTH=$5
 
