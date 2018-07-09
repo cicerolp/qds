@@ -1,6 +1,6 @@
 
 #+TITLE: Experiment results
-#+DATE: seg jul  9 08:14:37 -03 2018
+#+DATE: seg jul  9 11:18:33 -03 2018
 #+AUTHOR: cicerolp
 #+MACHINE: cicero
 #+FILE: info.org
@@ -8,26 +8,26 @@
 * MACHINE INFO:
 ** PEOPLE LOGGED WHEN EXPERIMENT STARTED:
 cicerolp :1           2018-04-13 15:27 (:1)
-cicerolp pts/0        2018-07-09 08:02 (143.54.11.6)
+cicerolp pts/0        2018-07-09 11:16 (143.54.11.6)
 ############################################
 ** ENVIRONMENT VARIABLES:
 LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=01;05;37;41:mi=01;05;37;41:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.axv=01;35:*.anx=01;35:*.ogv=01;35:*.ogx=01;35:*.pdf=00;32:*.ps=00;32:*.txt=00;32:*.patch=00;32:*.diff=00;32:*.log=00;32:*.tex=00;32:*.doc=00;32:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.axa=00;36:*.oga=00;36:*.spx=00;36:*.xspf=00;36:
 LC_MEASUREMENT=pt_BR.UTF-8
-SSH_CONNECTION=143.54.11.6 50277 143.54.13.196 22
+SSH_CONNECTION=143.54.11.6 50546 143.54.13.196 22
 LC_PAPER=pt_BR.UTF-8
 LC_MONETARY=pt_BR.UTF-8
 LANG=en_US.UTF-8
 YAOURT_COLORS=nb=1:pkg=1:ver=1;32:lver=1;45:installed=1;42:grp=1;34:od=1;41;5:votes=1;44:dsc=0:other=1;35
-OLDPWD=/home/cicerolp/git/nds/benchmarks/build-release
+OLDPWD=/home/cicerolp/git/nds
 EDITOR=/usr/bin/nano
 MOZ_PLUGIN_PATH=/usr/lib/mozilla/plugins
 LC_NAME=pt_BR.UTF-8
-XDG_SESSION_ID=c65
+XDG_SESSION_ID=c68
 USER=cicerolp
 QT_QPA_PLATFORMTHEME=qt5ct
 PWD=/home/cicerolp/git/nds/benchmarks
 HOME=/home/cicerolp
-SSH_CLIENT=143.54.11.6 50277 22
+SSH_CLIENT=143.54.11.6 50546 22
 LC_ADDRESS=pt_BR.UTF-8
 LC_NUMERIC=pt_BR.UTF-8
 SSH_TTY=/dev/pts/0
@@ -55,7 +55,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 1730.098
+cpu MHz		: 3476.753
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -82,7 +82,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 1776.144
+cpu MHz		: 3503.334
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -109,7 +109,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 1631.959
+cpu MHz		: 3361.304
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -136,7 +136,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 1825.898
+cpu MHz		: 3378.897
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -163,7 +163,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 1815.396
+cpu MHz		: 3416.116
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -190,7 +190,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 1756.949
+cpu MHz		: 2366.659
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -217,7 +217,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 1774.686
+cpu MHz		: 3717.902
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -244,7 +244,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 1705.779
+cpu MHz		: 3269.897
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -269,45 +269,45 @@ power management:
 powersave
 ############################################
 ** CPU FREQUENCY:
-1730098
+3476753
 ############################################
 ** MEM INFO:
 MemTotal:       32892432 kB
-MemFree:         3715512 kB
-MemAvailable:   31098912 kB
-Buffers:        18210852 kB
-Cached:          9001004 kB
-SwapCached:        32572 kB
-Active:          9847928 kB
-Inactive:       18156144 kB
-Active(anon):     420156 kB
-Inactive(anon):   508624 kB
-Active(file):    9427772 kB
-Inactive(file): 17647520 kB
+MemFree:        11677728 kB
+MemAvailable:   31265184 kB
+Buffers:        12641744 kB
+Cached:          6879964 kB
+SwapCached:        32616 kB
+Active:         15880020 kB
+Inactive:        4403252 kB
+Active(anon):     265400 kB
+Inactive(anon):   498096 kB
+Active(file):   15614620 kB
+Inactive(file):  3905156 kB
 Unevictable:         152 kB
 Mlocked:             152 kB
 SwapTotal:      36181676 kB
-SwapFree:       35620524 kB
-Dirty:                24 kB
+SwapFree:       35591852 kB
+Dirty:                32 kB
 Writeback:             0 kB
-AnonPages:        749072 kB
-Mapped:            68196 kB
-Shmem:            136564 kB
-Slab:             883488 kB
-SReclaimable:     774844 kB
-SUnreclaim:       108644 kB
-KernelStack:        8568 kB
-PageTables:        34476 kB
+AnonPages:        718580 kB
+Mapped:            65316 kB
+Shmem:              1908 kB
+Slab:             640908 kB
+SReclaimable:     534416 kB
+SUnreclaim:       106492 kB
+KernelStack:        8496 kB
+PageTables:        34172 kB
 NFS_Unstable:          0 kB
 Bounce:                0 kB
 WritebackTmp:          0 kB
 CommitLimit:    52627892 kB
-Committed_AS:    4622592 kB
+Committed_AS:    4485612 kB
 VmallocTotal:   34359738367 kB
 VmallocUsed:           0 kB
 VmallocChunk:          0 kB
 HardwareCorrupted:     0 kB
-AnonHugePages:    485376 kB
+AnonHugePages:    458752 kB
 ShmemHugePages:        0 kB
 ShmemPmdMapped:        0 kB
 HugePages_Total:       0
@@ -315,8 +315,8 @@ HugePages_Free:        0
 HugePages_Rsvd:        0
 HugePages_Surp:        0
 Hugepagesize:       2048 kB
-DirectMap4k:     2770464 kB
-DirectMap2M:    30732288 kB
+DirectMap4k:     3038752 kB
+DirectMap2M:    30464000 kB
 DirectMap1G:           0 kB
 ############################################
 ** LINUX AND GCC VERSIONS:
