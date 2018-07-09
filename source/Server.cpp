@@ -3,9 +3,7 @@
 #include "AugmentedSeries.h"
 
 uint32_t g_Quadtree_Depth{18};
-
-// ENABLE_TIMMING
-uint32_t TIMER_ID = 0;
+extern uint32_t TIMER_ID;
 
 void Server::run(server_opts opts) {
   Server::getInstance().nds_opts = opts;
