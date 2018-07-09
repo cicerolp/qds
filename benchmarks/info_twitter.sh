@@ -7,7 +7,7 @@
 ### SETUP THIS VARIABLES
 
 # get from date +%Y%m%d-%H%M%S
-expId="exp-20180612-161348"
+expId="exp-info-20180709-142751"
 
 HOMEDIR=$(pwd)
 DATADIR=$(pwd)
@@ -180,4 +180,4 @@ for depth in $(seq $MAX_DEPTH $MAX_DEPTH); do
     NDS_DATA=${NDSDATADIR} ./bench_info --no-log -x input.xml -d ${depth} > ${TMPDIR}/${NDS_FILE}_-1_${depth}_-1_-1_${LEAF_SIZE}_${EXECID}_SHARING_MEMORY.json
 done
 
-# push_to_git
+push_to_git

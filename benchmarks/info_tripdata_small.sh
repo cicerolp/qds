@@ -7,7 +7,7 @@
 ### SETUP THIS VARIABLES
 
 # get from date +%Y%m%d-%H%M%S
-expId="exp-20180612-161348"
+expId="exp-info-20180709-142751"
 
 HOMEDIR=$(pwd)
 DATADIR=$(pwd)
@@ -30,21 +30,22 @@ NDS_FILE=$1
 LEAF_SIZE=$6
 
 NDS_SCHEMA_MEMORY="<temporal>
-            <index>pickup_datetime</index>
-            <bin>3600</bin>
-            <offset>22</offset>
-        </temporal>
-        <spatial>
-            <index>pickup</index>
-            <bin>${LEAF_SIZE}</bin>
-            <offset>6</offset>
-        </spatial>"
+			<index>pickup_datetime</index>
+			<bin>3600</bin>
+			<offset>26</offset>
+		</temporal>
+		<spatial>
+			<index>pickup</index>
+			<bin>${LEAF_SIZE}</bin>
+			<offset>10</offset>
+		</spatial>
+"
 
 NDS_SCHEMA_ACCURACY='<spatial>
-            <index>pickup</index>
-            <bin>1</bin>
-            <offset>6</offset>
-        </spatial>'
+			<index>pickup</index>
+			<bin>1</bin>
+			<offset>10</offset>
+		</spatial>'
 
 NDS_SCHEMA_ACCURACY_GROUP="pickup"
 

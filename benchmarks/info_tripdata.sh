@@ -7,7 +7,7 @@
 ### SETUP THIS VARIABLES
 
 # get from date +%Y%m%d-%H%M%S
-expId="exp-20180612-161348"
+expId="exp-info-20180709-142751"
 
 HOMEDIR=$(pwd)
 DATADIR=$(pwd)
@@ -30,33 +30,34 @@ NDS_FILE=$1
 LEAF_SIZE=$6
 
 NDS_SCHEMA_MEMORY="<categorical>
-			<index>dep_on_time</index>
-			<bin>9</bin>
-			<offset>2</offset>
-		</categorical>		
+			<index>day_of_week</index>
+			<bin>7</bin>
+			<offset>0</offset>
+		</categorical>
 		<categorical>
-			<index>unique_carrier</index>
-			<bin>1639</bin>
-			<offset>8</offset>
+			<index>hour_of_day</index>
+			<bin>24</bin>
+			<offset>2</offset>
 		</categorical>
 		<temporal>
-			<index>crs_dep_time</index>
-			<bin>14400</bin>
-			<offset>14</offset>
+			<index>pickup_datetime</index>
+			<bin>604800</bin>
+			<offset>26</offset>
 		</temporal>
 		<spatial>
-			<index>origin_airport</index>
+			<index>pickup</index>
 			<bin>${LEAF_SIZE}</bin>
-			<offset>22</offset>
-		</spatial>"
+			<offset>10</offset>
+		</spatial>
+"
 
 NDS_SCHEMA_ACCURACY='<spatial>
-            <index>origin_airport</index>
-            <bin>1</bin>
-            <offset>22</offset>
-        </spatial>'
+			<index>pickup</index>
+			<bin>1</bin>
+			<offset>10</offset>
+		</spatial>'
 
-NDS_SCHEMA_ACCURACY_GROUP="origin_airport"
+NDS_SCHEMA_ACCURACY_GROUP="pickup"
 
 ########################################################################################################################
 
