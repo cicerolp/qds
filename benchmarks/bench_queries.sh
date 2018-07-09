@@ -64,7 +64,8 @@ function push_to_git {
 
 # setup benchmark
 cd $BUILDIR
-cmake -DENABLE_TIMMING="ON" -DNDS_ENABLE_PAYLOAD="OFF" ../../
+rm * -rf
+cmake -DCMAKE_BUILD_TYPE="Release" -DENABLE_TIMMING="ON" -DNDS_ENABLE_PAYLOAD="OFF" ../../
 cmake --build ./ --target bench_queries -- -j 8
 chmod +x ./benchmarks/bench_queries
 cp ./benchmarks/bench_queries ../
@@ -83,7 +84,8 @@ NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-count.log  
 
 # setup benchmark
 cd $BUILDIR
-cmake -DENABLE_TIMMING="ON" -DENABLE_RAW="OFF" -DENABLE_PDIGEST="ON" -DENABLE_GAUSSIAN="OFF" ../../
+rm * -rf
+cmake -DCMAKE_BUILD_TYPE="Release" -DENABLE_TIMMING="ON" -DNDS_ENABLE_PAYLOAD="ON" -DENABLE_RAW="OFF" -DENABLE_PDIGEST="ON" -DENABLE_GAUSSIAN="OFF" ../../
 cmake --build ./ --target bench_queries -- -j 8
 chmod +x ./benchmarks/bench_queries
 cp ./benchmarks/bench_queries ../
@@ -104,7 +106,8 @@ NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_
 
 # setup benchmark
 cd $BUILDIR
-cmake -DENABLE_TIMMING="ON" -DENABLE_RAW="ON" -DENABLE_PDIGEST="OFF" -DENABLE_GAUSSIAN="OFF" ../../
+rm * -rf
+cmake -DCMAKE_BUILD_TYPE="Release" -DENABLE_TIMMING="ON" -DNDS_ENABLE_PAYLOAD="ON" -DENABLE_RAW="ON" -DENABLE_PDIGEST="OFF" -DENABLE_GAUSSIAN="OFF" ../../
 cmake --build ./ --target bench_queries -- -j 8
 chmod +x ./benchmarks/bench_queries
 cp ./benchmarks/bench_queries ../
@@ -119,4 +122,4 @@ NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_
 NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_990.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_990.csv
 NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_999.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_999.csv
 
- push_to_git
+push_to_git

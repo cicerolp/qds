@@ -22,10 +22,15 @@ void run_bench(const std::string &input) {
 
     NDSInstances::getInstance().query(Query(line));
 
-    NDSInstances::getInstance().query(Query(line));
+    TIMER_INCR_IT
 
     NDSInstances::getInstance().query(Query(line));
 
+    TIMER_INCR_IT
+
+    NDSInstances::getInstance().query(Query(line));
+
+    TIMER_RESET_IT
     TIMER_INCR_ID
   }
 

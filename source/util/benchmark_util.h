@@ -102,19 +102,30 @@ void inline printcsv(First &&first, Rest &&...rest) {
     std::cout << std::endl ;\
 } while (0);
 
-#ifdef ENABLE_TIMMING
-  extern uint32_t TIMER_ID;
+extern uint32_t TIMER_ID;
+extern uint32_t TIMER_IT;
 
+#ifdef ENABLE_TIMMING
   #define TIMER_DECLARE Timer timer;
   #define TIMER_START timer.start();
   #define TIMER_END timer.stop();
   #define TIMER_MILLISECONDS timer.milliseconds();
+
   #define TIMER_OUTPUT(...) do { \
-    PRINTCSVF("id", TIMER_ID, "ms", timer.milliseconds(), ##__VA_ARGS__) ; \
+    PRINTCSVF("id", TIMER_ID, "it", TIMER_IT, "ms", timer.milliseconds(), ##__VA_ARGS__) ; \
   } while (0);
+
   #define TIMER_INCR_ID do { \
     TIMER_ID += 1 ; \
   } while (0);
+
+  #define TIMER_INCR_IT do { \
+    TIMER_IT += 1 ; \
+  } while (0);
+  #define TIMER_RESET_IT do { \
+    TIMER_IT = 0 ; \
+  } while (0);
+
 #else
   #define TIMER_DECLARE 0;
   #define TIMER_START 0;
@@ -123,4 +134,6 @@ void inline printcsv(First &&first, Rest &&...rest) {
   #define TIMER_OUTPUT(...) do { \
   } while (0);
   #define TIMER_INCR_ID 0;
+  #define TIMER_INCR_IT 0;
+  #define TIMER_RESET_IT 0;
 #endif // ENABLE_TIMMING
