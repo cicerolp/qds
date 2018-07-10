@@ -89,7 +89,9 @@ EXECID=$(date +%Y%m%d-%H%M%S)
 
 function push_to_git {
     cd $TMPDIR
-    tar -cvzf log_$EXECID.tgz *_$EXECID_*.json
+    FILELIST=$(find ./*${EXECID}*.json)
+
+    tar -cvzf log_$EXECID.tgz $FILELIST
 
     cd $DATADIR
     cp $TMPDIR/log_$EXECID.tgz .
@@ -97,7 +99,7 @@ function push_to_git {
     git add log_$EXECID.tgz
     git commit -m "Finish execution $EXECID - Output"
 
-    git add info.org run.sh
+    git add info.org
     git add -u
     git commit -m "Finish execution $EXECID - Info"
 
@@ -254,7 +256,7 @@ for compression in 0; do
                 for var in "${args[@]}"; do
                   echo '<payload>
                     <index>'"$var"'</index>
-                    <bin>0</bin>
+                    <bin>2</bin>
                     <offset>'${payload_map[$var]}'</offset>
                     </payload>' >> input.xml
                 done

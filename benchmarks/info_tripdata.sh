@@ -90,7 +90,9 @@ EXECID=$(date +%Y%m%d-%H%M%S)
 
 function push_to_git {
     cd $TMPDIR
-    tar -cvzf log_$EXECID.tgz *_$EXECID_*.json
+    FILELIST=$(find ./*${EXECID}*.json)
+
+    tar -cvzf log_$EXECID.tgz $FILELIST
 
     cd $DATADIR
     cp $TMPDIR/log_$EXECID.tgz .
@@ -98,7 +100,7 @@ function push_to_git {
     git add log_$EXECID.tgz
     git commit -m "Finish execution $EXECID - Output"
 
-    git add info.org run.sh
+    git add info.org
     git add -u
     git commit -m "Finish execution $EXECID - Info"
 
@@ -142,7 +144,9 @@ for depth in $(seq $MAX_DEPTH $MAX_DEPTH); do
         echo '<files>' >> input.xml
 
         for var in "${years[@]}"; do
-            echo '<file>'${NDS_FILE}_"${var}"'.nds</file>' >> input.xml
+            for month in {01..12}; do                
+                echo '<file>'${NDS_FILE}_"${var}"_${month}'.nds</file>' >> input.xml
+            done
         done
 
         echo '</files>
@@ -185,7 +189,9 @@ for depth in $(seq $MAX_DEPTH $MAX_DEPTH); do
         echo '<files>' >> input.xml
 
         for var in "${years[@]}"; do
-            echo '<file>'${NDS_FILE}_"${var}"'.nds</file>' >> input.xml
+            for month in {01..12}; do                
+                echo '<file>'${NDS_FILE}_"${var}"_${month}'.nds</file>' >> input.xml
+            done
         done
 
         echo '</files>
@@ -246,7 +252,9 @@ for compression in 0; do
                 echo '<files>' >> input.xml
 
                 for var in "${years[@]}"; do
-                  echo '<file>'${NDS_FILE}_"${var}"'.nds</file>' >> input.xml
+                    for month in {01..12}; do                
+                        echo '<file>'${NDS_FILE}_"${var}"_${month}'.nds</file>' >> input.xml
+                    done
                 done
 
                 echo '</files>
@@ -255,7 +263,7 @@ for compression in 0; do
                 for var in "${args[@]}"; do
                   echo '<payload>
                     <index>'"$var"'</index>
-                    <bin>0</bin>
+                    <bin>2</bin>
                     <offset>'${payload_map[$var]}'</offset>
                     </payload>' >> input.xml
                 done
@@ -313,7 +321,9 @@ for compression in 25 50 100; do
                 echo '<files>' >> input.xml
 
                 for var in "${years[@]}"; do
-                  echo '<file>'${NDS_FILE}_"${var}"'.nds</file>' >> input.xml
+                    for month in {01..12}; do                
+                        echo '<file>'${NDS_FILE}_"${var}"_${month}'.nds</file>' >> input.xml
+                    done
                 done
 
                 echo '</files>

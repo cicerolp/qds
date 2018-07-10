@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <name>green_tripdata</name>
+    <bytes>50</bytes>
+    <files>
+        <file>green_tripdata_2013_12.nds</file>
+        <file>green_tripdata_2013_11.nds</file>
+        <file>green_tripdata_2013_10.nds</file>
+        <file>green_tripdata_2013_09.nds</file>
+        <file>green_tripdata_2013_08.nds</file>
+        <file>green_tripdata_2013_07.nds</file>
+        <file>green_tripdata_2013_06.nds</file>
+        <file>green_tripdata_2013_05.nds</file>
+        <file>green_tripdata_2013_04.nds</file>
+        <file>green_tripdata_2013_03.nds</file>
+        <file>green_tripdata_2013_02.nds</file>
+        <file>green_tripdata_2013_01.nds</file>
+    </files>
+    <schema>
+        <temporal>
+            <index>pickup_datetime</index>
+            <bin>86400</bin>
+            <offset>26</offset>
+        </temporal>
+        <spatial>
+            <index>pickup</index>
+            <bin>64</bin>
+            <offset>10</offset>
+        </spatial>
+        <payload>
+            <index>trip_distance_t</index>
+            <bin>0</bin>
+            <offset>34</offset>
+        </payload>
+        <payload>
+            <index>total_amount_t</index>
+            <bin>0</bin>
+            <offset>46</offset>
+        </payload>
+    </schema>
+</config>

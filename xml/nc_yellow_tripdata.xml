@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <name>yellow_tripdata</name>
+    <bytes>50</bytes>
+    <files>
+        <file>yellow_tripdata_2014_10.nds</file>
+    </files>
+    <schema>
+        <categorical>
+            <index>day_of_week</index>
+            <bin>7</bin>
+            <offset>0</offset>
+        </categorical>
+        <categorical>
+            <index>hour_of_day</index>
+            <bin>24</bin>
+            <offset>2</offset>
+        </categorical>
+        <temporal>
+            <index>pickup_datetime</index>
+            <bin>86400</bin>
+            <offset>26</offset>
+        </temporal>
+        <spatial>
+            <index>pickup</index>
+            <bin>64</bin>
+            <offset>10</offset>
+        </spatial>
+        <payload>
+            <index>trip_distance_t</index>
+            <bin>0</bin>
+            <offset>34</offset>
+        </payload>
+        <payload>
+            <index>total_amount_t</index>
+            <bin>0</bin>
+            <offset>46</offset>
+        </payload>
+    </schema>
+</config>
