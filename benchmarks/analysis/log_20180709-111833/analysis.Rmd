@@ -1,0 +1,167 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library("tidyverse")
+```
+
+```{r}
+f1 <- function(df) {
+  df %>%
+    group_by(X3) %>%
+    summarise(Time = sum(X7) / 3) %>%
+    summarise(
+    Max = max(Time),
+    Min = min(Time),
+    Mean = mean(Time),
+    Stdv = sd(Time)
+    )
+}
+
+f2 <- function(df) {
+  df %>%
+    group_by(X3, X8) %>%
+    summarise(
+    Mean = mean(X7),
+    Min = min(X7),
+    Max = max(X7),
+    Stdv = sd(X7)
+    )
+}
+```
+
+```{r}
+brightkite <-
+  read_delim(file = "disabled_20180709-111833_nc_brightkite-count.csv",
+  delim = ";",
+  col_names = FALSE)
+  
+gowalla <-
+  read_delim(file = "disabled_20180709-111833_nc_gowalla-count.csv",
+  delim = ";",
+  col_names = FALSE)
+  
+flights <-
+  read_delim(file = "disabled_20180709-111833_nc_on_time_performance-count.csv",
+  delim = ";",
+  col_names = FALSE)
+  
+twitter <-
+  read_delim(file = "disabled_20180709-111833_nc_twitter-small-count.csv",
+  delim = ";",
+  col_names = FALSE)
+  
+f1(brightkite)
+f2(brightkite)
+
+f1(gowalla)
+f2(gowalla)
+
+f1(flights)
+f2(flights)
+
+f1(twitter)
+f2(twitter)
+```
+
+```{r}
+df <- flights
+
+df
+
+df %>%
+  group_by(X3) %>%
+  summarise(Time = sum(X7) / 3) %>%
+  filter(Time >= 40)
+```
+
+```{r}
+pdigest_001 <-
+  read_delim(file = "pdigest_20180709-111833_nc_on_time_performance-quantile-0_001.csv",
+  delim = ";",
+  col_names = FALSE)
+
+pdigest_010 <-
+  read_delim(file = "pdigest_20180709-111833_nc_on_time_performance-quantile-0_010.csv",
+  delim = ";",
+  col_names = FALSE)
+
+pdigest_100 <-
+  read_delim(file = "pdigest_20180709-111833_nc_on_time_performance-quantile-0_100.csv",
+  delim = ";",
+  col_names = FALSE)
+
+pdigest_500 <-
+  read_delim(file = "pdigest_20180709-111833_nc_on_time_performance-quantile-0_500.csv",
+  delim = ";",
+  col_names = FALSE)
+
+pdigest_900 <-
+  read_delim(file = "pdigest_20180709-111833_nc_on_time_performance-quantile-0_900.csv",
+  delim = ";",
+  col_names = FALSE)
+
+pdigest_990 <-
+  read_delim(file = "pdigest_20180709-111833_nc_on_time_performance-quantile-0_990.csv",
+  delim = ";",
+  col_names = FALSE)
+
+pdigest_999 <-
+  read_delim(file = "pdigest_20180709-111833_nc_on_time_performance-quantile-0_999.csv",
+  delim = ";",
+  col_names = FALSE)
+```
+
+```{r}
+raw_001 <-
+  read_delim(file = "raw_20180709-111833_nc_on_time_performance-quantile-0_001.csv",
+  delim = ";",
+  col_names = FALSE)
+
+raw_010 <-
+  read_delim(file = "raw_20180709-111833_nc_on_time_performance-quantile-0_010.csv",
+  delim = ";",
+  col_names = FALSE)
+
+raw_100 <-
+  read_delim(file = "raw_20180709-111833_nc_on_time_performance-quantile-0_100.csv",
+  delim = ";",
+  col_names = FALSE)
+
+raw_500 <-
+  read_delim(file = "raw_20180709-111833_nc_on_time_performance-quantile-0_500.csv",
+  delim = ";",
+  col_names = FALSE)
+
+raw_900 <-
+  read_delim(file = "raw_20180709-111833_nc_on_time_performance-quantile-0_900.csv",
+  delim = ";",
+  col_names = FALSE)
+
+raw_990 <-
+  read_delim(file = "raw_20180709-111833_nc_on_time_performance-quantile-0_990.csv",
+  delim = ";",
+  col_names = FALSE)
+
+raw_999 <-
+  read_delim(file = "raw_20180709-111833_nc_on_time_performance-quantile-0_999.csv",
+  delim = ";",
+  col_names = FALSE)
+```
+
+```{r}
+f1(pdigest_001)
+f2(pdigest_001)
+
+f1(raw_001)
+f2(raw_001)
+```
+
+
+
+
+
+
+
