@@ -686,36 +686,41 @@ void NDS::do_group_by(AggrGroupByCtn &aggrs,
                       const range_ctn &range,
                       const bined_ctn &subset,
                       const CopyOption &option) const {
-  if (option == CopyValueFromSubset) {
-    for (auto el = 0; el < subset.size(); ++el) {
-      pivot_it it_lower = subset[el]->ptr().begin(), it_upper;
-      range_it it_range = range.begin();
+  try {
+    if (option == CopyValueFromSubset) {
+      for (auto el = 0; el < subset.size(); ++el) {
+        pivot_it it_lower = subset[el]->ptr().begin(), it_upper;
+        range_it it_range = range.begin();
 
-      while (search_iterators(it_range, range, it_lower, it_upper, subset[el]->ptr())) {
-        if (it_lower != it_upper) {
-          for (auto &aggr : aggrs) {
-            aggr->merge(subset[el]->value, it_lower, it_upper);
+        while (search_iterators(it_range, range, it_lower, it_upper, subset[el]->ptr())) {
+          if (it_lower != it_upper) {
+            for (auto &aggr : aggrs) {
+              aggr->merge(subset[el]->value, it_lower, it_upper);
+            }
+            it_lower = it_upper;
           }
-          it_lower = it_upper;
+          ++it_range;
         }
-        ++it_range;
+      }
+    } else {
+      for (const auto &el : subset) {
+        pivot_it it_lower = el->ptr().begin(), it_upper;
+        range_it it_range = range.begin();
+
+        while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+          if (it_lower != it_upper) {
+            for (auto &aggr : aggrs) {
+              aggr->merge((*it_range).value, it_lower, it_upper);
+            }
+            it_lower = it_upper;
+          }
+          ++it_range;
+        }
       }
     }
-  } else {
-    for (const auto &el : subset) {
-      pivot_it it_lower = el->ptr().begin(), it_upper;
-      range_it it_range = range.begin();
-
-      while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-        if (it_lower != it_upper) {
-          for (auto &aggr : aggrs) {
-            aggr->merge((*it_range).value, it_lower, it_upper);
-          }
-          it_lower = it_upper;
-        }
-        ++it_range;
-      }
-    }
+  } catch (std::exception &e) {
+    aggrs.clear();
+    std::cerr << e.what() << std::endl;
   }
 }
 
@@ -755,25 +760,30 @@ void NDS::summarize_pipe(const GroupCtn<AggrSummarizeCtn> &groups, std::vector<f
 }
 
 void NDS::do_summarize(AggrSummarizeCtn &aggrs, const range_ctn &range, const bined_ctn &subset) const {
-  if (subset.size() != 0) {
-    for (const auto &el : subset) {
-      pivot_it it_lower = el->ptr().begin(), it_upper;
-      range_it it_range = range.begin();
+  try {
+    if (subset.size() != 0) {
+      for (const auto &el : subset) {
+        pivot_it it_lower = el->ptr().begin(), it_upper;
+        range_it it_range = range.begin();
 
-      while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
-        if (it_lower != it_upper) {
-          for (auto &aggr : aggrs) {
-            aggr->merge(it_lower, it_upper);
+        while (search_iterators(it_range, range, it_lower, it_upper, el->ptr())) {
+          if (it_lower != it_upper) {
+            for (auto &aggr : aggrs) {
+              aggr->merge(it_lower, it_upper);
+            }
+            it_lower = it_upper;
           }
-          it_lower = it_upper;
+          ++it_range;
         }
-        ++it_range;
+      }
+    } else {
+      for (auto &aggr : aggrs) {
+        aggr->merge(range.begin(), range.end());
       }
     }
-  } else {
-    for (auto &aggr : aggrs) {
-      aggr->merge(range.begin(), range.end());
-    }
+  } catch (std::exception &e) {
+    aggrs.clear();
+    std::cerr << e.what() << std::endl;
   }
 }
 
