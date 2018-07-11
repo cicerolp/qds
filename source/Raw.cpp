@@ -55,7 +55,7 @@ uint32_t AggrRaw::merge(size_t payload_index, const pivot_it &it_lower, const pi
 }
 
 float AggrRaw::quantile(float q) {
-  assert(q >= 0.0 && q <= 1.0);
+  /*assert(q >= 0.0 && q <= 1.0);
 
   if (_payload.size() == 0) {
     // no data, no way to get a quantile
@@ -71,7 +71,39 @@ float AggrRaw::quantile(float q) {
   const double qs = _payload[lo];
   const double h  = (id - lo);
 
-  return (1.0 - h) * qs + h * (double)_payload[hi];
+  return (1.0 - h) * qs + h * (double)_payload[hi];*/
+
+  assert(q >= 0.0 && q <= 1.0);
+
+  sort_data();
+
+  size_t n = _payload.size();
+
+  // if values were stored in a sorted array, index would be the offset we are interested in
+  const double index = n * q;
+
+  // at the boundaries, we return min or max
+  if (index < 0.5) {
+    return (double)_payload[0] * index;
+  }
+
+  // in between we interpolate between centroids
+  double weightSoFar = 0.5;
+
+  for (auto i = 0; i < _payload.size() - 1; ++i) {
+    double dw = 1;
+
+    if (weightSoFar + dw > index) {
+      // centroids i and i+1 bracket our current point
+      double z1 = index - weightSoFar;
+      double z2 = weightSoFar + dw - index;
+      return weightedAverage(_payload[i], z2, _payload[i + 1], z1);
+    }
+
+    weightSoFar += dw;
+  }
+
+  return _payload[n - 1] + (_payload[n - 1] * (index - n));
 }
 
 float AggrRaw::inverse(float value) {

@@ -49,6 +49,19 @@ class AggrRaw : public AgrrPayload {
  private:
   void sort_data();
 
+  inline static float weightedAverage(float x1, float w1, float x2, float w2) {
+    if (x1 <= x2) {
+      return weightedAverageSorted(x1, w1, x2, w2);
+    } else {
+      return weightedAverageSorted(x2, w2, x1, w1);
+    }
+  }
+
+  inline static float weightedAverageSorted(float x1, float w1, float x2, float w2) {
+    const float x = (x1 * w1 + x2 * w2) / (w1 + w2);
+    return std::max(x1, std::min(x, x2));
+  }
+
   bool _sorted{false};
   std::vector<float> _payload;
 };
