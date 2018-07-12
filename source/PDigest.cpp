@@ -191,10 +191,12 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const Pivot &pivot) {
     // payload does not contains weight array
 
     size_t curr = _buffer_mean.size();
-    _buffer_mean.resize(curr + payload_size);
+    // _buffer_mean.resize(curr + payload_size);
 
     // insert mean data
-    std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
+    //std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
+    _buffer_mean.insert(_buffer_mean.end(), &payload.lower[0], &payload.lower[payload_size]);
+
     // insert weight data
     _buffer_weight.insert(_buffer_weight.end(), payload_size, 1.f);
 
@@ -203,26 +205,32 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const Pivot &pivot) {
     payload_size = payload_size / 2;
 
     size_t curr = _buffer_mean.size();
-    _buffer_mean.resize(curr + payload_size);
-    _buffer_weight.resize(curr + payload_size);
+    // _buffer_mean.resize(curr + payload_size);
+    // _buffer_weight.resize(curr + payload_size);
 
     // insert mean data
-    std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
+    // std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
+    _buffer_mean.insert(_buffer_mean.end(), &payload.lower[0], &payload.lower[payload_size]);
+
     // insert weight data
-    std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
+    // std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
+    _buffer_weight.insert(_buffer_weight.end(), &payload.lower[payload_size], &payload.lower[payload_size + payload_size]);
   }
 #else
   const auto &payload = pivot.get_payload(payload_index);
   uint32_t payload_size = payload_size / 2;
 
-    size_t curr = _buffer_mean.size();
-    _buffer_mean.resize(curr + payload_size);
-    _buffer_weight.resize(curr + payload_size);
+    // size_t curr = _buffer_mean.size();
+    // _buffer_mean.resize(curr + payload_size);
+    // _buffer_weight.resize(curr + payload_size);
 
     // insert mean data
-    std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
+    // std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
+    _buffer_mean.insert(_buffer_mean.end(), &payload.lower[0], &payload.lower[payload_size]);
+
     // insert weight data
-    std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
+    // std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
+    _buffer_weight.insert(_buffer_weight.end(), &payload.lower[payload_size], &payload.lower[payload_size + payload_size]);
 #endif // PDIGEST_OPTIMIZE_ARRAY
 
   if (_buffer_mean.size() >= PDIGEST_BUFFER_SIZE) {
@@ -247,11 +255,13 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, cons
     if (payload.lower[payload_size] == 0.f) {
       // payload does not contains weight array
 
-      size_t curr = _buffer_mean.size();
-      _buffer_mean.resize(curr + payload_size);
+      // size_t curr = _buffer_mean.size();
+      // _buffer_mean.resize(curr + payload_size);
 
       // insert mean data
-      std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
+      // std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
+      _buffer_mean.insert(_buffer_mean.end(), &payload.lower[0], &payload.lower[payload_size]);
+
       // insert weight data
       _buffer_weight.insert(_buffer_weight.end(), payload_size, 1.f);
 
@@ -259,14 +269,17 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, cons
       // payload contains weight array
       payload_size = payload_size / 2;
 
-      size_t curr = _buffer_mean.size();
-      _buffer_mean.resize(curr + payload_size);
-      _buffer_weight.resize(curr + payload_size);
+      // size_t curr = _buffer_mean.size();
+      // _buffer_mean.resize(curr + payload_size);
+      // _buffer_weight.resize(curr + payload_size);
 
       // insert mean data
-      std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
+      // std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
+      _buffer_mean.insert(_buffer_mean.end(), &payload.lower[0], &payload.lower[payload_size]);
+
       // insert weight data
-      std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
+      // std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
+      _buffer_weight.insert(_buffer_weight.end(), &payload.lower[payload_size], &payload.lower[payload_size + payload_size]);
     }
     ++it;
   }
@@ -279,14 +292,17 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, cons
     auto &payload = (*it).get_payload(payload_index);
     uint32_t payload_size = payload_size / 2;
 
-      size_t curr = _buffer_mean.size();
-      _buffer_mean.resize(curr + payload_size);
-      _buffer_weight.resize(curr + payload_size);
+      // size_t curr = _buffer_mean.size();
+      // _buffer_mean.resize(curr + payload_size);
+      // _buffer_weight.resize(curr + payload_size);
 
       // insert mean data
-      std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
+      // std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
+      _buffer_mean.insert(_buffer_mean.end(), &payload.lower[0], &payload.lower[payload_size]);
+
       // insert weight data
-      std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
+      // std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
+      _buffer_weight.insert(_buffer_weight.end(), &payload.lower[payload_size], &payload.lower[payload_size + payload_size]);
 
     ++it;
   }

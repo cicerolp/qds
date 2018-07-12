@@ -31,6 +31,8 @@ uint32_t AggrRaw::merge(size_t payload_index, const Pivot &pivot) {
     _payload.emplace_back(*ptr);
   }
 
+  _sorted = false;
+
   return count;
 }
 
@@ -50,6 +52,8 @@ uint32_t AggrRaw::merge(size_t payload_index, const pivot_it &it_lower, const pi
 
     ++it;
   }
+
+  _sorted = false;
 
   return count;
 }
