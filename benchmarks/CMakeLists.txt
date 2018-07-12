@@ -24,3 +24,11 @@ add_executable(bench_queries ${HEADERS} ${SRC_LIST}
         bench_queries.cpp)
 
 target_link_libraries(bench_queries LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+
+find_package(Gperftools REQUIRED)
+include_directories(GPERFTOOLS_INCLUDE_DIR)
+
+add_executable(profiler ${HEADERS} ${SRC_LIST}
+        profiler.cpp)
+
+target_link_libraries(profiler LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${COMMON_LIBRARIES} ${GPERFTOOLS_PROFILER})
