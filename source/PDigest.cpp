@@ -281,6 +281,11 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, cons
       // std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
       _buffer_weight.insert(_buffer_weight.end(), &payload.lower[payload_size], &payload.lower[payload_size + payload_size]);
     }
+
+    if (_buffer_mean.size() >= PDIGEST_BUFFER_SIZE) {
+      merge_buffer_data();
+    }
+
     ++it;
   }
 #else
@@ -292,25 +297,24 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, cons
     auto &payload = (*it).get_payload(payload_index);
     uint32_t payload_size = payload_size / 2;
 
-      // size_t curr = _buffer_mean.size();
-      // _buffer_mean.resize(curr + payload_size);
-      // _buffer_weight.resize(curr + payload_size);
+    // size_t curr = _buffer_mean.size();
+    // _buffer_mean.resize(curr + payload_size);
+    // _buffer_weight.resize(curr + payload_size);
 
-      // insert mean data
-      // std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
-      _buffer_mean.insert(_buffer_mean.end(), &payload.lower[0], &payload.lower[payload_size]);
+    // insert mean data
+    // std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
+    _buffer_mean.insert(_buffer_mean.end(), &payload.lower[0], &payload.lower[payload_size]);
 
-      // insert weight data
-      // std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
-      _buffer_weight.insert(_buffer_weight.end(), &payload.lower[payload_size], &payload.lower[payload_size + payload_size]);
+    // insert weight data
+    // std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
+    _buffer_weight.insert(_buffer_weight.end(), &payload.lower[payload_size], &payload.lower[payload_size + payload_size]);
 
+    if (_buffer_mean.size() >= PDIGEST_BUFFER_SIZE) {
+      merge_buffer_data();
+    }
     ++it;
   }
 #endif // PDIGEST_OPTIMIZE_ARRAY
-
-  if (_buffer_mean.size() >= PDIGEST_BUFFER_SIZE) {
-    merge_buffer_data();
-  }
 
   return count;
 }
@@ -407,6 +411,8 @@ float AgrrPDigest::inverse(float value) {
 }
 
 void AgrrPDigest::merge_buffer_data() {
+  // std::cout << _buffer_mean.size() << std::endl;
+
   // insert p-digest data
   _buffer_mean.insert(_buffer_mean.end(), _mean.begin(), _mean.begin() + _lastUsedCell);
   _buffer_weight.insert(_buffer_weight.end(), _weight.begin(), _weight.begin() + _lastUsedCell);

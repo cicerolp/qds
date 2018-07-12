@@ -46,7 +46,7 @@ class PDigest : public Payload {
     std::iota(idx.begin(), idx.end(), 0);
 
     // sort indexes based on comparing values in v
-    gfx::timsort(idx.begin(), idx.end(), [&input](size_t i1, size_t i2) {
+    std::sort(idx.begin(), idx.end(), [&input](size_t i1, size_t i2) {
       return input[i1] < input[i2];
     });
 
