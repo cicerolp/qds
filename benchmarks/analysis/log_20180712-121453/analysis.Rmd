@@ -5,6 +5,7 @@ output: html_notebook
 
 ```{r}
 library("tidyverse")
+library("lhs")
 ```
 
 ```{r include=FALSE}
@@ -36,10 +37,9 @@ df <- data %>%
     Stdv = sd(Time)
   ) %>% filter(!is.na(Max))
 
-df
-
 df %>% ggplot() +
   geom_line(aes(x = Factor, y = Mean)) +
+  # geom_errorbar(aes(ymin= Mean - Stdv, ymax = Mean + Stdv, x = Factor), width=.1) +
   
   geom_vline(xintercept = 5, linetype = 2, colour = "blue") +
   geom_label(aes(x = 5, y = 1000, label = 'default')) +
@@ -53,3 +53,28 @@ df %>% ggplot() +
   theme_bw() +
   scale_x_continuous(limits = c(0, 100), breaks = round(seq(0, 100, by = 5), 2)) 
 ```
+
+```{r}
+which.min(df$Min)
+df[38,]
+
+data %>% filter(Factor == 38 & Time > 3000)
+
+df <- data %>% filter(Factor == 38)
+  
+df %>% ggplot() + 
+  geom_histogram(aes(x = Time, y = cumsum(..count..)))
+
+```
+```{r}
+quantile(df$Time)
+```
+
+
+```{r}
+A <- randomLHS(100, 2)
+A
+```
+
+
+
