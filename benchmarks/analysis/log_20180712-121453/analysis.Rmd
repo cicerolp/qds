@@ -1,0 +1,55 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library("tidyverse")
+```
+
+```{r include=FALSE}
+data <- NA
+
+for (i in seq(100)) {
+  files <- list.files(path = "./", pattern = paste0("_", i, "_"))
+  for (file in files) {
+    df <- read_delim(file, delim = ";", col_names = FALSE)
+    df <- df %>%
+      group_by(X3) %>%
+      summarise(Time = sum(X7) / 3) %>%
+      mutate(
+        Factor = i
+      )
+    
+    data <- rbind(data, df)
+  }
+}
+```
+
+```{r}
+df <- data %>%
+  group_by(Factor) %>%
+  summarise(
+    Max = max(Time),
+    Min = min(Time),
+    Mean = mean(Time),
+    Stdv = sd(Time)
+  ) %>% filter(!is.na(Max))
+
+df
+
+df %>% ggplot() +
+  geom_line(aes(x = Factor, y = Mean)) +
+  
+  geom_vline(xintercept = 5, linetype = 2, colour = "blue") +
+  geom_label(aes(x = 5, y = 1000, label = 'default')) +
+  
+  geom_vline(xintercept = which.min(df$Min), linetype = 2, colour = "darkgreen") +
+  geom_label(aes(x = which.min(df$Min), y = 1000, label = 'min([Min])')) +
+  
+  geom_vline(xintercept = which.min(df$Max), linetype = 2, colour = "red") +
+  geom_label(aes(x = which.min(df$Max), y = 1000, label = 'min([Max])')) +
+    
+  theme_bw() +
+  scale_x_continuous(limits = c(0, 100), breaks = round(seq(0, 100, by = 5), 2)) 
+```
