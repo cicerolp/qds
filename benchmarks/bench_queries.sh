@@ -50,7 +50,7 @@ function push_to_git {
     git commit -m "Finish execution $EXECID - Output"
 
     git add info.org
-    git add -u
+    # git add -u
     git commit -m "Finish execution $EXECID - Info"
 
     git push -u origin $expId
@@ -96,21 +96,33 @@ cp ./benchmarks/bench_queries ../
 cd $HOMEDIR
 
 # run test
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_001-tile.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_001-tile.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_010-tile.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_010-tile.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_100-tile.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_100-tile.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_001-tile.log -x ../xml/nc_on_time_performance.xml -d 15 > 
+${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_001-tile.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_010-tile.log -x ../xml/nc_on_time_performance.xml -d 15 > 
+${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_010-tile.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_100-tile.log -x ../xml/nc_on_time_performance.xml -d 15 > 
+${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_100-tile.csv
 NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_500-tile.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_500-tile.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_900-tile.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_900-tile.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_990-tile.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_990-tile.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_999-tile.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_999-tile.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_900-tile.log -x ../xml/nc_on_time_performance.xml -d 15 > 
+${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_900-tile.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_990-tile.log -x ../xml/nc_on_time_performance.xml -d 15 > 
+${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_990-tile.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_999-tile.log -x ../xml/nc_on_time_performance.xml -d 15 > 
+${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_999-tile.csv
 
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_001-region.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_001-region.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_010-region.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_010-region.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_100-region.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_100-region.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_001-region.log -x ../xml/nc_on_time_performance.xml -d 15 > 
+${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_001-region.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_010-region.log -x ../xml/nc_on_time_performance.xml -d 15 > 
+${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_010-region.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_100-region.log -x ../xml/nc_on_time_performance.xml -d 15 > 
+${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_100-region.csv
 NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_500-region.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_500-region.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_900-region.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_900-region.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_990-region.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_990-region.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_999-region.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_999-region.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_900-region.log -x ../xml/nc_on_time_performance.xml -d 15 > 
+${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_900-region.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_990-region.log -x ../xml/nc_on_time_performance.xml -d 15 > 
+${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_990-region.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_999-region.log -x ../xml/nc_on_time_performance.xml -d 15 > 
+${TMPDIR}/pdigest_${EXECID}_nc_on_time_performance-quantile-0_999-region.csv
 
 ########################
 # test raw             #
@@ -127,20 +139,32 @@ cp ./benchmarks/bench_queries ../
 cd $HOMEDIR
 
 # run test
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_001-tile.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_001-tile.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_010-tile.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_010-tile.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_100-tile.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_100-tile.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_001-tile.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > 
+${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_001-tile.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_010-tile.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > 
+${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_010-tile.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_100-tile.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > 
+${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_100-tile.csv
 NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_500-tile.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_500-tile.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_900-tile.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_900-tile.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_990-tile.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_990-tile.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_999-tile.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_999-tile.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_900-tile.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > 
+${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_900-tile.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_990-tile.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > 
+${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_990-tile.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_999-tile.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > 
+${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_999-tile.csv
 
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_001-region.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_001-region.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_010-region.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_010-region.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_100-region.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_100-region.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_001-region.log -x ../xml/nc_on_time_performance_raw.xml -d 15 
+> ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_001-region.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_010-region.log -x ../xml/nc_on_time_performance_raw.xml -d 15 
+> ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_010-region.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_100-region.log -x ../xml/nc_on_time_performance_raw.xml -d 15 
+> ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_100-region.csv
 NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_500-region.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_500-region.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_900-region.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_900-region.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_990-region.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_990-region.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_999-region.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_999-region.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_900-region.log -x ../xml/nc_on_time_performance_raw.xml -d 15 
+> ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_900-region.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_990-region.log -x ../xml/nc_on_time_performance_raw.xml -d 15 
+> ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_990-region.csv
+#NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_999-region.log -x ../xml/nc_on_time_performance_raw.xml -d 15 
+> ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_999-region.csv
 
 push_to_git
