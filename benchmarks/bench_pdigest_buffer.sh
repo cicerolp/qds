@@ -74,4 +74,5 @@ for factor in $(seq 0 100); do
 
     NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_500-buffer.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_${factor}_nc_on_time_performance-quantile-0_500-tile.csv
 done
+
 push_to_git
