@@ -29,16 +29,14 @@ class PDigest : public Payload {
 
   PDigest(const DimensionSchema &schema) : Payload(schema) {
     _buffer_in = std::make_unique<std::vector<float>>();
-    _buffer_mean = std::make_unique<std::array<float, PDIGEST_ARRAY_SIZE>>();
-    _buffer_weight = std::make_unique<std::array<float, PDIGEST_ARRAY_SIZE>>();
+    _centroids = std::make_unique<std::array<centroid, PDIGEST_ARRAY_SIZE>>();
   }
 
   std::vector<float> get_payload(Data &data, const Pivot &pivot) override;
 
   inline void dispose_buffers() override {
     _buffer_in.reset();
-    _buffer_mean.reset();
-    _buffer_weight.reset();
+    _centroids.reset();
   }
 
  private:
@@ -89,7 +87,7 @@ class PDigest : public Payload {
 
   // temporary data
   std::unique_ptr<std::vector<float>> _buffer_in;
-  std::unique_ptr<std::array<float, PDIGEST_ARRAY_SIZE>> _buffer_mean, _buffer_weight;
+  std::unique_ptr<std::array<centroid, PDIGEST_ARRAY_SIZE>> _centroids;
 };
 
 class AgrrPDigest : public AgrrPayload {
