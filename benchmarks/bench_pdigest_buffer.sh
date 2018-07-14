@@ -4,7 +4,7 @@
 ### SETUP THIS VARIABLES
 
 # get from date +%Y%m%d-%H%M%S
-expId="exp-pdigest-buffer-20180712-150311"
+expId="exp-pdigest-buffer-20180714-004727"
 
 HOMEDIR=$(pwd)
 DATADIR=$(pwd)
