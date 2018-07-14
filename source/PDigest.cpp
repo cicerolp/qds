@@ -202,13 +202,13 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const Pivot &pivot) {
     }
   } else {
     // payload contains weight array
-    _buffer.insert(_buffer.end(), &((centroid *) payload.lower)[0], &((centroid *) payload.lower)[payload_size]);
+    _buffer.insert(_buffer.end(), &((centroid *) payload.lower)[0], &((centroid *) payload.lower)[payload_size / 2]);
   }
 #else
   const auto &payload = pivot.get_payload(payload_index);
   uint32_t payload_size = payload.upper - payload.lower - 1;
 
-  _buffer.insert(_buffer.end(), &((centroid *) payload.lower)[0], &((centroid *) payload.lower)[payload_size]);
+  _buffer.insert(_buffer.end(), &((centroid *) payload.lower)[0], &((centroid *) payload.lower)[payload_size / 2]);
 #endif // PDIGEST_OPTIMIZE_ARRAY
 
   if (_buffer.size() >= PDIGEST_BUFFER_SIZE) {
@@ -239,7 +239,7 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, cons
       }
     } else {
       // payload contains weight array
-      _buffer.insert(_buffer.end(), &((centroid *) payload.lower)[0], &((centroid *) payload.lower)[payload_size]);
+      _buffer.insert(_buffer.end(), &((centroid *) payload.lower)[0], &((centroid *) payload.lower)[payload_size / 2]);
     }
 
     if (_buffer.size() >= PDIGEST_BUFFER_SIZE) {
@@ -257,7 +257,7 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, cons
     auto &payload = (*it).get_payload(payload_index);
     uint32_t payload_size = payload.upper - payload.lower - 1;
 
-    _buffer.insert(_buffer.end(), &((centroid *) payload.lower)[0], &((centroid *) payload.lower)[payload_size]);
+    _buffer.insert(_buffer.end(), &((centroid *) payload.lower)[0], &((centroid *) payload.lower)[payload_size / 2]);
 
     if (_buffer.size() >= PDIGEST_BUFFER_SIZE) {
       merge_buffer_data();
