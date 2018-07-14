@@ -10,11 +10,18 @@
 #include "Data.h"
 #include "Payload.h"
 
-
 #ifdef ENABLE_PDIGEST
 
 class NDS;
 class AgrrPDigest;
+
+struct centroid {
+  centroid() = default;
+  centroid(float __mean, float __weight) : mean(__mean), weight(__weight) {}
+
+  float mean;
+  float weight;
+};
 
 class PDigest : public Payload {
  public:
@@ -22,35 +29,19 @@ class PDigest : public Payload {
 
   PDigest(const DimensionSchema &schema) : Payload(schema) {
     _buffer_in = std::make_unique<std::vector<float>>();
-    _buffer_mean = std::make_unique<std::array<float, PDIGEST_ARRAY_SIZE>>();
-    _buffer_weight = std::make_unique<std::array<float, PDIGEST_ARRAY_SIZE>>();
+    _centroids = std::make_unique<std::array<centroid, PDIGEST_ARRAY_SIZE>>();
   }
 
   std::vector<float> get_payload(Data &data, const Pivot &pivot) override;
 
   inline void dispose_buffers() override {
     _buffer_in.reset();
-    _buffer_mean.reset();
-    _buffer_weight.reset();
+    _centroids.reset();
   }
 
  private:
   inline void clear_buffer() {
     _buffer_in->clear();
-  }
-
-  template<typename T>
-  static std::vector<size_t> sort_indexes(const std::vector<T> &input) {
-    // initialize original index locations
-    std::vector<size_t> idx(input.size());
-    std::iota(idx.begin(), idx.end(), 0);
-
-    // sort indexes based on comparing values in v
-    std::sort(idx.begin(), idx.end(), [&input](size_t i1, size_t i2) {
-      return input[i1] < input[i2];
-    });
-
-    return idx;
   }
 
   static inline float integratedLocation(float q) {
@@ -96,7 +87,7 @@ class PDigest : public Payload {
 
   // temporary data
   std::unique_ptr<std::vector<float>> _buffer_in;
-  std::unique_ptr<std::array<float, PDIGEST_ARRAY_SIZE>> _buffer_mean, _buffer_weight;
+  std::unique_ptr<std::array<centroid, PDIGEST_ARRAY_SIZE>> _centroids;
 };
 
 class AgrrPDigest : public AgrrPayload {
@@ -137,12 +128,11 @@ class AgrrPDigest : public AgrrPayload {
   float _max = std::numeric_limits<float>::min();
 
   // number of points that have been added to each merged centroid
-  std::array<float, PDIGEST_ARRAY_SIZE> _weight;
   // mean of points added to each merged centroid
-  std::array<float, PDIGEST_ARRAY_SIZE> _mean;
+  std::array<centroid, PDIGEST_ARRAY_SIZE> _centroids;
 
   // temporary data - avoid unnecessary memory allocations
-  std::vector<float> _buffer_mean, _buffer_weight;
+  std::vector<centroid> _buffer;
 };
 
 #endif // ENABLE_PDIGEST

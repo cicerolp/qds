@@ -25,13 +25,13 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
   int32_t incomingCount = _buffer_in->size();
 
   // sort input
-  gfx::timsort(_buffer_in->begin(), _buffer_in->end());
+  std::sort(_buffer_in->begin(), _buffer_in->end());
 
   float totalWeight = _buffer_in->size();
 
   lastUsedCell = 0;
-  (*_buffer_mean)[lastUsedCell] = (*_buffer_in)[0];
-  (*_buffer_weight)[lastUsedCell] = 1;
+  (*_centroids)[lastUsedCell].mean = (*_buffer_in)[0];
+  (*_centroids)[lastUsedCell].weight = 1;
 
   float wSoFar = 0;
   float k1 = 0;
@@ -41,7 +41,7 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
   bool weight_equals_one = true;
 
   for (int i = 1; i < incomingCount; ++i) {
-    float proposedWeight = (*_buffer_weight)[lastUsedCell] + 1;
+    float proposedWeight = (*_centroids)[lastUsedCell].weight + 1;
 
     float projectedW = wSoFar + proposedWeight;
 
@@ -49,21 +49,21 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
       weight_equals_one = false;
 
       // next point will fit
-      // so merge into existing centroid
-      (*_buffer_weight)[lastUsedCell] += 1;
-      (*_buffer_mean)[lastUsedCell] = (*_buffer_mean)[lastUsedCell]
-          + ((*_buffer_in)[i] - (*_buffer_mean)[lastUsedCell]) / (*_buffer_weight)[lastUsedCell];
+      // so merge into existing centroidx
+      (*_centroids)[lastUsedCell].weight += 1;
+      (*_centroids)[lastUsedCell].mean = (*_centroids)[lastUsedCell].mean
+          + ((*_buffer_in)[i] - (*_centroids)[lastUsedCell].mean) / (*_centroids)[lastUsedCell].weight;
 
     } else {
       // didn't fit ... move to next output, copy out first centroid
-      wSoFar += (*_buffer_weight)[lastUsedCell];
+      wSoFar += (*_centroids)[lastUsedCell].weight;
 
       k1 = integratedLocation(wSoFar / totalWeight);
       wLimit = totalWeight * integratedQ(k1 + 1);
 
       lastUsedCell++;
-      (*_buffer_mean)[lastUsedCell] = (*_buffer_in)[i];
-      (*_buffer_weight)[lastUsedCell] = 1;
+      (*_centroids)[lastUsedCell].mean = (*_buffer_in)[i];
+      (*_centroids)[lastUsedCell].weight = 1;
     }
   }
 
@@ -77,7 +77,9 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
     payload.reserve(lastUsedCell + 1);
 
     // insert p-digest data
-    payload.insert(payload.end(), _buffer_mean->begin(), _buffer_mean->begin() + lastUsedCell);
+    for (auto i = 0; i < lastUsedCell; ++i) {
+      payload.emplace_back((*_centroids)[i].mean);
+    }
 
     // payload does not contains weight array
     payload.emplace_back(0.f);
@@ -87,9 +89,11 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
   } else {
     payload.reserve(lastUsedCell * 2 + 1);
 
-    // insert p-digest data
-    payload.insert(payload.end(), _buffer_mean->begin(), _buffer_mean->begin() + lastUsedCell);
-    payload.insert(payload.end(), _buffer_weight->begin(), _buffer_weight->begin() + lastUsedCell);
+    // insert p-digest data and weight array
+    for (auto i = 0; i < lastUsedCell; ++i) {
+      payload.emplace_back((*_centroids)[i].mean);
+      payload.emplace_back((*_centroids)[i].weight);
+    }
 
     // payload contains weight array
     payload.emplace_back(1.f);
@@ -99,8 +103,11 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
 #else
   payload.reserve(lastUsedCell * 2);
 
-  payload.insert(payload.end(), _buffer_mean->.begin(), _buffer_mean->.begin() + lastUsedCell);
-  payload.insert(payload.end(), _buffer_weight->.begin(), _buffer_weight->.begin() + lastUsedCell);
+  // insert p-digest data and weight array
+  for (auto i = 0; i < lastUsedCell; ++i) {
+    payload.emplace_back((*_centroids)[i].mean);
+    payload.emplace_back((*_centroids)[i].weight);
+  }
 #endif // PDIGEST_OPTIMIZE_ARRAY
 
   return payload;
@@ -184,56 +191,27 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const Pivot &pivot) {
 
 #ifdef PDIGEST_OPTIMIZE_ARRAY
   const auto &payload = pivot.get_payload(payload_index);
-
   uint32_t payload_size = payload.upper - payload.lower - 1;
 
   if (payload.lower[payload_size] == 0.f) {
     // payload does not contains weight array
 
-    size_t curr = _buffer_mean.size();
-    // _buffer_mean.resize(curr + payload_size);
-
-    // insert mean data
-    //std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
-    _buffer_mean.insert(_buffer_mean.end(), &payload.lower[0], &payload.lower[payload_size]);
-
-    // insert weight data
-    _buffer_weight.insert(_buffer_weight.end(), payload_size, 1.f);
-
+    for (auto ptr = payload.lower; ptr < payload.lower + payload_size; ++ptr) {
+      // mean, weight
+      _buffer.emplace_back(*ptr, 1.f);
+    }
   } else {
     // payload contains weight array
-    payload_size = payload_size / 2;
-
-    size_t curr = _buffer_mean.size();
-    // _buffer_mean.resize(curr + payload_size);
-    // _buffer_weight.resize(curr + payload_size);
-
-    // insert mean data
-    // std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
-    _buffer_mean.insert(_buffer_mean.end(), &payload.lower[0], &payload.lower[payload_size]);
-
-    // insert weight data
-    // std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
-    _buffer_weight.insert(_buffer_weight.end(), &payload.lower[payload_size], &payload.lower[payload_size + payload_size]);
+    _buffer.insert(_buffer.end(), &((centroid *) payload.lower)[0], &((centroid *) payload.lower)[payload_size]);
   }
 #else
   const auto &payload = pivot.get_payload(payload_index);
-  uint32_t payload_size = payload_size / 2;
+  uint32_t payload_size = payload.upper - payload.lower - 1;
 
-    // size_t curr = _buffer_mean.size();
-    // _buffer_mean.resize(curr + payload_size);
-    // _buffer_weight.resize(curr + payload_size);
-
-    // insert mean data
-    // std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
-    _buffer_mean.insert(_buffer_mean.end(), &payload.lower[0], &payload.lower[payload_size]);
-
-    // insert weight data
-    // std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
-    _buffer_weight.insert(_buffer_weight.end(), &payload.lower[payload_size], &payload.lower[payload_size + payload_size]);
+  _buffer.insert(_buffer.end(), &((centroid *) payload.lower)[0], &((centroid *) payload.lower)[payload_size]);
 #endif // PDIGEST_OPTIMIZE_ARRAY
 
-  if (_buffer_mean.size() >= PDIGEST_BUFFER_SIZE) {
+  if (_buffer.size() >= PDIGEST_BUFFER_SIZE) {
     merge_buffer_data();
   }
 
@@ -255,34 +233,16 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, cons
     if (payload.lower[payload_size] == 0.f) {
       // payload does not contains weight array
 
-      // size_t curr = _buffer_mean.size();
-      // _buffer_mean.resize(curr + payload_size);
-
-      // insert mean data
-      // std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
-      _buffer_mean.insert(_buffer_mean.end(), &payload.lower[0], &payload.lower[payload_size]);
-
-      // insert weight data
-      _buffer_weight.insert(_buffer_weight.end(), payload_size, 1.f);
-
+      for (auto ptr = payload.lower; ptr < payload.lower + payload_size; ++ptr) {
+        // mean, weight
+        _buffer.emplace_back(*ptr, 1.f);
+      }
     } else {
       // payload contains weight array
-      payload_size = payload_size / 2;
-
-      // size_t curr = _buffer_mean.size();
-      // _buffer_mean.resize(curr + payload_size);
-      // _buffer_weight.resize(curr + payload_size);
-
-      // insert mean data
-      // std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
-      _buffer_mean.insert(_buffer_mean.end(), &payload.lower[0], &payload.lower[payload_size]);
-
-      // insert weight data
-      // std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
-      _buffer_weight.insert(_buffer_weight.end(), &payload.lower[payload_size], &payload.lower[payload_size + payload_size]);
+      _buffer.insert(_buffer.end(), &((centroid *) payload.lower)[0], &((centroid *) payload.lower)[payload_size]);
     }
 
-    if (_buffer_mean.size() >= PDIGEST_BUFFER_SIZE) {
+    if (_buffer.size() >= PDIGEST_BUFFER_SIZE) {
       merge_buffer_data();
     }
 
@@ -295,21 +255,11 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, cons
     count += (*it).size();
 
     auto &payload = (*it).get_payload(payload_index);
-    uint32_t payload_size = payload_size / 2;
+    uint32_t payload_size = payload.upper - payload.lower - 1;
 
-    // size_t curr = _buffer_mean.size();
-    // _buffer_mean.resize(curr + payload_size);
-    // _buffer_weight.resize(curr + payload_size);
+    _buffer.insert(_buffer.end(), &((centroid *) payload.lower)[0], &((centroid *) payload.lower)[payload_size]);
 
-    // insert mean data
-    // std::memcpy(&(_buffer_mean[curr]), &payload.lower[0], payload_size * sizeof(float));
-    _buffer_mean.insert(_buffer_mean.end(), &payload.lower[0], &payload.lower[payload_size]);
-
-    // insert weight data
-    // std::memcpy(&(_buffer_weight[curr]), &payload.lower[payload_size], payload_size * sizeof(float));
-    _buffer_weight.insert(_buffer_weight.end(), &payload.lower[payload_size], &payload.lower[payload_size + payload_size]);
-
-    if (_buffer_mean.size() >= PDIGEST_BUFFER_SIZE) {
+    if (_buffer.size() >= PDIGEST_BUFFER_SIZE) {
       merge_buffer_data();
     }
     ++it;
@@ -320,7 +270,7 @@ uint32_t AgrrPDigest::merge(size_t payload_index, const pivot_it &it_lower, cons
 }
 
 float AgrrPDigest::quantile(float q) {
-  if (_buffer_mean.size() > 0) {
+  if (_buffer.size() > 0) {
     merge_buffer_data();
   }
 
@@ -334,28 +284,28 @@ float AgrrPDigest::quantile(float q) {
 
   float totalWeight = 0.f;
   for (auto i = 0; i < _lastUsedCell; ++i) {
-    totalWeight += _weight[i];
+    totalWeight += _centroids[i].weight;
   }
 
   // if values were stored in a sorted array, index would be the offset we are interested in
   const float index = q * totalWeight;
 
   // at the boundaries, we return min or max
-  if (index < _weight[0] / 2) {
-    return _min + 2 * index / _weight[0] * (_mean[0] - _min);
+  if (index < _centroids[0].weight / 2) {
+    return _min + 2 * index / _centroids[0].weight * (_centroids[0].mean - _min);
   }
 
   // in between we interpolate between centroids
-  float weightSoFar = _weight[0] / 2;
+  float weightSoFar = _centroids[0].weight / 2;
 
   for (auto i = 0; i < n - 1; ++i) {
-    float dw = (_weight[i] + _weight[i + 1]) / 2;
+    float dw = (_centroids[i].weight + _centroids[i + 1].weight) / 2;
 
     if (weightSoFar + dw > index) {
       // centroids i and i+1 bracket our current point
       float z1 = index - weightSoFar;
       float z2 = weightSoFar + dw - index;
-      return PDigest::weightedAverage(_mean[i], z2, _mean[i + 1], z1);
+      return PDigest::weightedAverage(_centroids[i].mean, z2, _centroids[i + 1].mean, z1);
     }
 
     weightSoFar += dw;
@@ -363,14 +313,14 @@ float AgrrPDigest::quantile(float q) {
 
   // weightSoFar = totalWeight - weight[n-1]/2 (very nearly)
   // so we interpolate out to max value ever seen
-  float z1 = index - totalWeight - _weight[n - 1] / 2.0;
-  float z2 = _weight[n - 1] / 2 - z1;
+  float z1 = index - totalWeight - _centroids[n - 1].weight / 2.0;
+  float z2 = _centroids[n - 1].weight / 2 - z1;
 
-  return PDigest::weightedAverage(_mean[n - 1], z1, _max, z2);
+  return PDigest::weightedAverage(_centroids[n - 1].mean, z1, _max, z2);
 }
 
 float AgrrPDigest::inverse(float value) {
-  if (_buffer_mean.size() > 0) {
+  if (_buffer.size() > 0) {
     merge_buffer_data();
   }
 
@@ -379,105 +329,100 @@ float AgrrPDigest::inverse(float value) {
     return std::numeric_limits<float>::quiet_NaN();
   }
 
-  auto it = std::lower_bound(_mean.begin(), _mean.begin() + _lastUsedCell, value);
+  auto it = std::lower_bound(_centroids.begin(), _centroids.begin() + _lastUsedCell, value,
+                             [](const auto &lhs, const auto &rhs) {
+                               return lhs.mean < rhs;
+                             });
 
   // it == end of data
-  if (it == (_mean.begin() + _lastUsedCell)) {
+  if (it == (_centroids.begin() + _lastUsedCell)) {
     return 1.0f;
   }
 
   // it == begin of data
-  if (it == _mean.begin()) {
+  if (it == _centroids.begin()) {
     return 0.f;
   }
 
-  auto index = it - _mean.begin();
+  auto index = it - _centroids.begin();
 
   // in between we interpolate between centroids
-  float weightSoFar = _weight[0] / 2;
+  float weightSoFar = _centroids[0].weight / 2;
 
   for (auto i = 0; i < index - 1; ++i) {
-    weightSoFar += (_weight[i] + _weight[i + 1]) / 2;
+    weightSoFar += (_centroids[i].weight + _centroids[i + 1].weight) / 2;
   }
 
-  float dw = (_weight[index - 1] + _weight[index]) / 2;
+  float dw = (_centroids[index - 1].weight + _centroids[index].weight) / 2;
 
   // dw * q + weightSoFar
-  weightSoFar += dw * (value - _mean[index - 1]) / (_mean[index] - _mean[index - 1]);
+  weightSoFar += dw * (value - _centroids[index - 1].mean) / (_centroids[index].mean - _centroids[index - 1].mean);
 
-  auto totalWeight = std::accumulate(_weight.begin(), _weight.begin() + _lastUsedCell, 0.f);
+  float totalWeight = 0.f;
+  for (const auto &c :_centroids) {
+    totalWeight += c.weight;
+  }
 
   return weightSoFar / totalWeight;
 }
 
 void AgrrPDigest::merge_buffer_data() {
-  // std::cout << _buffer_mean.size() << std::endl;
-
   // insert p-digest data
-  _buffer_mean.insert(_buffer_mean.end(), _mean.begin(), _mean.begin() + _lastUsedCell);
-  _buffer_weight.insert(_buffer_weight.end(), _weight.begin(), _weight.begin() + _lastUsedCell);
+  _buffer.insert(_buffer.end(), _centroids.begin(), _centroids.begin() + _lastUsedCell);
 
-  int32_t incomingCount = _buffer_mean.size();
+  int32_t incomingCount = _buffer.size();
 
-  auto inOrder = PDigest::sort_indexes(_buffer_mean);
+  // sort indexes based on comparing values in v
+  std::sort(_buffer.begin(), _buffer.end(), [](const auto &lhs, const auto &rhs) {
+    return lhs.mean < rhs.mean;
+  });
 
-  //float totalWeight = std::accumulate(_buffer_weight.begin(), _buffer_weight.end(), 0.f);
   float totalWeight = 0.f;
-  for (auto i = 0; i < _buffer_weight.size(); ++i) {
-    totalWeight += _buffer_weight[i];
+  for (const auto &c :_buffer) {
+    totalWeight += c.weight;
   }
 
   _lastUsedCell = 0;
-  _mean[_lastUsedCell] = _buffer_mean[inOrder[0]];
-  _weight[_lastUsedCell] = _buffer_weight[inOrder[0]];
+  _centroids[0] = _buffer[0];
 
   float wSoFar = 0;
   float k1 = 0;
   // weight will contain all zeros
   float wLimit = totalWeight * PDigest::integratedQ(k1 + 1);
 
-  for (int i = 1; i < incomingCount; ++i) {
-    int ix = inOrder[i];
-    float proposedWeight = _weight[_lastUsedCell] + _buffer_weight[ix];
-
+  for (auto i = 1; i < incomingCount; ++i) {
+    float proposedWeight = _centroids[_lastUsedCell].weight + _buffer[i].weight;
     float projectedW = wSoFar + proposedWeight;
 
-    bool addThis = false;
-
-    addThis = projectedW <= wLimit;
-
-    if (addThis) {
+    // addThis = projectedW <= wLimit
+    if (projectedW <= wLimit) {
       // next point will fit
       // so merge into existing centroid
-      _weight[_lastUsedCell] += _buffer_weight[ix];
-      _mean[_lastUsedCell] = _mean[_lastUsedCell]
-          + (_buffer_mean[ix] - _mean[_lastUsedCell]) * _buffer_weight[ix] / _weight[_lastUsedCell];
-
-      _buffer_weight[ix] = 0;
-
+      _centroids[_lastUsedCell].weight += _buffer[i].weight;
+      _centroids[_lastUsedCell].mean += (_buffer[i].mean - _centroids[_lastUsedCell].mean) *
+          _buffer[i].weight / _centroids[_lastUsedCell].weight;
     } else {
       // didn't fit ... move to next output, copy out first centroid
-      wSoFar += _weight[_lastUsedCell];
+      wSoFar += _centroids[_lastUsedCell].weight;
 
       k1 = PDigest::integratedLocation(wSoFar / totalWeight);
       wLimit = totalWeight * PDigest::integratedQ(k1 + 1);
 
       _lastUsedCell++;
-      _mean[_lastUsedCell] = _buffer_mean[ix];
-      _weight[_lastUsedCell] = _buffer_weight[ix];
-      _buffer_weight[ix] = 0;
+
+      _centroids[_lastUsedCell].mean = _buffer[i].mean;
+      _centroids[_lastUsedCell].weight = _buffer[i].weight;
     }
   }
   // points to next empty cell
   _lastUsedCell++;
 
   if (totalWeight > 0) {
-    _min = std::min(_min, _mean[0]);
-    _max = std::max(_max, _mean[_lastUsedCell - 1]);
+    _min = std::min(_min, _centroids[0].mean);
+    _max = std::max(_max, _centroids[_lastUsedCell - 1].mean);
   }
 
-  _buffer_mean.clear();
-  _buffer_weight.clear();
+  _buffer.clear();
 }
 
 #endif // ENABLE_PDIGEST
