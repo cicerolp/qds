@@ -25,13 +25,13 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
   int32_t incomingCount = _buffer_in->size();
 
   // sort input
-  gfx::timsort(_buffer_in->begin(), _buffer_in->end());
+  std::sort(_buffer_in->begin(), _buffer_in->end());
 
   float totalWeight = _buffer_in->size();
 
   lastUsedCell = 0;
-  (*_buffer_mean)[lastUsedCell] = (*_buffer_in)[0];
-  (*_buffer_weight)[lastUsedCell] = 1;
+  (*_centroids)[lastUsedCell].mean = (*_buffer_in)[0];
+  (*_centroids)[lastUsedCell].weight = 1;
 
   float wSoFar = 0;
   float k1 = 0;
@@ -41,7 +41,7 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
   bool weight_equals_one = true;
 
   for (int i = 1; i < incomingCount; ++i) {
-    float proposedWeight = (*_buffer_weight)[lastUsedCell] + 1;
+    float proposedWeight = (*_centroids)[lastUsedCell].weight + 1;
 
     float projectedW = wSoFar + proposedWeight;
 
@@ -50,20 +50,20 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
 
       // next point will fit
       // so merge into existing centroidx
-      (*_buffer_weight)[lastUsedCell] += 1;
-      (*_buffer_mean)[lastUsedCell] = (*_buffer_mean)[lastUsedCell]
-          + ((*_buffer_in)[i] - (*_buffer_mean)[lastUsedCell]) / (*_buffer_weight)[lastUsedCell];
+      (*_centroids)[lastUsedCell].weight += 1;
+      (*_centroids)[lastUsedCell].mean = (*_centroids)[lastUsedCell].mean
+          + ((*_buffer_in)[i] - (*_centroids)[lastUsedCell].mean) / (*_centroids)[lastUsedCell].weight;
 
     } else {
       // didn't fit ... move to next output, copy out first centroid
-      wSoFar += (*_buffer_weight)[lastUsedCell];
+      wSoFar += (*_centroids)[lastUsedCell].weight;
 
       k1 = integratedLocation(wSoFar / totalWeight);
       wLimit = totalWeight * integratedQ(k1 + 1);
 
       lastUsedCell++;
-      (*_buffer_mean)[lastUsedCell] = (*_buffer_in)[i];
-      (*_buffer_weight)[lastUsedCell] = 1;
+      (*_centroids)[lastUsedCell].mean = (*_buffer_in)[i];
+      (*_centroids)[lastUsedCell].weight = 1;
     }
   }
 
@@ -77,7 +77,9 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
     payload.reserve(lastUsedCell + 1);
 
     // insert p-digest data
-    payload.insert(payload.end(), _buffer_mean->begin(), _buffer_mean->begin() + lastUsedCell);
+    for (auto i = 0; i < lastUsedCell; ++i) {
+      payload.emplace_back((*_centroids)[i].mean);
+    }
 
     // payload does not contains weight array
     payload.emplace_back(0.f);
@@ -87,9 +89,11 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
   } else {
     payload.reserve(lastUsedCell * 2 + 1);
 
-    // insert p-digest data
-    payload.insert(payload.end(), _buffer_mean->begin(), _buffer_mean->begin() + lastUsedCell);
-    payload.insert(payload.end(), _buffer_weight->begin(), _buffer_weight->begin() + lastUsedCell);
+    // insert p-digest data and weight array
+    for (auto i = 0; i < lastUsedCell; ++i) {
+      payload.emplace_back((*_centroids)[i].mean);
+      payload.emplace_back((*_centroids)[i].weight);
+    }
 
     // payload contains weight array
     payload.emplace_back(1.f);
@@ -99,8 +103,11 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
 #else
   payload.reserve(lastUsedCell * 2);
 
-  payload.insert(payload.end(), _buffer_mean->.begin(), _buffer_mean->.begin() + lastUsedCell);
-  payload.insert(payload.end(), _buffer_weight->.begin(), _buffer_weight->.begin() + lastUsedCell);
+  // insert p-digest data and weight array
+  for (auto i = 0; i < lastUsedCell; ++i) {
+    payload.emplace_back((*_centroids)[i].mean);
+    payload.emplace_back((*_centroids)[i].weight);
+  }
 #endif // PDIGEST_OPTIMIZE_ARRAY
 
   return payload;
@@ -383,23 +390,17 @@ void AgrrPDigest::merge_buffer_data() {
   // weight will contain all zeros
   float wLimit = totalWeight * PDigest::integratedQ(k1 + 1);
 
-  for (int i = 1; i < incomingCount; ++i) {
+  for (auto i = 1; i < incomingCount; ++i) {
     float proposedWeight = _centroids[_lastUsedCell].weight + _buffer[i].weight;
-
     float projectedW = wSoFar + proposedWeight;
 
-    bool addThis = false;
-
-    addThis = projectedW <= wLimit;
-
-    if (addThis) {
+    // addThis = projectedW <= wLimit
+    if (projectedW <= wLimit) {
       // next point will fit
       // so merge into existing centroid
       _centroids[_lastUsedCell].weight += _buffer[i].weight;
-      _centroids[_lastUsedCell].mean = _centroids[_lastUsedCell].mean
-          + (_buffer[i].mean - _centroids[_lastUsedCell].mean) * _buffer[i].weight / _centroids[_lastUsedCell].weight;
-
-      _buffer[i].weight = 0;
+      _centroids[_lastUsedCell].mean += (_buffer[i].mean - _centroids[_lastUsedCell].mean) *
+          _buffer[i].weight / _centroids[_lastUsedCell].weight;
     } else {
       // didn't fit ... move to next output, copy out first centroid
       wSoFar += _centroids[_lastUsedCell].weight;
@@ -411,8 +412,6 @@ void AgrrPDigest::merge_buffer_data() {
 
       _centroids[_lastUsedCell].mean = _buffer[i].mean;
       _centroids[_lastUsedCell].weight = _buffer[i].weight;
-
-      _buffer[i].weight = 0;
     }
   }
   // points to next empty cell
