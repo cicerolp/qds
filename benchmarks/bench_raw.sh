@@ -4,7 +4,7 @@
 ### SETUP THIS VARIABLES
 
 # get from date +%Y%m%d-%H%M%S
-expId="exp-pdigest-buffer-20180714-004727"
+expId="exp-raw-20180715-172517"
 
 HOMEDIR=$(pwd)
 DATADIR=$(pwd)
@@ -60,19 +60,17 @@ function push_to_git {
 
 ########################################################################################################################
 
-for factor in $(seq 0 100); do
     # setup benchmark
 
-    rm bench_queries
-    cd $BUILDIR
-    rm * -rf
-    cmake -DCMAKE_BUILD_TYPE="Release" -DENABLE_TIMMING="ON" -DNDS_ENABLE_PAYLOAD="ON" -DENABLE_RAW="OFF" -DENABLE_PDIGEST="ON" -DENABLE_GAUSSIAN="OFF" -DPDIGEST_BUFFER_FACTOR="${factor}" ../../
-    cmake --build ./ --target bench_queries -- -j 8
-    chmod +x ./benchmarks/bench_queries
-    cp ./benchmarks/bench_queries ../
-    cd $HOMEDIR
+rm bench_queries
+cd $BUILDIR
+rm * -rf
+cmake -DCMAKE_BUILD_TYPE="Release" -DENABLE_TIMMING="ON" -DNDS_ENABLE_PAYLOAD="ON" -DENABLE_RAW="ON" -DENABLE_PDIGEST="OFF" -DENABLE_GAUSSIAN="OFF" ../../
+cmake --build ./ --target bench_queries -- -j 8
+chmod +x ./benchmarks/bench_queries
+cp ./benchmarks/bench_queries ../
+cd $HOMEDIR
 
-    NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_500-buffer.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_${factor}_nc_on_time_performance-quantile-0_500-tile.csv
-done
+NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_500-buffer.log -x ../xml/nc_on_time_performance_raw.xml -d 15 > ${TMPDIR}/raw_${EXECID}_nc_on_time_performance-quantile-0_500-tile.csv
 
 push_to_git
