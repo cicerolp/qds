@@ -39,6 +39,29 @@ data <- rbind(data_121453, data_092927)
 ```
 
 ```{r}
+raw <- NA
+
+files <- list.files(path = "./", pattern = paste0("raw"))
+for (file in files) {
+  df <- read_delim(file, delim = ";", col_names = FALSE)
+  df <- df %>%
+    group_by(X3) %>%
+    summarise(Time = sum(X7) / 3) %>%
+    mutate(
+      Bench = "raw",
+      Factor = NA
+    )
+  
+  raw <- rbind(raw, df) 
+}
+
+raw <- raw %>% filter(!is.na(Time))
+
+raw <- raw[1:100,]
+```
+
+
+```{r}
 df <- data %>%
   group_by(Factor, Bench) %>%
   summarise(
@@ -92,6 +115,50 @@ df %>% ggplot() +
 ```
 
 ```{r}
+data_092927 %>% 
+  filter(Factor == min_mean_092927) %>%
+  ggplot(aes(x = Time)) + 
+    geom_histogram(aes(y = cumsum(..count..)), binwidth = 1, boundary = 0) + 
+    ggtitle("092927")
+
+raw %>% 
+  ggplot(aes(x = Time)) + 
+    geom_histogram(aes(y = cumsum(..count..)), binwidth = 1, boundary = 0) + 
+    ggtitle("raw")
+```
+
+
+```{r}
+boxplot <- rbind(
+    data_121453 %>% filter(Factor == min_mean_121453),
+    data_092927 %>% filter(Factor == min_mean_092927),
+    raw
+  ) 
+
+boxplot %>% 
+  ggplot(aes(x = Bench, y = Time)) + 
+    geom_boxplot(aes(colour = Bench)) + 
+    coord_flip()
+
+boxplot %>% 
+  filter(Time <= 40) %>%
+  ggplot(aes(x = Bench, y = Time)) + 
+    geom_boxplot(aes(colour = Bench)) + 
+    #scale_y_continuous(limits = c(1200, 4500), breaks = round(seq(1000, 4500, by = 250), 2)) +
+    coord_flip() + 
+    ggtitle("Time <= 40ms")
+
+boxplot %>% 
+  filter(Time >=1 & Time <= 40) %>%
+  ggplot(aes(x = Bench, y = Time)) + 
+    geom_boxplot(aes(colour = Bench)) + 
+    #scale_y_continuous(limits = c(1200, 4500), breaks = round(seq(1000, 4500, by = 250), 2)) +
+    coord_flip() + 
+    ggtitle("Time >=1 & Time <= 40")
+```
+
+
+```{r}
 
 data_121453 %>% 
   filter(Factor == min_mean_121453) %>%
@@ -116,37 +183,17 @@ data_092927 %>%
     "100%"=quantile(Time, probs=1.0)
   )
 
-data_092927 %>% 
-  filter(Factor == min_mean_092927) %>%
-  ggplot(aes(x = Time)) + 
-    geom_histogram(aes(y = cumsum(..count..)), binwidth = 1, boundary = 0)
-
-boxplot <- rbind(
-    data_121453 %>% filter(Factor == min_mean_121453),
-    data_092927 %>% filter(Factor == min_mean_092927)
-  ) 
-
-boxplot %>% 
-  filter(Time < 40) %>%
-  ggplot(aes(x = Bench, y = Time)) + 
-    geom_boxplot(aes(colour = Bench)) + 
-    #scale_y_continuous(limits = c(1200, 4500), breaks = round(seq(1000, 4500, by = 250), 2)) +
-    coord_flip()
-    # ggtitle("Time >= 40ms")
-```
-
-
-```{r}
-which.min(df$Min)
-df[38,]
-
-data %>% filter(Factor == 38 & Time > 3000)
-
-df <- data %>% filter(Factor == 38)
-  
-df %>% ggplot() + 
-  geom_histogram(aes(x = Time, y = cumsum(..count..)))
-
+raw %>% 
+  summarise(
+    "0%"=quantile(Time, probs=0.0),
+    "25%"=quantile(Time, probs=0.25),
+    "50%"=quantile(Time, probs=0.5),
+    "75%"=quantile(Time, probs=0.75),
+    "80%"=quantile(Time, probs=0.8),
+    "90%"=quantile(Time, probs=0.9),
+    "95%"=quantile(Time, probs=0.95),
+    "100%"=quantile(Time, probs=1.0)
+  )
 ```
 ```{r}
 quantile(df$Time)
