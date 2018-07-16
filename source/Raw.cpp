@@ -61,6 +61,8 @@ uint32_t AggrRaw::merge(size_t payload_index, const pivot_it &it_lower, const pi
 float AggrRaw::quantile(float q) {
   /*assert(q >= 0.0 && q <= 1.0);
 
+  PRINT_TIMER("buffer_size", _payload.size(), "sizeof", sizeof(float), "buffer")
+
   if (_payload.size() == 0) {
     // no data, no way to get a quantile
     return std::numeric_limits<float>::quiet_NaN();
