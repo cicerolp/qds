@@ -1,7 +1,8 @@
 project(nds)
 cmake_minimum_required(VERSION 3.0)
 
-set (CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native")
 
 # profile options
 option(ENABLE_GPERF "Enable Gperftools Profiler" OFF)
@@ -83,7 +84,8 @@ include_directories(${Boost_INCLUDE_DIR})
 if (WIN32)
     target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${CMAKE_DL_LIBS} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 elseif (UNIX)
-    set(COMMON_LIBRARIES "-static-libgcc -static-libstdc++ ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}")
+    set(COMMON_LIBRARIES "-static-libgcc -static-libstdc++ 
+${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}")
 
     # default target
     target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${COMMON_LIBRARIES})
