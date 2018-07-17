@@ -75,15 +75,9 @@ chmod +x ./benchmarks/bench_queries
 cp ./benchmarks/bench_queries ../
 cd $HOMEDIR
 
-# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_500-tile.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_${FACTOR}_nc_on_time_performance-quantile-0_500-tile.csv
+NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_500-tile.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_${FACTOR}_nc_on_time_performance-quantile-0_500-tile.csv
 
-# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_500-region.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_${FACTOR}_nc_on_time_performance-quantile-0_500-region.csv
-
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_500-region.log -x ../xml/nc_on_time_performance.xml -d 15
-
-push_to_git
-
-exit
+NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/on_time_performance-quantile-0_500-region.log -x ../xml/nc_on_time_performance.xml -d 15 > ${TMPDIR}/pdigest_${EXECID}_${FACTOR}_nc_on_time_performance-quantile-0_500-region.csv
 
 #############
 # raw       #

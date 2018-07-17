@@ -22,27 +22,28 @@ std::vector<float> PDigest::get_payload(Data &data, const Pivot &pivot) {
   // temporary data
   uint32_t lastUsedCell{0};
 
-  uint32_t incomingCount = _buffer_in->size();
+  int32_t incomingCount = _buffer_in->size();
 
   // sort input
   std::sort(_buffer_in->begin(), _buffer_in->end());
 
-  uint32_t totalWeight = _buffer_in->size();
+  float totalWeight = _buffer_in->size();
 
   lastUsedCell = 0;
   (*_centroids)[lastUsedCell].mean = (*_buffer_in)[0];
   (*_centroids)[lastUsedCell].weight = 1;
 
-  uint32_t wSoFar = 0;
+  float wSoFar = 0;
   float k1 = 0;
   // weight will contain all zeros
-  uint32_t wLimit = totalWeight * integratedQ(k1 + 1);
+  float wLimit = totalWeight * integratedQ(k1 + 1);
 
   bool weight_equals_one = true;
 
   for (int i = 1; i < incomingCount; ++i) {
-    uint32_t proposedWeight = (*_centroids)[lastUsedCell].weight + 1;
-    uint32_t projectedW = wSoFar + proposedWeight;
+    float proposedWeight = (*_centroids)[lastUsedCell].weight + 1;
+
+    float projectedW = wSoFar + proposedWeight;
 
     if (projectedW <= wLimit) {
       weight_equals_one = false;
@@ -369,14 +370,14 @@ void AgrrPDigest::merge_buffer_data() {
   // insert p-digest data
   _buffer.insert(_buffer.end(), _centroids.begin(), _centroids.begin() + _lastUsedCell);
 
-  uint32_t incomingCount = _buffer.size();
+  int32_t incomingCount = _buffer.size();
 
   // sort indexes based on comparing values in v
   std::sort(_buffer.begin(), _buffer.end(), [](const auto &lhs, const auto &rhs) {
     return lhs.mean < rhs.mean;
   });
 
-  uint32_t totalWeight = 0;
+  float totalWeight = 0.f;
   for (const auto &c :_buffer) {
     totalWeight += c.weight;
   }
@@ -384,14 +385,14 @@ void AgrrPDigest::merge_buffer_data() {
   _lastUsedCell = 0;
   _centroids[0] = _buffer[0];
 
-  uint32_t wSoFar = 0;
+  float wSoFar = 0;
   float k1 = 0;
   // weight will contain all zeros
   float wLimit = totalWeight * PDigest::integratedQ(k1 + 1);
 
   for (auto i = 1; i < incomingCount; ++i) {
-    uint32_t proposedWeight = _centroids[_lastUsedCell].weight + _buffer[i].weight;
-    uint32_t projectedW = wSoFar + proposedWeight;
+    float proposedWeight = _centroids[_lastUsedCell].weight + _buffer[i].weight;
+    float projectedW = wSoFar + proposedWeight;
 
     // addThis = projectedW <= wLimit
     if (projectedW <= wLimit) {
