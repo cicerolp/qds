@@ -281,13 +281,8 @@ float AgrrPDigest::quantile(float q) {
   // we know that there are at least two centroids now
   int32_t n = _lastUsedCell;
 
-  float totalWeight = 0.f;
-  for (auto i = 0; i < _lastUsedCell; ++i) {
-    totalWeight += _centroids[i].weight;
-  }
-
   // if values were stored in a sorted array, index would be the offset we are interested in
-  const float index = q * totalWeight;
+  const float index = q * _totalWeight;
 
   // at the boundaries, we return min or max
   if (index < _centroids[0].weight / 2) {
@@ -312,7 +307,7 @@ float AgrrPDigest::quantile(float q) {
 
   // weightSoFar = totalWeight - weight[n-1]/2 (very nearly)
   // so we interpolate out to max value ever seen
-  float z1 = index - totalWeight - _centroids[n - 1].weight / 2.0;
+  float z1 = index - _totalWeight - _centroids[n - 1].weight / 2.0;
   float z2 = _centroids[n - 1].weight / 2 - z1;
 
   return PDigest::weightedAverage(_centroids[n - 1].mean, z1, _max, z2);
@@ -357,12 +352,7 @@ float AgrrPDigest::inverse(float value) {
   // dw * q + weightSoFar
   weightSoFar += dw * (value - _centroids[index - 1].mean) / (_centroids[index].mean - _centroids[index - 1].mean);
 
-  float totalWeight = 0.f;
-  for (const auto &c :_centroids) {
-    totalWeight += c.weight;
-  }
-
-  return weightSoFar / totalWeight;
+  return weightSoFar / _totalWeight;
 }
 
 void AgrrPDigest::merge_buffer_data() {
@@ -376,9 +366,9 @@ void AgrrPDigest::merge_buffer_data() {
     return lhs.mean < rhs.mean;
   });
 
-  double totalWeight = 0.f;
+  _totalWeight = 0.f;
   for (const auto &c :_buffer) {
-    totalWeight += c.weight;
+    _totalWeight += c.weight;
   }
 
   _lastUsedCell = 0;
@@ -387,7 +377,7 @@ void AgrrPDigest::merge_buffer_data() {
   double wSoFar = 0;
   double k1 = 0;
   // weight will contain all zeros
-  double wLimit = totalWeight * PDigest::integratedQ(k1 + 1);
+  double wLimit = _totalWeight * PDigest::integratedQ(k1 + 1);
 
   for (auto i = 1; i < incomingCount; ++i) {
     double proposedWeight = _centroids[_lastUsedCell].weight + _buffer[i].weight;
@@ -404,8 +394,8 @@ void AgrrPDigest::merge_buffer_data() {
       // didn't fit ... move to next output, copy out first centroid
       wSoFar += _centroids[_lastUsedCell].weight;
 
-      k1 = PDigest::integratedLocation(wSoFar / totalWeight);
-      wLimit = totalWeight * PDigest::integratedQ(k1 + 1);
+      k1 = PDigest::integratedLocation(wSoFar / _totalWeight);
+      wLimit = _totalWeight * PDigest::integratedQ(k1 + 1);
 
       _lastUsedCell++;
 
@@ -416,7 +406,7 @@ void AgrrPDigest::merge_buffer_data() {
   // points to next empty cell
   _lastUsedCell++;
 
-  if (totalWeight > 0) {
+  if (_totalWeight > 0) {
     _min = std::min(_min, _centroids[0].mean);
     _max = std::max(_max, _centroids[_lastUsedCell - 1].mean);
   }

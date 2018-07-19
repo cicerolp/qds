@@ -94,12 +94,64 @@ class AgrrPDigest : public AgrrPayload {
  public:
   virtual ~AgrrPDigest() = default;
 
-  inline bool empty() const override {
+  inline bool empty() override {
+    if (_buffer.size() > 0) {
+      merge_buffer_data();
+    }
+
     return _lastUsedCell == 0;
   }
 
   uint32_t merge(size_t payload_index, const Pivot &pivot) override;
   uint32_t merge(size_t payload_index, const pivot_it &it_lower, const pivot_it &it_upper) override;
+
+  inline size_t get_size() {
+    if (_buffer.size() > 0) {
+      merge_buffer_data();
+    }
+
+    return (size_t) _lastUsedCell;
+  }
+
+  inline float get_denser_sector() {
+    if (_buffer.size() > 0) {
+      merge_buffer_data();
+    }
+
+    // TODO optimize algorithm
+
+    // (2 * PI) / number of sectors
+    static const double increment = (2.0 * M_PI) / 36.0;
+
+    float sector = 0.f;
+    float max_inv = 0.f;
+    float prev_inv = 0.f;
+
+    for (auto curr_angle = increment; curr_angle < 2.0 * M_PI; curr_angle += increment) {
+      float inv = inverse(curr_angle);
+
+      if (inv - prev_inv > max_inv) {
+        sector = curr_angle;
+        max_inv = inv - prev_inv;
+      }
+
+      prev_inv = inv;
+    }
+
+    if (1 - prev_inv > max_inv) {
+      sector = 2.0 * M_PI;
+    }
+
+    return sector - (increment / 2.0);
+  };
+
+  inline const std::array<centroid, PDIGEST_ARRAY_SIZE> &get_centroids() {
+    if (_buffer.size() > 0) {
+      merge_buffer_data();
+    }
+
+    return _centroids;
+  };
 
   float quantile(float q);
   float inverse(float value);
@@ -123,6 +175,7 @@ class AgrrPDigest : public AgrrPayload {
 
   // points to the first unused centroid
   uint32_t _lastUsedCell{0};
+  float _totalWeight{0.f};
 
   float _min = std::numeric_limits<float>::max();
   float _max = std::numeric_limits<float>::min();

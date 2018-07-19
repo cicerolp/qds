@@ -12,6 +12,7 @@
 
 // nds options
 #cmakedefine NDS_ENABLE_PAYLOAD
+#cmakedefine NDS_ENABLE_CRS_SIMPLE
 
 // nds tweaks
 #cmakedefine NDS_OPTIMIZE_LEAF

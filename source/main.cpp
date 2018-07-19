@@ -3,18 +3,6 @@
 #include "Server.h"
 
 int main(int argc, char *argv[]) {
-  /*
-  TIMER_DECLARE
-  TIMER_START
-
-  PRINTCSVF("FUN");
-
-  TIMER_END
-  TIMER_OUTPUT("FUN")
-
-  exit(0);
-  */
-
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // categorical //
   // [dimension_name].values.([value_0]:[value_1]:...:[value_N])

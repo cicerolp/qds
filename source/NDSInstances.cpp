@@ -28,6 +28,16 @@ std::string NDSInstances::pipeline(const Pipeline &pipeline) {
   }
 }
 
+std::string NDSInstances::clustering(const Clustering &clustering) {
+  auto cube = get_instance(clustering.get_dataset());
+
+  if (!cube) {
+    return ("[]");
+  } else {
+    return cube->clustering(clustering);
+  }
+}
+
 std::string NDSInstances::augmented_series(const AugmentedSeries &augmented_series) {
   auto cube = get_instance(augmented_series.get_pipeline().get_dataset());
 

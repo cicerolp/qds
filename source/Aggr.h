@@ -9,6 +9,8 @@
 #include "PDigest.h"
 #include "Gaussian.h"
 
+#include "AggrEquality.h"
+
 using json = rapidjson::Writer<rapidjson::StringBuffer>;
 
 class Aggr {
@@ -35,10 +37,9 @@ class Aggr {
   const Query::aggr_expr _expr;
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////
-// Range
-/////////////////////////////////////////////////////////////////////////////////////////
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrGroupBy
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AggrGroupBy : public Aggr {
  public:
   AggrGroupBy(const Query::aggr_expr &expr, size_t __index) : Aggr(expr, __index) {};
@@ -46,7 +47,11 @@ class AggrGroupBy : public Aggr {
 
   virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) = 0;
 
-  virtual void output(json &writer) = 0;
+  virtual void output(json &writer) {
+    writer.StartArray();
+    writer.EndArray();
+  };
+
   virtual void output(std::vector<float> &raw) {
     return;
   }
@@ -55,6 +60,7 @@ class AggrGroupBy : public Aggr {
     writer.StartArray();
     writer.EndArray();
   };
+
   virtual void output_one_way(uint64_t value, const pipe_ctn &pipe, std::vector<float> &raw) {
     return;
   };
@@ -63,21 +69,36 @@ class AggrGroupBy : public Aggr {
     writer.StartArray();
     writer.EndArray();
   };
+
   virtual void output_two_way(uint64_t value, const pipe_ctn &pipe, std::vector<float> &raw, uint32_t threshold) {
     return;
   };
 
-  virtual std::vector<uint64_t> get_mapped_values(uint32_t threshold) const = 0;
+  virtual void equality_one_way(uint64_t value, void *payload, json &writer) {
+    writer.StartArray();
+    writer.EndArray();
+  };
+
+  virtual void equality_one_way(uint64_t value, void *payload, std::vector<float> &raw) {
+    return;
+  };
+
+  virtual void insert_mapped_keys(std::vector<uint64_t> &keys) const = 0;
+
+  virtual void insert_mapped_keys(std::vector<uint64_t> &keys, uint32_t threshold) const = 0;
 
   virtual pipe_ctn get_pipe(uint64_t value, uint32_t threshold) {
     return pipe_ctn();
   }
+
+  virtual void *get_payload(uint64_t value) {
+    return nullptr;
+  }
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////
-// Summarize
-/////////////////////////////////////////////////////////////////////////////////////////
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrSummarize
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AggrSummarize : public Aggr {
  public:
   AggrSummarize() = default;
@@ -99,27 +120,36 @@ class AggrSummarize : public Aggr {
     return;
   };
 
+  virtual void equality(void *payload, std::vector<float> &raw) {
+    return;
+  }
+
   virtual pipe_ctn get_pipe() {
     return pipe_ctn();
   }
+
+  virtual void *get_payload() {
+    return nullptr;
+  }
 };
 
-// count
-/////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrCountGroupBy
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AggrCountGroupBy : public AggrGroupBy {
  public:
   AggrCountGroupBy(const Query::aggr_expr &expr, size_t __index) :
       AggrGroupBy(expr, __index) {}
   virtual ~AggrCountGroupBy() = default;
 
-  virtual void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) override {
+  void merge(uint64_t value, const pivot_it &it_lower, const pivot_it &it_upper) override {
     auto it = it_lower;
     while (it != it_upper) {
       _map[value] += (*it++).size();
     }
   }
 
-  virtual void output(json &writer) override {
+  void output(json &writer) override {
     for (const auto &pair : _map) {
       writer.StartArray();
       write_value(pair.first, writer);
@@ -128,14 +158,30 @@ class AggrCountGroupBy : public AggrGroupBy {
     }
   }
 
-  std::vector<uint64_t> get_mapped_values(uint32_t threshold) const override {
-    std::vector<uint64_t> mapped_keys;
+  void output(std::vector<float> &raw) override {
+    for (const auto &pair : _map) {
+      raw.emplace_back(pair.second);
+    }
+  }
+
+  void insert_mapped_keys(std::vector<uint64_t> &keys) const override {
+    keys.clear();
+    keys.reserve(_map.size());
+
+    for (const auto &elt: _map) {
+      keys.emplace_back(elt.first);
+    }
+  }
+
+  void insert_mapped_keys(std::vector<uint64_t> &keys, uint32_t threshold) const override {
+    keys.clear();
+    keys.reserve(_map.size());
+
     for (const auto &elt: _map) {
       if (elt.second >= threshold) {
-        mapped_keys.emplace_back(elt.first);
+        keys.emplace_back(elt.first);
       }
     }
-    return mapped_keys;
   }
 
   pipe_ctn get_pipe(uint64_t value, uint32_t threshold) override {
@@ -149,9 +195,14 @@ class AggrCountGroupBy : public AggrGroupBy {
   }
 
  protected:
-  std::map<uint64_t, uint32_t> _map;
+  // [key] -> [count]
+  // std::map<uint64_t, uint32_t> _map;
+  std::unordered_map<uint64_t, uint32_t> _map;
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrCountSummarize
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AggrCountSummarize : public AggrSummarize {
  public:
   AggrCountSummarize() = default;
@@ -187,6 +238,9 @@ class AggrCountSummarize : public AggrSummarize {
 };
 
 #ifdef NDS_ENABLE_PAYLOAD
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrPayloadGroupBy
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename T>
 class AggrPayloadGroupBy : public AggrGroupBy {
  public:
@@ -199,14 +253,33 @@ class AggrPayloadGroupBy : public AggrGroupBy {
     _map[value].count += count;
   }
 
-  std::vector<uint64_t> get_mapped_values(uint32_t threshold) const override {
-    std::vector<uint64_t> mapped_keys;
+  void insert_mapped_keys(std::vector<uint64_t> &keys) const override {
+    keys.clear();
+    keys.reserve(_map.size());
+
+    for (const auto &elt: _map) {
+      keys.emplace_back(elt.first);
+    }
+  }
+  void insert_mapped_keys(std::vector<uint64_t> &keys, uint32_t threshold) const override {
+    keys.clear();
+    keys.reserve(_map.size());
+
     for (const auto &elt: _map) {
       if (elt.second.count >= threshold) {
-        mapped_keys.emplace_back(elt.first);
+        keys.emplace_back(elt.first);
       }
     }
-    return mapped_keys;
+  }
+
+  virtual void *get_payload(uint64_t value) override {
+    auto it = _map.find(value);
+
+    if (it == _map.end()) {
+      return nullptr;
+    } else {
+      return &(*it).second.payload;
+    }
   }
 
  protected:
@@ -216,9 +289,12 @@ class AggrPayloadGroupBy : public AggrGroupBy {
   };
 
   // [key] -> [count, payload]
-  std::map<uint64_t, payload_pair_t> _map;
+  std::unordered_map<uint64_t, payload_pair_t> _map;
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrPayloadSummarize
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename T>
 class AggrPayloadSummarize : public AggrSummarize {
  public:
@@ -238,12 +314,19 @@ class AggrPayloadSummarize : public AggrSummarize {
     }
   }
 
+  virtual void *get_payload() override {
+    return &_map;
+  }
+
  protected:
   T _map;
 };
 #endif // NDS_ENABLE_PAYLOAD
 
 #ifdef ENABLE_PDIGEST
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrPDigestGroupBy
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
  public:
   AggrPDigestGroupBy(const Query::aggr_expr &expr, size_t __index) :
@@ -263,7 +346,6 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
           writer.EndArray();
         }
       }
-
     } else if (_expr.first == "inverse") {
       for (auto &pair : _map) {
         for (auto &q : parameters) {
@@ -273,6 +355,13 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
           writer.Double(pair.second.payload.inverse(q));
           writer.EndArray();
         }
+      }
+    } else if (_expr.first == "sector") {
+      for (auto &pair : _map) {
+        writer.StartArray();
+        write_value(pair.first, writer);
+        writer.Double(pair.second.payload.get_denser_sector());
+        writer.EndArray();
       }
     }
   }
@@ -286,12 +375,15 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
           raw.emplace_back(pair.second.payload.quantile(q));
         }
       }
-
     } else if (_expr.first == "inverse") {
       for (auto &pair : _map) {
         for (auto &q : parameters) {
           raw.emplace_back(pair.second.payload.inverse(q));
         }
+      }
+    } else if (_expr.first == "sector") {
+      for (auto &pair : _map) {
+        raw.emplace_back(pair.second.payload.get_denser_sector());
       }
     }
   }
@@ -418,6 +510,40 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
     }
   }
 
+  void equality_one_way(uint64_t value, void *payload, json &writer) override {
+    writer.StartArray();
+    // TODO implement
+    writer.EndArray();
+  }
+  void equality_one_way(uint64_t value, void *payload, std::vector<float> &raw) override {
+    static const float empty = 1.0f;
+
+    auto it = _map.find(value);
+    auto lhs = &(*it).second.payload;
+    auto rhs = (AgrrPDigest *) payload;
+
+    if (rhs == nullptr) {
+      // it != _map.end()
+      // right_join
+      raw.emplace_back(empty);
+    } else if (it != _map.end()) {
+      if (_expr.first == "sector") {
+        auto distance = polar::distance(lhs, rhs);
+        raw.emplace_back(distance);
+      } else if (_expr.first == "ks") {
+        auto distance = ks::distance(lhs, rhs);
+        raw.emplace_back(distance);
+      } else if (_expr.first == "ksw") {
+        auto distance = ks::distance_w(lhs, rhs, 2.f);
+        raw.emplace_back(distance);
+      }
+    } else {
+      // it == _map.end()
+      // left_join
+      raw.emplace_back(empty);
+    }
+  }
+
   pipe_ctn get_pipe(uint64_t value, uint32_t threshold) override {
     pipe_ctn pipe;
     auto it = _map.find(value);
@@ -433,6 +559,8 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
         for (auto &q : parameters) {
           pipe.emplace_back((*it).second.payload.inverse(q));
         }
+      } else if (_expr.first == "sector") {
+        pipe.emplace_back((*it).second.payload.get_denser_sector());
       }
     }
 
@@ -440,6 +568,9 @@ class AggrPDigestGroupBy : public AggrPayloadGroupBy<AgrrPDigest> {
   }
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrPDigestSummarize
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
  public:
   AggrPDigestSummarize() = default;
@@ -469,6 +600,34 @@ class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
     }
   }
 
+  void output(const pipe_ctn &pipe, std::vector<float> &raw) override {
+    if (_expr.first == "quantile") {
+      for (auto &q : pipe) {
+        raw.emplace_back(_map.quantile(q));
+      }
+    } else if (_expr.first == "inverse") {
+      for (auto &q : pipe) {
+        raw.emplace_back(_map.inverse(q));
+      }
+    }
+  }
+
+  void equality(void *payload, std::vector<float> &raw) override {
+    auto lhs = &_map;
+    auto rhs = (AgrrPDigest *) payload;
+
+    if (_expr.first == "sector") {
+      auto distance = polar::distance(lhs, rhs);
+      raw.emplace_back(distance);
+    } else if (_expr.first == "ks") {
+      auto distance = ks::distance(lhs, rhs);
+      raw.emplace_back(distance);
+    } else if (_expr.first == "ksw") {
+      auto distance = ks::distance_w(lhs, rhs, 2.f);
+      raw.emplace_back(distance);
+    }
+  }
+
   pipe_ctn get_pipe() override {
     pipe_ctn pipe;
 
@@ -482,6 +641,8 @@ class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
       for (auto &q : parameters) {
         pipe.emplace_back(_map.inverse(q));
       }
+    } else if (_expr.first == "sector") {
+      pipe.emplace_back(_map.get_denser_sector());
     }
 
     return pipe;
@@ -490,6 +651,9 @@ class AggrPDigestSummarize : public AggrPayloadSummarize<AgrrPDigest> {
 #endif // ENABLE_PDIGEST
 
 #ifdef ENABLE_GAUSSIAN
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrGaussianGroupBy
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AggrGaussianGroupBy : public AggrPayloadGroupBy<AggrGaussian> {
  public:
   AggrGaussianGroupBy(const Query::aggr_expr &expr, size_t __index) :
@@ -531,6 +695,9 @@ class AggrGaussianGroupBy : public AggrPayloadGroupBy<AggrGaussian> {
   }
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// AggrGaussianSummarize
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 class AggrGaussianSummarize : public AggrPayloadSummarize<AggrGaussian> {
  public:
   AggrGaussianSummarize() = default;

@@ -4,8 +4,12 @@
 #include "Payload.h"
 #include "Dimension.h"
 #include "Pivot.h"
+
+#include "Schema.h"
+
 #include "Query.h"
 #include "Pipeline.h"
+#include "Clustering.h"
 #include "AugmentedSeries.h"
 
 #include "Schema.h"
@@ -23,6 +27,7 @@ class NDS {
 
   std::string query(const Query &query);
   std::string pipeline(const Pipeline &pipeline);
+  std::string clustering(const Clustering &clustering);
   std::string augmented_series(const AugmentedSeries &augmented_series);
 
   std::string schema() const;
@@ -179,7 +184,7 @@ class NDS {
           index = _payload_index.at(clausule.first);
         }
       } catch (std::out_of_range) {
-        std::cerr << "error: invalid aggr" << std::endl;
+        std::cerr << "[error] invalid aggr: " << clausule.first << std::endl;
       }
     }
     return index;
@@ -213,38 +218,68 @@ class NDS {
   template<typename T>
   using GroupCtn = std::pair<GroupBy<T>, GroupBy<T>>;
 
-  void do_group_by(AggrGroupByCtn &aggrs,
-                   const range_ctn &range,
-                   const bined_ctn &subset,
-                   const CopyOption &option) const;
-
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // common methods
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   void do_summarize(AggrSummarizeCtn &aggrs, const range_ctn &range, const bined_ctn &subset) const;
+  void do_group_by(AggrGroupByCtn &aggrs, const range_ctn &range,
+                   const bined_ctn &subset, const CopyOption &option) const;
 
-  // json ouput
-  void group_by_query(const AggrGroupByCtn &aggrs, json &writer, const range_ctn &range, const bined_ctn &subset) const;
-  void group_by_inner_join(const GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const;
-  void group_by_left_join(const GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const;
-  void group_by_right_join(const GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const;
+  AggrSummarizeCtn get_aggr_summarize_ctn(const Query &query) const;
+  AggrGroupByCtn get_aggr_group_by_ctn(const Query &query) const;
 
-  void summarize_query(const AggrSummarizeCtn &aggrs,
-                       json &writer,
-                       const range_ctn &range,
-                       const bined_ctn &subset) const;
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // regular queries
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  void summarize_query(const AggrSummarizeCtn &aggrs, json &writer) const;
+
+  void group_by_query(const AggrGroupByCtn &aggrs, json &writer) const;
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // group_by data queries
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  void group_by_data(const AggrGroupByCtn &aggrs, json &writer) const;
+  void group_by_data(const AggrGroupByCtn &aggrs, std::vector<uint64_t> &raw) const;
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // pipeline queries
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   void summarize_pipe(const GroupCtn<AggrSummarizeCtn> &groups, json &writer) const;
-
-  // raw output
-  void group_by_inner_join(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw, uint32_t threshold) const;
-  void group_by_left_join(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw, uint32_t threshold) const;
-  void group_by_right_join(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw, uint32_t threshold) const;
-
   void summarize_pipe(const GroupCtn<AggrSummarizeCtn> &groups, std::vector<float> &raw) const;
 
-  AggrGroupByCtn get_aggr_group_by(const Query &query) const;
-  AggrSummarizeCtn get_aggr_summarize(const Query &query) const;
+  void group_by_inner_join(const GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const;
+  void group_by_inner_join(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw, uint32_t threshold) const;
+
+  void group_by_left_join(const GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const;
+  void group_by_left_join(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw, uint32_t threshold) const;
+
+  void group_by_right_join(const GroupCtn<AggrGroupByCtn> &groups, json &writer, uint32_t threshold) const;
+  void group_by_right_join(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw, uint32_t threshold) const;
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // equality queries
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  void summarize_equal(const GroupCtn<AggrSummarizeCtn> &groups, std::vector<float> &raw) const;
+
+  void left_join_equal(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw) const;
+  void right_join_equal(const GroupCtn<AggrGroupByCtn> &groups, std::vector<float> &raw) const;
+
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // clustering
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  std::vector<std::vector<uint16_t>> initialize_clusters(const Clustering &clustering, size_t n_objs);
+
+  GroupBy<AggrSummarizeCtn> get_cluster_summarize(const Query &query) const;
+  GroupBy<AggrGroupByCtn> get_cluster_grop_by(const Query &query) const;
+
+  std::vector<float> get_raw_by_summarize(const Query &query, const std::vector<GroupBy<AggrSummarizeCtn>> &clusters);
+  std::vector<float> get_raw_by_group(const Query &query, const std::vector<GroupBy<AggrGroupByCtn>> &clusters);
+  //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
   pivot_ctn _root;
   std::vector<std::unique_ptr<Payload>> _payload;
   std::unordered_map<std::string, size_t> _payload_index;
 
   std::vector<std::unique_ptr<Dimension>> _dimension;
+  std::unordered_map<std::string, size_t> _dimension_index;
 };

@@ -3,6 +3,7 @@
 #include "NDSInstances.h"
 
 #include "AugmentedSeries.h"
+#include "Clustering.h"
 
 uint32_t g_Quadtree_Depth{18};
 extern uint32_t TIMER_ID;
@@ -53,6 +54,8 @@ void Server::handler(mg_connection* conn, int ev, void* p) {
         printJson(conn, NDSInstances::getInstance().pipeline(Pipeline(uri)));
       } else if (tokens[2] == "augmented_series") {
         printJson(conn, NDSInstances::getInstance().augmented_series(AugmentedSeries(uri)));
+      } else if (tokens[2] == "clustering") {
+        printJson(conn, NDSInstances::getInstance().clustering(Clustering(uri)));
       } else {
         printJson(conn, "[]");
       }

@@ -11,8 +11,10 @@ option(ENABLE_METRICS "Enable Metrics" OFF)
 # nds options
 option(NDS_ENABLE_PAYLOAD "Enable Payload" ON)
 
+option(NDS_ENABLE_CRS_SIMPLE "Enable CRS.Simple" OFF)
+
 # nds tweaks
-option(NDS_OPTIMIZE_LEAF "Enable Spatial Element Leaf Optimization" ON)
+option(NDS_OPTIMIZE_LEAF "Enable Spatial Element Leaf Optimization" OFF)
 
 # nds sharing
 option(NDS_SHARE_PIVOT "Enable Pivot Sharing" ON)
@@ -27,7 +29,7 @@ set(PDIGEST_COMPRESSION "50.f" CACHE STRING "Set p-digest Compression (float)")
 set(PDIGEST_BUFFER_FACTOR "5" CACHE STRING "Set p-digest Buffer Size (N * PDIGEST_ARRAY_SIZE)")
 
 # gaussian
-option(ENABLE_GAUSSIAN "Enable Gaussian" ON)
+option(ENABLE_GAUSSIAN "Enable Gaussian" OFF)
 
 # raw
 option(ENABLE_RAW "Enable Raw" OFF)
@@ -66,7 +68,8 @@ set(SRC_LIST
         source/PDigest.cpp
         source/Gaussian.cpp
         source/Pipeline.cpp
-        source/AugmentedSeries.cpp)
+        source/AugmentedSeries.cpp
+        source/Clustering.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS})
 
