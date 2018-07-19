@@ -20,15 +20,11 @@ void run_bench(const std::string &input) {
       continue;
     }
 
-    NDSInstances::getInstance().query(Query(line));
+    for (auto i = 0; i < 10; ++i) {
+      NDSInstances::getInstance().query(Query(line));
 
-    TIMER_INCR_IT
-
-    NDSInstances::getInstance().query(Query(line));
-
-    TIMER_INCR_IT
-
-    NDSInstances::getInstance().query(Query(line));
+      TIMER_INCR_IT
+    }
 
     TIMER_RESET_IT
     TIMER_INCR_ID
@@ -55,7 +51,7 @@ int main(int argc, char *argv[]) {
   ////////////////////////////////////////////////////////
 
   // nds instances
-  std::thread instances_run(NDSInstances::run, nds_opts.schemas);
+  std::thread instances_run(NDSInstances::run, nds_opts);
   instances_run.join();
 
   run_bench(input);
