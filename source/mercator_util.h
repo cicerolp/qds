@@ -17,7 +17,7 @@ inline uint32_t index(uint32_t x, uint32_t y) {
 
 inline uint32_t lon2tilex(double lon, int z) {
 #ifdef NDS_ENABLE_CRS_SIMPLE
-  uint32_t x = (lon + 512.0) / 1024.0 * (1 << z);
+  uint32_t x = (lon + 0.0) / 10.0 * (1 << z);
   return x & ((1 << z) - 1);
 #else
   uint32_t x = (lon + 180.0) / 360.0 * (1 << z);
@@ -27,7 +27,7 @@ inline uint32_t lon2tilex(double lon, int z) {
 
 inline uint32_t lat2tiley(double lat, int z) {
 #ifdef NDS_ENABLE_CRS_SIMPLE
-  uint32_t y = (lat + 512.0) / 1024.0 * (1 << z);
+  uint32_t y = (lat + 0.0) / 10.0 * (1 << z);
   return y & ((1 << z) - 1);
 #else
   static const double PI_180 = M_PI / 180.0;
