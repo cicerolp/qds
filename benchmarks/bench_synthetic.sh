@@ -74,8 +74,6 @@ cd $HOMEDIR
 # run test
 NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_20M.xml -d 25 > ${TMPDIR}/pdigest_${EXECID}_gaussian.csv
 
-exit
-
 ########################
 # test raw             #
 ########################
@@ -92,4 +90,4 @@ cd $HOMEDIR
 # run test
 NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_20M.xml -d 25 > ${TMPDIR}/raw_${EXECID}_gaussian.csv
 
-# push_to_git
+push_to_git
