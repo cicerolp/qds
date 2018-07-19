@@ -65,25 +65,24 @@ function push_to_git {
 # setup benchmark
 rm bench_queries
 cd $BUILDIR
-cmake -DCMAKE_BUILD_TYPE="Release" -DNDS_OPTIMIZE_LEAF="OFF" 
--DENABLE_METRICS="ON" -DNDS_ENABLE_PAYLOAD="ON" 
--DENABLE_RAW="OFF" -DENABLE_PDIGEST="ON" 
--DENABLE_GAUSSIAN="OFF" -DNDS_ENABLE_CRS_SIMPLE="ON" ../../
+cmake -DCMAKE_BUILD_TYPE="Release" -DNDS_OPTIMIZE_LEAF="OFF" -DENABLE_METRICS="ON" -DNDS_ENABLE_PAYLOAD="ON" -DENABLE_RAW="OFF" 
+-DENABLE_PDIGEST="ON" -DENABLE_GAUSSIAN="OFF" -DNDS_ENABLE_CRS_SIMPLE="ON" ../../
 cmake --build ./ --target bench_queries -- -j 8
 chmod +x ./benchmarks/bench_queries
 cp ./benchmarks/bench_queries ../
 cd $HOMEDIR
 
 # run test
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log 
--x ../xml/gaussian_2M.xml -d 25 > 
-${TMPDIR}/pdigest_${EXECID}_gaussian_2M.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log 
--x ../xml/gaussian_20M.xml -d 25 > 
-${TMPDIR}/pdigest_${EXECID}_gaussian_20M.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log 
--x ../xml/gaussian_200M.xml -d 25 > 
-${TMPDIR}/pdigest_${EXECID}_gaussian_200M.csv
+NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_1M.xml -d 25 > ${TMPDIR}/pdigest_${EXECID}_gaussian_1M.csv
+NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_10M.xml -d 25 > ${TMPDIR}/pdigest_${EXECID}_gaussian_10M.csv
+NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_100M.xml -d 25 > 
+${TMPDIR}/pdigest_${EXECID}_gaussian_100M.csv
+
+NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_5M.xml -d 25 > ${TMPDIR}/pdigest_${EXECID}_gaussian_5M.csv
+NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_50M.xml -d 25 > ${TMPDIR}/pdigest_${EXECID}_gaussian_50M.csv
+NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_500M.xml -d 25 > 
+${TMPDIR}/pdigest_${EXECID}_gaussian_500M.csv
+
 
 ########################
 # test raw             #
@@ -92,25 +91,21 @@ ${TMPDIR}/pdigest_${EXECID}_gaussian_200M.csv
 # setup benchmark
 rm bench_queries
 cd $BUILDIR
-cmake -DCMAKE_BUILD_TYPE="Release" -DNDS_OPTIMIZE_LEAF="OFF" 
--DENABLE_METRICS="ON" -DNDS_ENABLE_PAYLOAD="ON" 
--DENABLE_RAW="ON" -DENABLE_PDIGEST="OFF" 
--DENABLE_GAUSSIAN="OFF" -DNDS_ENABLE_CRS_SIMPLE="ON" ../../
+cmake -DCMAKE_BUILD_TYPE="Release" -DNDS_OPTIMIZE_LEAF="OFF" -DENABLE_METRICS="ON" -DNDS_ENABLE_PAYLOAD="ON" -DENABLE_RAW="ON" 
+-DENABLE_PDIGEST="OFF" -DENABLE_GAUSSIAN="OFF" -DNDS_ENABLE_CRS_SIMPLE="ON" ../../
 cmake --build ./ --target bench_queries -- -j 8
 chmod +x ./benchmarks/bench_queries
 cp ./benchmarks/bench_queries ../
 cd $HOMEDIR
 
 # run test
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log 
--x ../xml/gaussian_2M.xml -d 25 > 
-${TMPDIR}/raw_${EXECID}_gaussian_2M.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log 
--x ../xml/gaussian_20M.xml -d 25 > 
-${TMPDIR}/raw_${EXECID}_gaussian_20M.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log 
--x ../xml/gaussian_200M.xml -d 25 > 
-${TMPDIR}/raw_${EXECID}_gaussian_200M.csv
+NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_1M.xml -d 25 > ${TMPDIR}/raw_${EXECID}_gaussian_1M.csv
+NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_10M.xml -d 25 > ${TMPDIR}/raw_${EXECID}_gaussian_10M.csv
+NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_100M.xml -d 25 > ${TMPDIR}/raw_${EXECID}_gaussian_100M.csv
+
+NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_5M.xml -d 25 > ${TMPDIR}/raw_${EXECID}_gaussian_5M.csv
+NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_50M.xml -d 25 > ${TMPDIR}/raw_${EXECID}_gaussian_50M.csv
+NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_500M.xml -d 25 > ${TMPDIR}/raw_${EXECID}_gaussian_500M.csv
 
 push_to_git
 
