@@ -6,6 +6,8 @@
 
 #pragma once
 
+#ifdef ENABLE_PDIGEST
+
 namespace ks {
 
 static float distance(AgrrPDigest *lhs, AgrrPDigest *rhs) {
@@ -92,3 +94,5 @@ static float distance(AgrrPDigest *lhs, AgrrPDigest *rhs) {
 }
 
 } // namespace sector
+
+#endif // ENABLE_PDIGEST
