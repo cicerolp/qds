@@ -113,6 +113,10 @@ extern uint32_t SHARED_PIVOTS_N;
   #define TIMER_END timer.stop();
   #define TIMER_MILLISECONDS timer.milliseconds();
 
+  #define PRINT_TIMER(...) do { \
+    PRINTCSVF("id", TIMER_ID, "it", TIMER_IT, ##__VA_ARGS__) ; \
+  } while (0);
+
   #define TIMER_OUTPUT(...) do { \
     PRINTCSVF("id", TIMER_ID, "it", TIMER_IT, "ms", timer.milliseconds(), ##__VA_ARGS__) ; \
   } while (0);
@@ -140,6 +144,8 @@ extern uint32_t SHARED_PIVOTS_N;
   #define TIMER_START 0;
   #define TIMER_END 0;
   #define TIMER_MILLISECONDS 0;
+  #define PRINT_TIMER(...) do { \
+  } while (0);
   #define TIMER_OUTPUT(...) do { \
   } while (0);
   #define TIMER_INCR_ID 0;

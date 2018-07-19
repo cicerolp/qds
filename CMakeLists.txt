@@ -14,7 +14,7 @@ option(NDS_ENABLE_PAYLOAD "Enable Payload" ON)
 option(NDS_ENABLE_CRS_SIMPLE "Enable CRS.Simple" OFF)
 
 # nds tweaks
-option(NDS_OPTIMIZE_LEAF "Enable Spatial Element Leaf Optimization" OFF)
+option(NDS_OPTIMIZE_LEAF "Enable Spatial Element Leaf Optimization" ON)
 
 # nds sharing
 option(NDS_SHARE_PIVOT "Enable Pivot Sharing" ON)

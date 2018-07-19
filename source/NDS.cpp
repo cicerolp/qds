@@ -1343,7 +1343,7 @@ AggrSummarizeCtn NDS::get_aggr_summarize_ctn(const Query &query) const {
 
 #ifdef ENABLE_RAW
     if (expr.first == "quantile" || expr.first == "inverse") {
-      aggr_ctn.emplace_back(std::make_shared<AggrRawGroupBy>(expr, get_payload_index(expr.second)));
+      aggr_ctn.emplace_back(std::make_shared<AggrRawSummarize>(expr, get_payload_index(expr.second)));
     }
 #endif // ENABLE_RAW
 
@@ -1380,7 +1380,7 @@ AggrGroupByCtn NDS::get_aggr_group_by_ctn(const Query &query) const {
 
 #ifdef ENABLE_RAW
     if (expr.first == "quantile" || expr.first == "inverse") {
-      aggr_ctn.emplace_back(std::make_shared<AggrRawSummarize>(expr, get_payload_index(expr.second)));
+      aggr_ctn.emplace_back(std::make_shared<AggrRawGroupBy>(expr, get_payload_index(expr.second)));
     }
 #endif // ENABLE_RAW
 

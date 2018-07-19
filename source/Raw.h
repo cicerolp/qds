@@ -22,7 +22,7 @@ class AggrRaw : public AgrrPayload {
  public:
   virtual ~AggrRaw() = default;
 
-  inline bool empty() const override {
+  inline bool empty() override {
     return _payload.size() == 0;
   }
 

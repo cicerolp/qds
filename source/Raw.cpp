@@ -119,6 +119,8 @@ void AggrRaw::sort_data() {
 
   std::sort(_payload.begin(), _payload.end());
 
+  PRINT_TIMER("size", _payload.size(), "sizeof", sizeof(float), "buffer")
+
   _sorted = true;
 }
 
