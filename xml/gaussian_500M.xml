@@ -2,7 +2,7 @@
 <config>
 	<name>gaussian</name>
 	<bytes>16</bytes>
-	<file>gaussian_20M.nds</file>
+	<file>gaussian_500M.nds</file>
 	<schema>
 		<spatial>
 			<index>coord</index>
