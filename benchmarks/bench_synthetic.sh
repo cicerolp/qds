@@ -76,9 +76,9 @@ NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian
 NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_10M.xml -d 25 > ${TMPDIR}/pdigest_${EXECID}_gaussian_10M.csv
 NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_100M.xml -d 25 > ${TMPDIR}/pdigest_${EXECID}_gaussian_100M.csv
 
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_5M.xml -d 25 > ${TMPDIR}/pdigest_${EXECID}_gaussian_5M.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_50M.xml -d 25 > ${TMPDIR}/pdigest_${EXECID}_gaussian_50M.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_500M.xml -d 25 > ${TMPDIR}/pdigest_${EXECID}_gaussian_500M.csv
+# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_5M.xml -d 25 > ${TMPDIR}/pdigest_${EXECID}_gaussian_5M.csv
+# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_50M.xml -d 25 > ${TMPDIR}/pdigest_${EXECID}_gaussian_50M.csv
+# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_500M.xml -d 25 > ${TMPDIR}/pdigest_${EXECID}_gaussian_500M.csv
 
 
 ########################
@@ -99,9 +99,9 @@ NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian
 NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_10M.xml -d 25 > ${TMPDIR}/raw_${EXECID}_gaussian_10M.csv
 NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_100M.xml -d 25 > ${TMPDIR}/raw_${EXECID}_gaussian_100M.csv
 
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_5M.xml -d 25 > ${TMPDIR}/raw_${EXECID}_gaussian_5M.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_50M.xml -d 25 > ${TMPDIR}/raw_${EXECID}_gaussian_50M.csv
-NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_500M.xml -d 25 > ${TMPDIR}/raw_${EXECID}_gaussian_500M.csv
+# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_5M.xml -d 25 > ${TMPDIR}/raw_${EXECID}_gaussian_5M.csv
+# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_50M.xml -d 25 > ${TMPDIR}/raw_${EXECID}_gaussian_50M.csv
+# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_500M.xml -d 25 > ${TMPDIR}/raw_${EXECID}_gaussian_500M.csv
 
 push_to_git
 
