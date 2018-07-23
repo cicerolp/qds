@@ -1,0 +1,114 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library("tidyverse")
+library("lhs")
+```
+
+```{r}
+load_p <- function(file, bench) {
+  data <- c()
+  
+  lines <- read_lines(file)
+  for (i in 1:length(lines)){
+    if (length(grep("sort_data", lines[i])) != 1 & length(grep("validation", lines[i])) != 1) {
+      data <- c(data, lines[i])
+    }
+  }
+  
+  df <- read_delim(paste(data, collapse = "\n"), delim = ";", col_names = FALSE)
+  
+  df <- df %>%
+      group_by(X3, X5) %>%
+      summarise(Time = sum(X7)) %>%
+      mutate(
+        Bench = bench
+    )
+  
+  return (df)
+}
+
+pdigest_1M <- load_p("pdigest_20180720-122425_gaussian_1M.csv", "p-digest <1M>")
+pdigest_10M <- load_p("pdigest_20180720-122425_gaussian_10M.csv", "p-digest <10M>")
+```
+
+```{r}
+load_r <- function(file, bench) {
+  data <- c()
+  
+  lines <- read_lines(file)
+  for (i in 1:length(lines)){
+    if (length(grep("sort_data", lines[i])) != 1 & length(grep("validation", lines[i])) != 1) {
+      data <- c(data, lines[i])
+    }
+  }
+  
+  df <- read_delim(paste(data, collapse = "\n"), delim = ";", col_names = FALSE)
+  
+  df <- df %>%
+      group_by(X3, X5) %>%
+      summarise(Time = sum(X7)) %>%
+      mutate(
+        Bench = bench
+    )
+  
+  return (df)
+}
+
+
+raw_1M <- load_r("raw_20180720-122425_gaussian_1M.csv", "raw <1M>")
+
+raw_10M <- load_r("raw_20180720-122425_gaussian_10M.csv", "raw <10M>")
+```
+
+
+
+```{r include=FALSE}
+data <- rbind(raw_1M, raw_10M, pdigest_1M, pdigest_10M)
+```
+
+```{r}
+df <- data %>%
+  group_by(X3, Bench) %>%
+  summarise(
+    Max = max(Time),
+    Min = min(Time),
+    Mean = mean(Time),
+    Stdv = sd(Time)
+  ) %>% filter(!is.na(Max))
+
+data %>% 
+  ggplot(aes(x = Bench, y = Time)) + 
+    geom_boxplot(aes(colour = Bench)) + 
+    coord_flip()
+
+df %>% 
+  ggplot(aes(x = X3, y = Mean, colour = Bench)) +
+    geom_line(aes(x = X3, y = Mean, colour = Bench)) #+
+    # geom_errorbar(aes(ymin = Mean - Stdv, ymax = Mean + Stdv), width = 2, position=position_dodge(0.05)) +
+    # scale_y_continuous(limits = c(0, 40), breaks = round(seq(0, 40, by = 500), 2))
+    # scale_y_log10()
+
+df %>% 
+  filter(X3 <= 8) %>%
+  filter(Bench == "raw <1M>" | Bench == "p-digest <1M>") %>%
+  ggplot(aes(x = X3, y = Mean, colour = Bench)) +
+    geom_line(aes(x = X3, y = Mean, colour = Bench)) #+
+    # geom_errorbar(aes(ymin = Mean - Stdv, ymax = Mean + Stdv), width = 2, position=position_dodge(0.05)) +
+    # scale_y_continuous(limits = c(0, 40), breaks = round(seq(0, 40, by = 500), 2))
+    # scale_y_log10()
+
+df %>% 
+  filter(X3 <= 8) %>%
+  filter(Bench == "raw <10M>" | Bench == "p-digest <10M>") %>%
+  ggplot(aes(x = X3, y = Mean, colour = Bench)) +
+    geom_line(aes(x = X3, y = Mean, colour = Bench)) #+
+    # geom_errorbar(aes(ymin = Mean - Stdv, ymax = Mean + Stdv), width = 2, position=position_dodge(0.05)) +
+    # scale_y_continuous(limits = c(0, 40), breaks = round(seq(0, 40, by = 500), 2))
+    # scale_y_log10()
+  
+```
+
