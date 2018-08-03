@@ -30,7 +30,8 @@ load <- function(dataset) {
     mutate (
       Dataset = dataset,
       Structure = "QDS"
-    )
+    ) %>% 
+    filter(Mean < 80)
 }
 ```
 
@@ -47,7 +48,7 @@ load_hc <- function(dataset) {
       Mean = X1,
       Stdv = 0,
       Dataset = dataset,
-      Structure = "HC"
+      Structure = "Hashedcubes"
     ) %>% select(-(X1:X6)) %>%
     mutate(X3 = row_number() - 1)
 }
@@ -60,7 +61,7 @@ data <- rbind(
 )
 ```
 
-```{r fig.height=5.5, fig.width=6}
+```{r fig.height=4.4, fig.width=6}
 data %>% 
   # filter(Dataset == "brightkite") %>%
   filter(Mean >= 1) %>%
@@ -69,6 +70,7 @@ data %>%
     geom_boxplot(aes(colour = Structure), outlier.alpha = 1.0) + 
     coord_flip() + 
     labs(title = "Performance Comparison QDS vs. Hashedcubes") +
+    # labs(title = "") +
     ylab("Running Time (ms)") +
     xlab("") +
     # guides(colour = FALSE) + 
@@ -82,15 +84,18 @@ data %>%
       # legend.text = element_text(angle = 90, hjust = 1),
       # legend.position = c(0.5, 0.98),
       legend.position = "top",
-      legend.title = element_text(size = 11),
-      legend.margin = margin(t = -0.1, unit='cm'),
+      # legend.title = element_text(size = 11),
+      legend.title = element_blank(),
+      legend.margin = margin(t = -0.1, b = -0.2, unit='cm'),
       plot.margin = unit(c(0.1,1,0,0), "lines"),
       axis.text.y = element_blank(),
-      axis.ticks = element_blank()
+      axis.ticks = element_blank(),
+      strip.text.y = element_text(size = 8)
     ) +
     scale_colour_manual(values = brewer.pal(3, "Set1")) +
-    scale_y_continuous(breaks = round(seq(0, 10000, by = 200), 2)) +
-    facet_wrap(. ~  Dataset, ncol = 1)
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 15)) +
+    # scale_y_continuous(breaks = round(seq(0, 10000, by = 200), 2)) +
+    facet_wrap(. ~  Dataset, ncol = 1, scales = "free_x", strip.position="right")
     # scale_x_discrete(labels= c("p-digest", "Naive"))
 
 ggsave("query_performance.pdf")
