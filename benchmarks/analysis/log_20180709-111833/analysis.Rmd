@@ -69,7 +69,7 @@ data %>%
     # geom_jitter(aes(colour = Structure), position = position_jitter(width = .05), alpha = 0.5) +
     geom_boxplot(aes(colour = Structure), outlier.alpha = 1.0) + 
     coord_flip() + 
-    labs(title = "Performance Comparison QDS vs. Hashedcubes") +
+    labs(title = "Performance Comparison of Couting Queries") +
     # labs(title = "") +
     ylab("Running Time (ms)") +
     xlab("") +
