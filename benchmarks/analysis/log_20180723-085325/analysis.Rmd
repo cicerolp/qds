@@ -44,7 +44,7 @@ load_bp <- function(type, size) {
       Stdv = sd(Time)
     ) %>%
     mutate(
-      Bench = paste0(type, " <", size,">")
+      Bench = if_else(type == "raw", "Naive", "QDS")
     )
   
   return (df)
@@ -66,32 +66,38 @@ load_h <- function(type, size) {
         Stdv = sd(X7)
       ) %>%
       mutate(
-        Bench = paste0(type, " <", size,">")
+        Bench = if_else(type == "raw", "Naive", "QDS")
       )
   
   return (df)
 }
 ```
 
-```{r fig.height=4, fig.width=6}
-facet_names <- list(
-  'pdigest <1M>'="p-digest",
-  'raw <1M>'="Naive"
-)
+```{r fig.height=2.8, fig.width=6}
+# facet_names <- list(
+#   'pdigest <1M>'="p-digest",
+#   'raw <1M>'="Naive"
+# )
 
-facet_labeller <- function(variable, value){
-  return(facet_names[value])
-}
+# facet_labeller <- function(variable, value){
+#   return(facet_names[value])
+# }
 
-rbind(load_h("pdigest", "1M"), load_h("raw", "1M")) %>% 
+data <- rbind(load_h("pdigest", "1M"), load_h("raw", "1M"))
+data$Bench <- as.factor(data$Bench)
+
+data$Bench <- factor(data$Bench, levels = c("QDS", "Naive"))
+
+data %>%
   filter(X3 <=8) %>%
   ggplot(aes(x = X3, y = Mean)) +
   geom_bar(aes(fill = X8), stat="identity") + 
   scale_x_continuous(breaks = round(seq(0, 25, by = 1), 2)) + 
-  facet_wrap(. ~ Bench , scales = "fixed", ncol = 1, labeller = facet_labeller) + 
+  # facet_wrap(. ~ Bench , scales = "fixed", ncol = 1, labeller = facet_labeller) +
+  facet_wrap(. ~ Bench , scales = "fixed", ncol = 1, strip.position="right") + 
   theme_bw() + 
   labs(fill = "Query Steps") + 
-  scale_fill_manual(values = brewer.pal(3, "Set1"), labels = c("Aggregation", "Intersection", "Selection")) + 
+  scale_fill_manual(values = brewer.pal(3, "Paired"), labels = c("Aggregation", "Intersection", "Selection")) + 
   labs(titles = "Detailed Performance of Quantile (0.5) Computation") +
   ylab("Running Time (ms)") +
   xlab(expression('Tile Resolution (z) (' %<=>% '4'^Z*' merge operations)')) + 
@@ -102,30 +108,32 @@ rbind(load_h("pdigest", "1M"), load_h("raw", "1M")) %>%
     axis.title.y = element_text(size = 10),
     legend.justification = "top",
     legend.direction = "horizontal",
-    legend.position = c(0.5, 0.98),
-    legend.title = element_text(size = 11),
-    plot.margin = unit(c(0.1,1,0,0), "lines")
+    legend.position = c(0.5, 0.975),
+    legend.title = element_text(size = 10),
+    legend.margin = margin(t = 0, b = 0, unit='cm'),
+    plot.margin = unit(c(0,0.1,0,0), "lines")
   ) +
-  scale_colour_manual(values = brewer.pal(3, "Set1")) +
+  # scale_colour_manual(values = brewer.pal(3, "Set1")) +
   geom_hline(yintercept = 40, linetype="dashed", color = "black") +
-  annotate("text", x = 9.2, y = 40, label = "real-time (<= 40 ms)", angle = -90) +
-  coord_cartesian(
-    xlim = c(-0.5, 8.5), # this focuses the x-axis on the range of interest
-    clip = "off" # this keeps the labels from disappearing
-  )
+  annotate("text", x = 0.9, y = 30, label = "real-time (<= 40 ms)", angle = 0)
+  # coord_cartesian(xlim = c(-0.5, 8.5), clip = "off")
 
 ggsave("bar.pdf")
-
-format(3^3)
 ```
 
 
 
-```{r fig.height=1.8, fig.width=6}
-rbind(
+```{r fig.height=1.4, fig.width=6}
+data <- rbind(
     load_bp("pdigest", "1M"),
     load_bp("raw", "1M")
-  ) %>% 
+  ) 
+
+data$Bench <- as.factor(data$Bench)
+
+data$Bench <- factor(data$Bench, levels = c("Naive", "QDS"))
+
+data %>%
   filter(X3 <= 8) %>%
   ggplot(aes(x = Bench, y = Mean)) + 
     geom_boxplot(aes(colour = Bench)) + 
@@ -140,8 +148,8 @@ rbind(
       axis.title.x = element_text(size = 10),
       plot.margin = unit(c(0.1,0.1,0.1,-0.9), "lines")
     ) +
-    scale_colour_manual(values = brewer.pal(3, "Set1")) + 
-    scale_x_discrete(labels= c("p-digest", "Naive"))
+    scale_colour_manual(values = brewer.pal(3, "Set1")) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 15))
 
 ggsave("boxplot.pdf")
 ```
