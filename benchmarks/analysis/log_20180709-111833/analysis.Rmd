@@ -62,6 +62,9 @@ data <- rbind(
 ```
 
 ```{r fig.height=4.4, fig.width=6}
+data$Structure <- as.factor(data$Structure)
+data$Structure <- factor(data$Structure, levels = c("QDS", "Hashedcubes"))
+
 data %>% 
   # filter(Dataset == "brightkite") %>%
   filter(Mean >= 1) %>%
@@ -92,8 +95,9 @@ data %>%
       axis.ticks = element_blank(),
       strip.text.y = element_text(size = 8)
     ) +
-    scale_colour_manual(values = brewer.pal(3, "Set1")) +
+    scale_colour_manual(values = c("#377EB8", "#E41A1C")) +
     scale_y_continuous(breaks = scales::pretty_breaks(n = 15)) +
+    scale_x_discrete(limits = rev(levels(data$Structure))) +
     # scale_y_continuous(breaks = round(seq(0, 10000, by = 200), 2)) +
     facet_wrap(. ~  Dataset, ncol = 1, scales = "free_x", strip.position="right")
     # scale_x_discrete(labels= c("p-digest", "Naive"))
