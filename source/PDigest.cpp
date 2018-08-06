@@ -407,8 +407,8 @@ void AgrrPDigest::merge_buffer_data() {
   _lastUsedCell++;
 
   if (_totalWeight > 0) {
-    _min = std::min(_min, _centroids[0].mean);
-    _max = std::max(_max, _centroids[_lastUsedCell - 1].mean);
+    _min = std::min(_min, _buffer.front().mean);
+    _max = std::max(_max, _buffer.back().mean);
   }
 
   _buffer.clear();
