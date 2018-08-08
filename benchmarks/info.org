@@ -1,6 +1,6 @@
 
 #+TITLE: Experiment results
-#+DATE: qua ago  8 11:16:17 -03 2018
+#+DATE: qua ago  8 11:30:53 -03 2018
 #+AUTHOR: cicerolp
 #+MACHINE: cicero
 #+FILE: info.org
@@ -55,7 +55,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 3095.133
+cpu MHz		: 1902.818
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -82,7 +82,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 3120.557
+cpu MHz		: 1759.220
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -109,7 +109,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 3191.467
+cpu MHz		: 2036.063
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -136,7 +136,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 3182.491
+cpu MHz		: 1927.031
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -163,7 +163,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 3801.760
+cpu MHz		: 1708.361
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -190,7 +190,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 3903.212
+cpu MHz		: 1716.138
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -217,7 +217,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 3041.041
+cpu MHz		: 1845.958
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -244,7 +244,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 3125.462
+cpu MHz		: 1954.686
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -269,45 +269,45 @@ power management:
 powersave
 ############################################
 ** CPU FREQUENCY:
-3095133
+1902818
 ############################################
 ** MEM INFO:
 MemTotal:       32892388 kB
-MemFree:        30357992 kB
-MemAvailable:   31105800 kB
-Buffers:          334196 kB
-Cached:           638632 kB
+MemFree:        22808620 kB
+MemAvailable:   31064788 kB
+Buffers:         4062216 kB
+Cached:          4419056 kB
 SwapCached:            0 kB
-Active:          1545124 kB
-Inactive:         592848 kB
-Active(anon):    1024192 kB
+Active:          5353136 kB
+Inactive:        4308756 kB
+Active(anon):    1050832 kB
 Inactive(anon):    49044 kB
-Active(file):     520932 kB
-Inactive(file):   543804 kB
+Active(file):    4302304 kB
+Inactive(file):  4259712 kB
 Unevictable:         136 kB
 Mlocked:             136 kB
 SwapTotal:      36181676 kB
 SwapFree:       36181676 kB
-Dirty:                16 kB
+Dirty:               516 kB
 Writeback:             0 kB
-AnonPages:       1064520 kB
-Mapped:           344068 kB
-Shmem:             70220 kB
-Slab:             166036 kB
-SReclaimable:      98504 kB
-SUnreclaim:        67532 kB
-KernelStack:        8364 kB
-PageTables:        26568 kB
+AnonPages:       1080144 kB
+Mapped:           344604 kB
+Shmem:             70232 kB
+Slab:             190648 kB
+SReclaimable:     120660 kB
+SUnreclaim:        69988 kB
+KernelStack:        8484 kB
+PageTables:        26820 kB
 NFS_Unstable:          0 kB
 Bounce:                0 kB
 WritebackTmp:          0 kB
 CommitLimit:    52627868 kB
-Committed_AS:    4267812 kB
+Committed_AS:    4287192 kB
 VmallocTotal:   34359738367 kB
 VmallocUsed:           0 kB
 VmallocChunk:          0 kB
 HardwareCorrupted:     0 kB
-AnonHugePages:    323584 kB
+AnonHugePages:    329728 kB
 ShmemHugePages:        0 kB
 ShmemPmdMapped:        0 kB
 HugePages_Total:       0
