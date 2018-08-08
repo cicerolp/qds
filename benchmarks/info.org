@@ -1,6 +1,6 @@
 
 #+TITLE: Experiment results
-#+DATE: qua ago  8 11:44:57 -03 2018
+#+DATE: qua ago  8 11:57:36 -03 2018
 #+AUTHOR: cicerolp
 #+MACHINE: cicero
 #+FILE: info.org
@@ -55,7 +55,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 1729.376
+cpu MHz		: 1856.478
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -82,7 +82,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 1804.007
+cpu MHz		: 2009.776
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -109,7 +109,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 1530.445
+cpu MHz		: 1972.707
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -136,7 +136,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 1603.171
+cpu MHz		: 2044.533
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -163,7 +163,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 1378.893
+cpu MHz		: 2048.272
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -190,7 +190,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 1629.039
+cpu MHz		: 1690.280
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -217,7 +217,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 1518.518
+cpu MHz		: 1774.001
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -244,7 +244,7 @@ model		: 60
 model name	: Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
 stepping	: 3
 microcode	: 0x24
-cpu MHz		: 1337.201
+cpu MHz		: 1607.529
 cache size	: 8192 KB
 physical id	: 0
 siblings	: 8
@@ -269,45 +269,45 @@ power management:
 powersave
 ############################################
 ** CPU FREQUENCY:
-1729376
+1856478
 ############################################
 ** MEM INFO:
 MemTotal:       32892388 kB
-MemFree:        22801212 kB
-MemAvailable:   31072796 kB
-Buffers:         4080652 kB
-Cached:          4419100 kB
+MemFree:        22778096 kB
+MemAvailable:   31060080 kB
+Buffers:         4097584 kB
+Cached:          4419156 kB
 SwapCached:            0 kB
-Active:          5347872 kB
-Inactive:        4319696 kB
-Active(anon):    1041716 kB
+Active:          5363252 kB
+Inactive:        4326896 kB
+Active(anon):    1054480 kB
 Inactive(anon):    49044 kB
-Active(file):    4306156 kB
-Inactive(file):  4270652 kB
+Active(file):    4308772 kB
+Inactive(file):  4277852 kB
 Unevictable:         136 kB
 Mlocked:             136 kB
 SwapTotal:      36181676 kB
 SwapFree:       36181676 kB
-Dirty:              5916 kB
+Dirty:               572 kB
 Writeback:             0 kB
-AnonPages:       1065804 kB
-Mapped:           344620 kB
-Shmem:             70244 kB
-Slab:             192592 kB
-SReclaimable:     121912 kB
-SUnreclaim:        70680 kB
-KernelStack:        8552 kB
-PageTables:        26404 kB
+AnonPages:       1071288 kB
+Mapped:           344536 kB
+Shmem:             70256 kB
+Slab:             193416 kB
+SReclaimable:     123076 kB
+SUnreclaim:        70340 kB
+KernelStack:        8560 kB
+PageTables:        26744 kB
 NFS_Unstable:          0 kB
 Bounce:                0 kB
 WritebackTmp:          0 kB
 CommitLimit:    52627868 kB
-Committed_AS:    4238912 kB
+Committed_AS:    4263664 kB
 VmallocTotal:   34359738367 kB
 VmallocUsed:           0 kB
 VmallocChunk:          0 kB
 HardwareCorrupted:     0 kB
-AnonHugePages:    323584 kB
+AnonHugePages:    331776 kB
 ShmemHugePages:        0 kB
 ShmemPmdMapped:        0 kB
 HugePages_Total:       0
@@ -315,9 +315,9 @@ HugePages_Free:        0
 HugePages_Rsvd:        0
 HugePages_Surp:        0
 Hugepagesize:       2048 kB
-DirectMap4k:      163360 kB
-DirectMap2M:     5027840 kB
-DirectMap1G:    28311552 kB
+DirectMap4k:      165408 kB
+DirectMap2M:     6074368 kB
+DirectMap1G:    27262976 kB
 ############################################
 ** LINUX AND GCC VERSIONS:
 Linux version 4.14.54-1-MANJARO (builduser@development) (gcc version 8.1.1 20180531 (GCC)) #1 SMP PREEMPT Sun Jul 8 19:14:13 UTC 2018
