@@ -165,12 +165,12 @@ data %>%
 
 
 
-```{r fig.height=3.4, fig.width=6}
+```{r fig.height=2.7, fig.width=6}
 data <- rbind(
     load_bp("pdigest", "1M"),
     load_bp("raw", "1M"),
-    load_bp("pdigest", "10M"),
-    load_bp("raw", "10M"),
+    #load_bp("pdigest", "10M"),
+    #load_bp("raw", "10M"),
     load_bp("pdigest", "100M"),
     load_bp("raw", "100M")
   ) 
@@ -179,7 +179,7 @@ data$Bench <- as.factor(data$Bench)
 
 data$Size <- factor(data$Size, levels = c("1M", "10M", "100M"))
 
-data$Bench <- factor(data$Bench, levels = c("Naive", "QDS"))
+data$Bench <- factor(data$Bench, levels = c("QDS", "Naive"))
 
 data %>%
   filter(X3 <= 8) %>%
@@ -209,9 +209,10 @@ data %>%
       axis.ticks = element_blank(),
       strip.text.y = element_text(size = 8)
     ) +
-    scale_colour_manual(values = brewer.pal(3, "Set1")) +
-    scale_y_continuous(breaks = scales::pretty_breaks(n = 11)) +
-    facet_wrap(~ Size, ncol = 1, strip.position="right") +
+    scale_colour_manual(values = c("#377EB8", "#E41A1C")) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 12)) +
+    scale_x_discrete(limits = rev(levels(data$Bench))) +
+    facet_wrap(~ Size, scales = "free_x", ncol = 1, strip.position="right") +
     guides(colour = guide_legend(title = "Performance of Quantile (0.5) Computation"))
 
 ggsave("boxplot.pdf")
