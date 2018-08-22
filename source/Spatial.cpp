@@ -8,7 +8,7 @@ uint32_t Spatial::build(NDS &nds, Data &data, BuildPair<build_ctn> &range, Build
 
   _tree = std::make_unique<SpatialElement>(nds, data, range, links, spatial_t(0, 0, 0));
 
-  uint32_t pivots_count = _tree->expand(nds, data, range, links, _schema.bin);
+  uint32_t pivots_count = _tree->expand(nds, data, range, links, _schema);
 
   return pivots_count;
 }

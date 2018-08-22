@@ -17,13 +17,13 @@ uint32_t SpatialElement::expand(NDS &nds,
                                 Data &data,
                                 BuildPair<build_ctn> &range,
                                 BuildPair<link_ctn> &links,
-                                uint32_t bin) {
+                                const DimensionSchema &schema) {
   spatial_t &value = (*reinterpret_cast<spatial_t *>(&_el.value));
 
   uint8_t next_level = value.z + 1;
   uint32_t pivots_count = static_cast<uint32_t>(_el.ptr().size());
 
-  if (next_level < g_Quadtree_Depth && count_expand(bin)) {
+  if (next_level < g_Quadtree_Depth && count_expand(schema.bin)) {
     std::array<build_ctn, 4> tmp_ctn{};
 
     // node will be expanded
@@ -35,8 +35,23 @@ uint32_t SpatialElement::expand(NDS &nds,
       for (auto i = ptr.front(); i < ptr.back(); ++i) {
         auto coords = data.record<coordinates_t>(i);
 
-        auto y = mercator_util::lat2tiley(coords->lat, next_level);
-        auto x = mercator_util::lon2tilex(coords->lon, next_level);
+        uint32_t x, y;
+
+        switch (schema.opt) {
+          default:
+          case 0: {
+            y = mercator_util::lat_to_tile_y(coords->lat, next_level);
+            x = mercator_util::lon_to_tile_x(coords->lon, next_level);
+          }
+          break;
+
+          case 1: {
+            y = mercator_util::get_tile_y(-512, 512, coords->lat, next_level);
+            x = mercator_util::get_tile_x(-512, 512, coords->lon, next_level);
+          }
+            break;
+        }
+
         auto index = mercator_util::index(x, y);
 
         data.setHash(i, index);
@@ -70,7 +85,7 @@ uint32_t SpatialElement::expand(NDS &nds,
       // share pivot between child and parent
       _container[i] = std::make_unique<SpatialElement>(nds, data, tmp_ctn[i], parent, tile);
 
-      pivots_count += _container[i]->expand(nds, data, range, links, bin);
+      pivots_count += _container[i]->expand(nds, data, range, links, schema);
     }
 
   } else {

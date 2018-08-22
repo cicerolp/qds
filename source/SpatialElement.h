@@ -12,7 +12,7 @@ class SpatialElement {
   SpatialElement(NDS &nds, Data &data, const build_ctn &container, const link_ctn &links, const spatial_t &tile);
   ~SpatialElement() = default;
 
-  uint32_t expand(NDS &nds, Data &data, BuildPair<build_ctn> &range, BuildPair<link_ctn> &links, uint32_t bin);
+  uint32_t expand(NDS &nds, Data &data, BuildPair<build_ctn> &range, BuildPair<link_ctn> &links, const DimensionSchema &schema);
 
   void query_tile(const spatial_t &tile, uint64_t resolution, bined_ctn &subset) const;
   void query_region(const region_t &region, bined_ctn &subset) const;

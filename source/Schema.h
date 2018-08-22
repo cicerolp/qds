@@ -31,6 +31,7 @@ struct Schema {
         std::string index = v.second.get<std::string>("index");
         uint32_t bin = v.second.get<uint32_t>("bin");
         uint32_t offset = v.second.get<uint32_t>("offset");
+        uint32_t opt  = v.second.get<uint32_t>("opt", 0);
 
         if (v.first == "spatial") {
           dimension.emplace_back(DimensionSchema::Spatial, index, bin, offset);

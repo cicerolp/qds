@@ -16,11 +16,12 @@ struct DimensionSchema {
   enum Type { Spatial, Temporal, Categorical, Payload };
 
   DimensionSchema() = default;
-  DimensionSchema(Type __type, const std::string &__index, uint32_t __bin, uint32_t __offset) :
-      type(__type), index(__index), bin(__bin), offset(__offset) {}
+  DimensionSchema(Type __type, const std::string &__index, uint32_t __bin, uint32_t __offset, uint32_t __opt = 0) :
+  type (__type), index(__index), bin(__bin), offset(__offset), opt(__opt) {}
 
   friend std::ostream &operator<<(std::ostream &os, const DimensionSchema &schema) {
-    os << "Index: [" << schema.index << "] Bin: [" << schema.bin << "] Offset: [" << schema.offset << "]";
+    os << "Index: [" << schema.index << "] Bin: [" << schema.bin << "] Offset: [" << schema.offset << "] Opt: ["
+       << schema.opt << "]";
     return os;
   }
 
@@ -46,6 +47,7 @@ struct DimensionSchema {
 
   Type type;
   uint32_t bin;
+  uint32_t opt;
   uint32_t offset;
   std::string index;
 };
