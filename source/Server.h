@@ -16,6 +16,8 @@ class Server : public Singleton<Server> {
     bool server{true};
     uint32_t port{8000};
 
+    uint32_t pid{0};
+
     bool cache{true};
     bool multithreading{true};
 
@@ -30,7 +32,8 @@ class Server : public Singleton<Server> {
       os << "Server Options:" << std::endl;
       os << "\tOn/Off: " << rhs.server << std::endl;
       os << "\t" << "port: " << rhs.port << ", cache: " << rhs.cache
-         << ", multithreading: " << rhs.multithreading << std::endl;
+         << ", multithreading: " << rhs.multithreading
+         << ", pid: " << rhs.pid << std::endl;
 
       std::cout << "\nNDS Options:" << std::endl;
       std::cout << "\tQuadtree Depth: " << rhs.quadtree_depth << std::endl;
@@ -67,7 +70,7 @@ class Server : public Singleton<Server> {
     nds_opts.multithreading = false;
 #else
     nds_opts.cache = true;
-  nds_opts.multithreading = true;
+    nds_opts.multithreading = true;
 #endif // ENABLE_TIMMING
 
     // Declare the supported options.
@@ -78,6 +81,11 @@ class Server : public Singleton<Server> {
 
     desc.add_options()("no-server,s", "disable server")(
         "telemetry,t", "enable telemetry");
+
+    desc.add_options()(
+        "pid",
+        po::value<uint32_t>(&nds_opts.pid)->default_value(nds_opts.pid),
+        "send signal to pid");
 
     desc.add_options()(
         "port,p",

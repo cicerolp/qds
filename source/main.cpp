@@ -2,6 +2,8 @@
 #include "NDSInstances.h"
 #include "Server.h"
 
+#include <signal.h>
+
 int main(int argc, char *argv[]) {
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // categorical //
@@ -42,10 +44,21 @@ int main(int argc, char *argv[]) {
       std::cout << "Server Running... Press any key to exit." << std::endl;
     }
 
+    if (nds_opts.pid != 0) {
+      std::cout << "sending signal to: " << nds_opts.pid << std::endl;
+      kill(nds_opts.pid, SIGUSR1);
+    }
+
     getchar();
 
     Server::getInstance().stop();
     server_ptr->join();
+
+  } else {
+    if (nds_opts.pid != 0) {
+      std::cout << "sending signal to: " << nds_opts.pid << std::endl;
+      kill(nds_opts.pid, SIGUSR1);
+    }
   }
 
   return 0;
