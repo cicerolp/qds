@@ -1,70 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
-	<name>iris</name>
-	<bytes>36</bytes>
-	<file>iris.nds</file>
+	<name>cvrr-i5sim</name>
+	<bytes>18</bytes>
+	<file>cvrr-i5sim.nds</file>
 	<schema>
 		<categorical>
-			<index>species</index>
-			<bin>3</bin>
+			<index>trajectory</index>
+			<bin>800</bin>
 			<offset>0</offset>
 		</categorical>
-		<categorical>
-			<index>id</index>
-			<bin>150</bin>
+		<spatial>
+			<index>coord</index>
+			<bin>1</bin>
 			<offset>2</offset>
-		</categorical>
-		<spatial>
-			<index>sepal</index>
-			<bin>1</bin>
-			<offset>4</offset>
 		</spatial>
-		<spatial>
-			<index>petal</index>
-			<bin>1</bin>
-			<offset>12</offset>
-		</spatial>
-
 		<payload>
-			<index>sepal_length_t</index>
+			<index>direction_t</index>
 			<bin>0</bin>
-			<offset>20</offset>
+			<offset>10</offset>
 		</payload>
 		<payload>
-			<index>sepal_width_t</index>
+			<index>speed_t</index>
 			<bin>0</bin>
-			<offset>24</offset>
+			<offset>14</offset>
 		</payload>
 		<payload>
-			<index>petal_length_t</index>
+			<index>y_t</index>
 			<bin>0</bin>
-			<offset>28</offset>
+			<offset>18</offset>
 		</payload>
 		<payload>
-			<index>petal_width_t</index>
+			<index>x_t</index>
 			<bin>0</bin>
-			<offset>32</offset>
-		</payload>
-
-		<payload>
-			<index>sepal_length_g</index>
-			<bin>1</bin>
-			<offset>20</offset>
-		</payload>
-		<payload>
-			<index>sepal_width_g</index>
-			<bin>1</bin>
-			<offset>24</offset>
-		</payload>
-		<payload>
-			<index>petal_length_g</index>
-			<bin>1</bin>
-			<offset>28</offset>
-		</payload>
-		<payload>
-			<index>petal_width_g</index>
-			<bin>1</bin>
-			<offset>32</offset>
+			<offset>22</offset>
 		</payload>
 	</schema>
 </config>

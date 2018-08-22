@@ -196,8 +196,7 @@ class AggrCountGroupBy : public AggrGroupBy {
 
  protected:
   // [key] -> [count]
-  // std::map<uint64_t, uint32_t> _map;
-  std::unordered_map<uint64_t, uint32_t> _map;
+  std::map<uint64_t, uint32_t> _map;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -289,7 +288,7 @@ class AggrPayloadGroupBy : public AggrGroupBy {
   };
 
   // [key] -> [count, payload]
-  std::unordered_map<uint64_t, payload_pair_t> _map;
+  std::map<uint64_t, payload_pair_t> _map;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

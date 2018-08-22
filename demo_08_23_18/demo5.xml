@@ -1,38 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
-	<name>cvrr-i5sim</name>
-	<bytes>18</bytes>
-	<file>cvrr-i5sim.nds</file>
+	<name>hurdat2</name>
+	<bytes>50</bytes>
+	<file>hurdat2.nds</file>
 	<schema>
 		<categorical>
-			<index>trajectory</index>
-			<bin>800</bin>
+			<index>hurricane</index>
+			<bin>528</bin>
 			<offset>0</offset>
 		</categorical>
+		<temporal>
+			<index>datetime</index>
+			<bin>3600</bin>
+			<offset>2</offset>
+		</temporal>
 		<spatial>
 			<index>coord</index>
 			<bin>1</bin>
-			<offset>2</offset>
+			<offset>14</offset>
 		</spatial>
 		<payload>
-			<index>direction_t</index>
+			<index>wind_t</index>
 			<bin>0</bin>
-			<offset>10</offset>
+			<offset>38</offset>
 		</payload>
 		<payload>
-			<index>speed_t</index>
+			<index>pressure_t</index>
 			<bin>0</bin>
-			<offset>14</offset>
+			<offset>42</offset>
 		</payload>
 		<payload>
 			<index>y_t</index>
 			<bin>0</bin>
-			<offset>18</offset>
+			<offset>46</offset>
 		</payload>
 		<payload>
 			<index>x_t</index>
 			<bin>0</bin>
-			<offset>22</offset>
+			<offset>50</offset>
 		</payload>
 	</schema>
 </config>
