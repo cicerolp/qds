@@ -29,7 +29,7 @@ set(PDIGEST_COMPRESSION "50.f" CACHE STRING "Set p-digest Compression (float)")
 set(PDIGEST_BUFFER_FACTOR "5" CACHE STRING "Set p-digest Buffer Size (N * PDIGEST_ARRAY_SIZE)")
 
 # gaussian
-option(ENABLE_GAUSSIAN "Enable Gaussian" OFF)
+option(ENABLE_GAUSSIAN "Enable Gaussian" ON)
 
 # raw
 option(ENABLE_RAW "Enable Raw" OFF)

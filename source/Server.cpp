@@ -30,10 +30,10 @@ void Server::run(server_opts opts) {
   mg_mgr_free(&Server::getInstance().mgr);
 }
 
-void Server::handler(mg_connection* conn, int ev, void* p) {
+void Server::handler(mg_connection *conn, int ev, void *p) {
   if (ev != MG_EV_HTTP_REQUEST) return;
 
-  struct http_message* hm = (struct http_message*)p;
+  struct http_message *hm = (struct http_message *) p;
   std::string uri(hm->uri.p, hm->uri.len);
 
   try {
@@ -44,7 +44,9 @@ void Server::handler(mg_connection* conn, int ev, void* p) {
 
     } else if (tokens[1] == "api" && tokens.size() >= 4) {
 
+#ifdef ENABLE_METRICS
       PRINTCSVF("id", TIMER_ID, "uri", uri)
+#endif // ENABLE_METRICS
 
       if (tokens[2] == "schema") {
         printJson(conn, NDSInstances::getInstance().schema(uri));
@@ -71,7 +73,7 @@ void Server::handler(mg_connection* conn, int ev, void* p) {
   }
 }
 
-void Server::printText(mg_connection* conn, const std::string& content) {
+void Server::printText(mg_connection *conn, const std::string &content) {
   if (Server::getInstance().nds_opts.cache) {
     mg_printf(conn,
               "HTTP/1.1 200 OK\r\n"
@@ -82,7 +84,7 @@ void Server::printText(mg_connection* conn, const std::string& content) {
               "Cache-Control: public, max-age=86400\r\n"
               "\r\n"
               "%s",
-              (int)content.size(), content.c_str());
+              (int) content.size(), content.c_str());
   } else {
     mg_printf(conn,
               "HTTP/1.1 200 OK\r\n"
@@ -93,11 +95,11 @@ void Server::printText(mg_connection* conn, const std::string& content) {
               "Cache-Control: no-cache, no-store, must-revalidate\r\n"
               "\r\n"
               "%s",
-              (int)content.size(), content.c_str());
+              (int) content.size(), content.c_str());
   }
 }
 
-void Server::printJson(mg_connection* conn, const std::string& content) {
+void Server::printJson(mg_connection *conn, const std::string &content) {
   if (Server::getInstance().nds_opts.cache && content != "[]") {
     mg_printf(conn,
               "HTTP/1.1 200 OK\r\n"
@@ -108,7 +110,7 @@ void Server::printJson(mg_connection* conn, const std::string& content) {
               "Cache-Control: public, max-age=86400\r\n"
               "\r\n"
               "%s",
-              (int)content.size(), content.c_str());
+              (int) content.size(), content.c_str());
   } else {
     mg_printf(conn,
               "HTTP/1.1 200 OK\r\n"
@@ -119,6 +121,6 @@ void Server::printJson(mg_connection* conn, const std::string& content) {
               "Cache-Control: no-cache, no-store, must-revalidate\r\n"
               "\r\n"
               "%s",
-              (int)content.size(), content.c_str());
+              (int) content.size(), content.c_str());
   }
 }
