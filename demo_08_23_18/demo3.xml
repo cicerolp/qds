@@ -20,7 +20,7 @@
 
         <temporal>
             <index>pickup_datetime</index>
-            <bin>86400</bin>
+            <bin>3600</bin>
             <offset>26</offset>
         </temporal>
 
