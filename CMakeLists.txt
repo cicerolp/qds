@@ -92,12 +92,12 @@ elseif (UNIX)
     # default target
     target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${COMMON_LIBRARIES})
 
-    # profiling target
-    find_package(Gperftools REQUIRED)
-    include_directories(GPERFTOOLS_INCLUDE_DIR)
-    add_executable(profile ${SRC_LIST} ${HEADERS})
-    target_link_libraries(profile LINK_PUBLIC ${COMMON_LIBRARIES} ${GPERFTOOLS_PROFILER})
-    set_target_properties(profile PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "source/stdafx.h")
+    # # profiling target
+    # find_package(Gperftools REQUIRED)
+    # include_directories(GPERFTOOLS_INCLUDE_DIR)
+    #add_executable(profile ${SRC_LIST} ${HEADERS})
+    # target_link_libraries(profile LINK_PUBLIC ${COMMON_LIBRARIES} ${GPERFTOOLS_PROFILER})
+    # set_target_properties(profile PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "source/stdafx.h")
 endif ()
 
 set_target_properties(${PROJECT_NAME} PROPERTIES COTIRE_CXX_PREFIX_HEADER_INIT "source/stdafx.h")
