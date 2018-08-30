@@ -44,7 +44,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
-#include <boost/program_options.hpp>
+// #include <boost/program_options.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 
@@ -69,6 +69,9 @@
 
 // utils
 #include "util/benchmark_util.h"
+
+#include <popl/popl.hpp>
+
 
 template<class T>
 auto operator<<(std::ostream &os, const T &t) -> decltype(t.print(os), os) {

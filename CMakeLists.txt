@@ -67,7 +67,8 @@ set(SRC_LIST
         source/Clustering.cpp)
 
 find_package(Threads REQUIRED)
-find_package(Boost COMPONENTS program_options REQUIRED)
+# find_package(Boost COMPONENTS program_options REQUIRED)
+find_package(Boost REQUIRED)
 
 if(Boost_FOUND)
     set(COMMON_LIBRARIES "${CMAKE_DL_LIBS} ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES}")

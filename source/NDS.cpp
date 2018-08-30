@@ -16,7 +16,7 @@ NDS::NDS(const Schema &schema, const Server::server_opts &opts) {
 
   Data data(schema);
 
-  if (opts.debug_info) {
+  if (opts.debug) {
     std::cout << "Input Data: " << std::endl;
     for (auto &file : schema.files) {
       std::cout << "\tFile: " << file << std::endl;
@@ -45,7 +45,7 @@ NDS::NDS(const Schema &schema, const Server::server_opts &opts) {
     switch (info.bin) {
       case 0: {
 #ifdef ENABLE_PDIGEST
-        if (opts.debug_info) std::cout << "\tPayload Dimension: PDigest\n\t\t" << info << std::endl;
+        if (opts.debug) std::cout << "\tPayload Dimension: PDigest\n\t\t" << info << std::endl;
         _payload.emplace_back(std::make_unique<PDigest>(info));
 
         add_to_index();
@@ -54,7 +54,7 @@ NDS::NDS(const Schema &schema, const Server::server_opts &opts) {
         break;
       case 1: {
 #ifdef ENABLE_GAUSSIAN
-        if (opts.debug_info) std::cout << "\tPayload Dimension: Gaussian\n\t\t" << info << std::endl;
+        if (opts.debug) std::cout << "\tPayload Dimension: Gaussian\n\t\t" << info << std::endl;
         _payload.emplace_back(std::make_unique<Gaussian>(info));
 
         add_to_index();
@@ -89,22 +89,22 @@ NDS::NDS(const Schema &schema, const Server::server_opts &opts) {
 
     switch (info.type) {
       case DimensionSchema::Spatial: {
-        if (opts.debug_info) std::cout << "\tSpatial Dimension: \n\t\t" << info << std::endl;
+        if (opts.debug) std::cout << "\tSpatial Dimension: \n\t\t" << info << std::endl;
         _dimension.emplace_back(std::make_unique<Spatial>(info));
       }
         break;
       case DimensionSchema::Temporal: {
-        if (opts.debug_info) std::cout << "\tTemporal Dimension: \n\t\t" << info << std::endl;
+        if (opts.debug) std::cout << "\tTemporal Dimension: \n\t\t" << info << std::endl;
         _dimension.emplace_back(std::make_unique<Temporal>(info));
       }
         break;
       case DimensionSchema::Categorical: {
-        if (opts.debug_info) std::cout << "\tCategorical Dimension: \n\t\t" << info << std::endl;
+        if (opts.debug) std::cout << "\tCategorical Dimension: \n\t\t" << info << std::endl;
         _dimension.emplace_back(std::make_unique<Categorical>(info));
       }
         break;
       default: {
-        if (opts.debug_info) std::cerr << "error: invalid NDS" << std::endl;
+        if (opts.debug) std::cerr << "error: invalid NDS" << std::endl;
         std::abort();
         break;
       }
@@ -116,7 +116,7 @@ NDS::NDS(const Schema &schema, const Server::server_opts &opts) {
     swap_and_clear<link_ctn>(links.input, links.output);
     swap_and_clear<build_ctn>(range.input, range.output);
 
-    if (opts.debug_info) std::cout << "\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
+    if (opts.debug) std::cout << "\t\tNumber of Pivots: " + std::to_string(curr_count) << std::endl;
   }
 
 #ifdef NDS_ENABLE_PAYLOAD
@@ -125,7 +125,7 @@ NDS::NDS(const Schema &schema, const Server::server_opts &opts) {
   }
 #endif // NDS_ENABLE_PAYLOAD
 
-  if (opts.debug_info) std::cout << "\n\tTotal Number of Pivots: " << pivots_count << std::endl;
+  if (opts.debug) std::cout << "\n\tTotal Number of Pivots: " << pivots_count << std::endl;
 
   PIVOTS_INCR(pivots_count)
 

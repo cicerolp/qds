@@ -21,7 +21,7 @@ class Server : public Singleton<Server> {
     bool cache{true};
     bool multithreading{true};
 
-    bool debug_info{true};
+    bool debug{true};
 
     std::vector<Schema> schemas;
     std::vector<std::string> input_files;
@@ -60,8 +60,6 @@ class Server : public Singleton<Server> {
       exit(-1);
     }
 
-    namespace po = boost::program_options;
-
     Server::server_opts nds_opts;
     nds_opts.port = 7000;
 
@@ -73,64 +71,51 @@ class Server : public Singleton<Server> {
     nds_opts.multithreading = true;
 #endif // ENABLE_TIMMING
 
-    // Declare the supported options.
-    po::options_description desc("\nCommand Line Arguments");
+    using namespace popl;
 
-    desc.add_options()("help,h", "produce help message");
-    desc.add_options()("no-log,n", "produce help message");
+    // declare the supported options
+    OptionParser op("\nCommand Line Arguments");
 
-    desc.add_options()("no-server,s", "disable server")(
-        "telemetry,t", "enable telemetry");
+    auto help_option = op.add<Switch>("h", "help", "produce help message");
+    auto debug_option = op.add<Switch>("n", "no-log", "disable debug info");
 
-    desc.add_options()(
-        "pid",
-        po::value<uint32_t>(&nds_opts.pid)->default_value(nds_opts.pid),
-        "send signal to pid");
+    op.add<Implicit<uint32_t>>("", "pid", "send signal to pid", nds_opts.pid, &nds_opts.pid);
+    op.add<Value<uint32_t>>("d", "depth", "quadtree depth", nds_opts.quadtree_depth, &nds_opts.quadtree_depth);
 
-    desc.add_options()(
-        "port,p",
-        po::value<uint32_t>(&nds_opts.port)->default_value(nds_opts.port),
-        "server port");
+    // http server
+    auto server_option = op.add<Switch>("s", "no-server", "disable http server");
+    auto cache_option = op.add<Switch>("c", "no-cache", "disable http cache");
+    op.add<Value<uint32_t>>("p", "port", "http server port", nds_opts.port, &nds_opts.port);
 
-    desc.add_options()(
-        "cache,c",
-        po::value<bool>(&nds_opts.cache)->default_value(nds_opts.cache),
-        "web cache");
+    auto xml_files = op.add<Value<std::string>>("x", "xml", "input files");
 
-    desc.add_options()(
-        "depth,d",
-        po::value<uint32_t>(&nds_opts.quadtree_depth)->default_value(nds_opts.quadtree_depth),
-        "quadtree depth");
+    op.parse(argc, argv);
 
-    desc.add_options()(
-        "xml,x",
-        po::value<std::vector<std::string>>(&nds_opts.input_files)
-            ->default_value(std::vector<std::string>(1, "file.xml"), "file.xml")
-            ->multitoken()->composing(),
-        "input files");
-
-    po::variables_map vm;
-    po::store(po::command_line_parser(argc, argv).options(desc).allow_unregistered().run(), vm);
-    po::notify(vm);
-
-    if (vm.count("help")) {
-      std::cout << desc << std::endl;
+    if (help_option->is_set()) {
+      std::cout << op << std::endl;
       exit(0);
     }
 
-    if (vm.count("no-log")) {
-      nds_opts.debug_info = false;
-    }
+    if (debug_option->is_set())
+      nds_opts.debug = debug_option->value();
 
-    if (vm.count("no-server")) {
-      nds_opts.server = false;
+    if (server_option->is_set())
+      nds_opts.server = server_option->value();
+
+    if (cache_option->is_set())
+      nds_opts.cache = cache_option->value();
+
+    if (xml_files->is_set()) {
+      for (size_t n = 0; n < xml_files->count(); ++n) {
+        auto str = xml_files->value(n);
+
+        nds_opts.input_files.emplace_back(str);
+        nds_opts.schemas.emplace_back(str);
+      }
     }
 
     g_Quadtree_Depth = nds_opts.quadtree_depth;
 
-    for (const auto &str : nds_opts.input_files) {
-      nds_opts.schemas.emplace_back(str);
-    }
     std::cout << std::endl;
 
     return nds_opts;
