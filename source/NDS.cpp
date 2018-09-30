@@ -162,7 +162,7 @@ std::string NDS::pipeline(const Pipeline &pipeline) {
   return serialize_pipeline(pipeline, source_ctn, dest_ctn, root);
 }
 
-std::string get_values(std::vector<uint16_t> cluster) {
+std::string get_values(std::vector<uint32_t> cluster) {
   std::string values;
   for (auto v: cluster) {
     values += std::to_string(v) + ":";
@@ -172,8 +172,8 @@ std::string get_values(std::vector<uint16_t> cluster) {
   return values;
 }
 
-std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &clustering, size_t n_objs) {
-  std::vector<std::vector<uint16_t>> clusters;
+std::vector<std::vector<uint32_t>> NDS::initialize_clusters(const Clustering &clustering, size_t n_objs) {
+  std::vector<std::vector<uint32_t>> clusters;
 
   if (clustering.get_aggr().empty()) {
     return clusters;
@@ -314,7 +314,7 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
       clustering.get_group_by_clausule();
 
   // step 1 - choose first cluster center uniformly at random from data points
-  auto initial_centroid = std::uniform_int_distribution<uint16_t>(0, n_objs - 1)(mt_random);
+  auto initial_centroid = std::uniform_int_distribution<uint32_t>(0, n_objs - 1)(mt_random);
   /*auto initial_centroid = 0;*/
 
   clusters.push_back({initial_centroid});
@@ -332,7 +332,7 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
         ));
       }
 
-      for (uint16_t obj = 0; obj < n_objs; ++obj) {
+      for (uint32_t obj = 0; obj < n_objs; ++obj) {
         auto query = left_base + "/const=" + clustering.get_cluster_by() + ".values.(" + std::to_string(obj) + ")";
         auto values = get_raw_by_summarize(Query(query), clusters_summarize);
 
@@ -348,7 +348,7 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
             Query(right_base + "/const=" + clustering.get_cluster_by() + ".values.(" + get_values(cluster) + ")")
         ));
       }
-      for (uint16_t obj = 0; obj < n_objs; ++obj) {
+      for (uint32_t obj = 0; obj < n_objs; ++obj) {
         auto query = left_base + "/const=" + clustering.get_cluster_by() + ".values.(" + std::to_string(obj) + ")";
         auto values = get_raw_by_group(Query(query), clusters_group_by);
 
@@ -360,7 +360,7 @@ std::vector<std::vector<uint16_t>> NDS::initialize_clusters(const Clustering &cl
     // step 3 - choose new cluster center from amongst data points
 
     auto elt = std::max_element(objs_distance.begin(), objs_distance.end());
-    uint16_t id = std::distance(objs_distance.begin(), elt);
+    uint32_t id = std::distance(objs_distance.begin(), elt);
 
     clusters.push_back({id});
     selected_k++;

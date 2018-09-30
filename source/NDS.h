@@ -267,7 +267,7 @@ class NDS {
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   // clustering
   //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-  std::vector<std::vector<uint16_t>> initialize_clusters(const Clustering &clustering, size_t n_objs);
+  std::vector<std::vector<uint32_t>> initialize_clusters(const Clustering &clustering, size_t n_objs);
 
   GroupBy<AggrSummarizeCtn> get_cluster_summarize(const Query &query) const;
   GroupBy<AggrGroupByCtn> get_cluster_grop_by(const Query &query) const;

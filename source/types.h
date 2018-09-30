@@ -72,7 +72,7 @@ using build_it = build_ctn::const_iterator;
 enum CopyOption { CopyValueFromRange, CopyValueFromSubset, DefaultCopy };
 
 typedef uint32_t temporal_t;
-typedef uint16_t categorical_t;
+typedef uint32_t categorical_t;
 
 struct spatial_t {
   spatial_t() : spatial_t(0, 0, 0) {}
