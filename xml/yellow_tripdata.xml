@@ -1,30 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
     <name>yellow_tripdata</name>
-    <bytes>46</bytes>
+    <bytes>50</bytes>
     <files>
         <file>yellow_tripdata_2014_10.nds</file>
     </files>
     <schema>
+        <categorical>
+            <index>passenger_count</index>
+            <bin>4</bin>
+            <offset>4</offset>
+        </categorical>
+
+        <categorical>
+            <index>payment_type</index>
+            <bin>6</bin>
+            <offset>8</offset>
+        </categorical>
+
         <temporal>
             <index>pickup_datetime</index>
-            <bin>3600</bin>
-            <offset>22</offset>
+            <bin>86400</bin>
+            <offset>26</offset>
         </temporal>
+
         <spatial>
             <index>pickup</index>
-            <bin>1</bin>
-            <offset>6</offset>
+            <bin>32</bin>
+            <offset>10</offset>
         </spatial>
+
         <payload>
             <index>total_amount_t</index>
             <bin>0</bin>
-            <offset>42</offset>
+            <offset>46</offset>
         </payload>
         <payload>
             <index>total_amount_g</index>
             <bin>1</bin>
-            <offset>42</offset>
+            <offset>46</offset>
         </payload>
     </schema>
 </config>

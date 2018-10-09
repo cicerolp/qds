@@ -679,7 +679,7 @@ std::string NDS::augmented_series(const AugmentedSeries &augmented_series) {
       double accum = 0;
       for (auto &elt : raw) {
         if (elt >= 0) {
-          accum += std::fabs(elt - 0.5);
+          accum += 2.0 * std::fabs(0.5 * elt);
         }
       }
       writer.StartArray();
@@ -720,7 +720,7 @@ std::string NDS::augmented_series(const AugmentedSeries &augmented_series) {
       double accum = 0;
       for (auto &elt : raw) {
         if (elt >= 0) {
-          accum += std::fabs(elt - 0.5);
+          accum += 2.0 * std::fabs(0.5 * elt);
         }
       }
       writer.StartArray();
