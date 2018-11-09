@@ -1,0 +1,13 @@
+image: cicerolp/ubuntu
+pipelines:
+  master:
+    - step:
+        script:
+          - uname -a
+          - gcc --version
+          - cmake --version
+          - mkdir build
+          - cd build
+          - cmake .. -DCMAKE_BUILD_TYPE=Release
+          - make -j4
+          - curl -X POST --user "${BB_AUTH_STRING}" "https://api.bitbucket.org/2.0/repositories/${BITBUCKET_REPO_OWNER}/${BITBUCKET_REPO_SLUG}/downloads" --form files=@"nds"

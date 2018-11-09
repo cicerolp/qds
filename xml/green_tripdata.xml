@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+    <name>green_tripdata</name>
+    <bytes>46</bytes>
+    <files>
+        <file>green_tripdata_2015_12.nds</file>
+        <file>green_tripdata_2015_11.nds</file>
+        <file>green_tripdata_2015_10.nds</file>
+        <file>green_tripdata_2015_09.nds</file>
+        <file>green_tripdata_2015_08.nds</file>
+        <file>green_tripdata_2015_07.nds</file>
+        <file>green_tripdata_2015_06.nds</file>
+        <file>green_tripdata_2015_05.nds</file>
+        <file>green_tripdata_2015_04.nds</file>
+        <file>green_tripdata_2015_03.nds</file>
+        <file>green_tripdata_2015_02.nds</file>
+        <file>green_tripdata_2015_01.nds</file>
+    </files>
+    <schema>
+        <categorical>
+            <index>passenger_count</index>
+            <bin>4</bin>
+            <offset>0</offset>
+        </categorical>
+        <temporal>
+            <index>pickup_datetime</index>
+            <bin>14400</bin>
+            <offset>22</offset>
+        </temporal>
+        <spatial>
+            <index>pickup</index>
+            <bin>1</bin>
+            <offset>6</offset>
+        </spatial>
+
+        <payload>
+            <index>trip_distance_t</index>
+            <bin>0</bin>
+            <offset>30</offset>
+        </payload>
+        <payload>
+            <index>total_amount_t</index>
+            <bin>0</bin>
+            <offset>42</offset>
+        </payload>
+
+        <payload>
+            <index>trip_distance_g</index>
+            <bin>1</bin>
+            <offset>30</offset>
+        </payload>
+        <payload>
+            <index>total_amount_g</index>
+            <bin>1</bin>
+            <offset>42</offset>
+        </payload>
+
+        <payload>
+            <index>trip_distance_r</index>
+            <bin>2</bin>
+            <offset>30</offset>
+        </payload>
+        <payload>
+            <index>total_amount_r</index>
+            <bin>2</bin>
+            <offset>42</offset>
+        </payload>
+    </schema>
+</config>

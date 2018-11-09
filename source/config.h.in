@@ -1,0 +1,42 @@
+//
+// Created by cicerolp on 11/5/17.
+//
+
+#ifndef NDS_CONFIG_H_IN
+#define NDS_CONFIG_H_IN
+
+#include <cmath>
+
+#cmakedefine ENABLE_METRICS
+#cmakedefine ENABLE_GPERF
+
+// nds options
+#cmakedefine NDS_ENABLE_PAYLOAD
+#cmakedefine NDS_ENABLE_CRS_SIMPLE
+
+// nds tweaks
+#cmakedefine NDS_OPTIMIZE_LEAF
+
+// nds sharing
+#cmakedefine NDS_SHARE_PIVOT
+#cmakedefine NDS_SHARE_PAYLOAD
+
+#ifdef NDS_ENABLE_PAYLOAD
+    #cmakedefine ENABLE_GAUSSIAN
+
+    #cmakedefine ENABLE_PDIGEST
+
+    #cmakedefine ENABLE_RAW
+
+    #ifdef ENABLE_PDIGEST
+        #cmakedefine PDIGEST_OPTIMIZE_ARRAY
+        #cmakedefine PDIGEST_PIECE_WISE_APPROXIMATION
+        #define PDIGEST_COMPRESSION @PDIGEST_COMPRESSION@
+        #define PDIGEST_ARRAY_SIZE ((uint32_t)@PDIGEST_COMPRESSION@ * 2)
+
+        #define PDIGEST_BUFFER_FACTOR @PDIGEST_BUFFER_FACTOR@
+        #define PDIGEST_BUFFER_SIZE PDIGEST_BUFFER_FACTOR * PDIGEST_ARRAY_SIZE
+    #endif // ENABLE_PDIGEST
+#endif // ENABLE_PDIGEST
+
+#endif //NDS_CONFIG_H_IN

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<config>
+	<name>twitter-small</name>
+	<bytes>18</bytes>
+	<file>twitter.nds</file>
+	<schema>
+		<categorical>
+			<index>device</index>
+			<bin>5</bin>
+			<offset>2</offset>
+		</categorical>
+		<temporal>
+			<index>time</index>
+			<bin>14400</bin>
+			<offset>6</offset>
+		</temporal>
+		<spatial>
+			<index>coord</index>
+			<bin>64</bin>
+			<offset>10</offset>
+		</spatial>
+	</schema>
+</config>
