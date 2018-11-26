@@ -120,6 +120,16 @@ bool Temporal::query(const Query &query, subset_ctn &subsets) const {
 
   return true;
 }
+
+interval_t Temporal::parse_interval_static(const std::string &str) {
+  auto clausule = boost::trim_copy_if(str, boost::is_any_of("()"));
+
+  std::vector<std::string> tokens;
+  boost::split(tokens, clausule, boost::is_any_of(":"));
+
+  return interval_t(std::stoi(tokens[0]), std::stoi(tokens[1]));
+}
+
 interval_t Temporal::parse_interval(const std::string &str) const {
   auto clausule = boost::trim_copy_if(str, boost::is_any_of("()"));
 
@@ -132,6 +142,7 @@ interval_t Temporal::parse_interval(const std::string &str) const {
     return interval_t(std::stoi(tokens[0]), std::stoi(tokens[1]));
   }
 }
+
 sequence_t Temporal::parse_sequence(const std::string &str) const {
   auto clausule = boost::trim_copy_if(str, boost::is_any_of("()"));
 
@@ -145,3 +156,4 @@ void Temporal::get_schema_hint(rapidjson::Writer<rapidjson::StringBuffer> &write
   writer.Key("hint");
   writer.String((std::to_string(_container.front().el.value) + "|" +  std::to_string(_container.back().el.value)).c_str());
 }
+

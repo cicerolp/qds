@@ -13,10 +13,8 @@ class Spatial : public Dimension {
 
   void get_schema_hint(rapidjson::Writer<rapidjson::StringBuffer> &writer) const override;
 
- private:
- private:
-  tile_t parse_tile(const std::string &str) const;
-  region_t parse_region(const std::string &str) const;
+  static tile_t parse_tile(const std::string &str);
+  static region_t parse_region(const std::string &str);
 
   std::unique_ptr<SpatialElement> _tree;
 };

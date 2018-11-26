@@ -44,9 +44,13 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 #include <boost/tokenizer.hpp>
-// #include <boost/program_options.hpp>
+#include <boost/program_options.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
+
+#include <boost/regex.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/range/iterator_range.hpp>
 
 // ResidentSetSize
 #include <nadeau/ResidentSetSize.h>
@@ -72,6 +76,18 @@
 
 #include <popl/popl.hpp>
 
+#ifdef __GNUC__
+// geos lib
+#include <geos_c.h>
+
+// spatialite
+#include <sqlite3.h>
+#include <spatialite.h>
+#include <spatialite/gaiageo.h>
+
+// postgis
+#include <libpq-fe.h>
+#endif
 
 template<class T>
 auto operator<<(std::ostream &os, const T &t) -> decltype(t.print(os), os) {

@@ -48,7 +48,7 @@ bool Spatial::query(const Query &query, subset_ctn &subsets) const {
 
   return true;
 }
-tile_t Spatial::parse_tile(const std::string &str) const {
+tile_t Spatial::parse_tile(const std::string &str) {
   auto clausule = boost::trim_copy_if(str, boost::is_any_of("()"));
 
   std::vector<std::string> tokens;
@@ -58,7 +58,7 @@ tile_t Spatial::parse_tile(const std::string &str) const {
   return tile_t(std::stoi(tokens[0]), std::stoi(tokens[1]), std::stoi(tokens[2]), std::stoi(tokens[3]));
 }
 
-region_t Spatial::parse_region(const std::string &str) const {
+region_t Spatial::parse_region(const std::string &str) {
   auto clausule = boost::trim_copy_if(str, boost::is_any_of("()"));
 
   std::vector<std::string> tokens;

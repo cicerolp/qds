@@ -36,4 +36,13 @@ inline uint32_t lat_to_tile_y(double lat, int z) {
   return y & ((1 << z) - 1);
 }
 
+inline float tilex2lon(double x, int z) {
+  return static_cast<float>(x / (1 << z) * 360.0 - 180);
+}
+
+inline float tiley2lat(double y, int z) {
+  double n = M_PI - 2.0 * M_PI * y / (1 << z);
+  return static_cast<float>(180.0 / M_PI * atan(0.5 * (exp(n) - exp(-n))));
+}
+
 }  // namespace mercator_util

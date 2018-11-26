@@ -96,6 +96,20 @@ bool Categorical::query(const Query &query, subset_ctn &subsets) const {
 
   return true;
 }
+
+std::vector<categorical_t> Categorical::parse_static(const std::string &str) {
+  auto clausule = boost::trim_copy_if(str, boost::is_any_of("()"));
+
+  boost::char_separator<char> sep(":");
+  boost::tokenizer<boost::char_separator<char> > tokens(clausule, sep);
+
+  std::vector<categorical_t> values;
+  for (auto &v : tokens) {
+    values.emplace_back(std::stoi(v));
+  }
+  return values;
+}
+
 std::vector<categorical_t> Categorical::parse(const std::string &str) const {
   auto clausule = boost::trim_copy_if(str, boost::is_any_of("()"));
 

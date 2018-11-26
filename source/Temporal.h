@@ -29,6 +29,8 @@ class Temporal : public Dimension {
 
   void get_schema_hint(rapidjson::Writer<rapidjson::StringBuffer> &writer) const override;
 
+  static interval_t parse_interval_static(const std::string &str);
+
  private:
   interval_t parse_interval(const std::string &str) const;
   sequence_t parse_sequence(const std::string &str) const;
