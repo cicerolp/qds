@@ -80,6 +80,20 @@ using Timer = unixTimer<CLOCK_MONOTONIC>; //POSIX Timers
 using Timer = stdTimer<std::chrono::steady_clock>; //STL timers
 #endif
 
+struct duration_info {
+  double duration;
+  std::string name;
+
+  duration_info(const std::string& _name, Timer& _timer) : name(_name), duration(_timer.milliseconds()) {
+  };
+
+  duration_info(const std::string& _name, double _duration) : name(_name), duration(_duration) {
+  };
+};
+
+using duration_t = std::vector<duration_info>;
+
+
 // variadic c++ template
 void inline printcsv() {} // termination version
 

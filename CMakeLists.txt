@@ -64,15 +64,16 @@ set(SRC_LIST
         source/Gaussian.cpp
         source/Pipeline.cpp
         source/AugmentedSeries.cpp
-        source/Clustering.cpp)
+        source/Clustering.cpp
+        source/PostGisCtn.cpp
+        source/SpatiaLiteCtn.cpp)
 
 find_package(Threads REQUIRED)
-# find_package(Boost COMPONENTS program_options REQUIRED)
-find_package(Boost REQUIRED)
+find_package(Boost COMPONENTS serialization program_options regex filesystem REQUIRED)
 
 if(Boost_FOUND)
     set(COMMON_LIBRARIES "${CMAKE_DL_LIBS} ${CMAKE_THREAD_LIBS_INIT} ${Boost_LIBRARIES}")
-    string(STRIP ${COMMON_LIBRARIES} COMMON_LIBRARIES)
+    # string(STRIP ${COMMON_LIBRARIES} COMMON_LIBRARIES)
 
     include_directories(${Boost_INCLUDE_DIRS})
 
@@ -88,4 +89,4 @@ endif()
 # cotire(${PROJECT_NAME})
 
 # # benchmarks
-# add_subdirectory(benchmarks)
+add_subdirectory(benchmarks)
