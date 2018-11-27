@@ -21,7 +21,8 @@ set(SRC_LIST
         ../source/AugmentedSeries.cpp
         ../source/Clustering.cpp
         ../source/PostGisCtn.cpp
-        ../source/SpatiaLiteCtn.cpp)
+        ../source/SpatiaLiteCtn.cpp
+        ../source/MonetDBCtn.cpp)
 
 add_executable(bench_queries ${HEADERS} ${SRC_LIST} bench_queries.cpp)
 

@@ -6,6 +6,7 @@
 #include "Query.h"
 #include "Server.h"
 
+#include "MonetDBCtn.h"
 #include "PostGisCtn.h"
 #include "SpatiaLiteCtn.h"
 
@@ -69,7 +70,8 @@ int main(int argc, char *argv[]) {
   ////////////////////////////////////////////////////////
 
   // run_bench<PostGisCtn>(argc, argv, log, data);
-  run_bench<SpatiaLiteCtn>(argc, argv, log, data);
+  // run_bench<SpatiaLiteCtn>(argc, argv, log, data);
+  run_bench<MonetDBCtn>(argc, argv, log, data);
 
   return 0;
 }
