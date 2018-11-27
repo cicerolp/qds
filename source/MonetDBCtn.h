@@ -19,7 +19,7 @@ class MonetDBCtn : public GeoCtnIntf {
   inline virtual std::string name() const override;
 
   static void die(Mapi dbh, MapiHdl hdl);
-  static MapiHdl query(Mapi dbh, char *q);
+  static MapiHdl query_db(Mapi dbh, char *q);
   static void update(Mapi dbh, char *q);
 
  private:

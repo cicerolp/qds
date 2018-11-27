@@ -22,12 +22,20 @@ MonetDBCtn::~MonetDBCtn() {
 }
 
 void MonetDBCtn::create() {
-  update(_dbh, "DROP TABLE IF EXISTS db");
+#ifdef __GNUC__
+  update(_dbh, (char *) "DROP TABLE IF EXISTS db");
   update(_dbh,
-         "CREATE TABLE db (user_id INTEGER, time TIMESTAMP, hour_of_day INTEGER, day_of_week INTEGER, coord POINT)");
+         (char *) "CREATE TABLE db (user_id INTEGER, time TIMESTAMP, hour_of_day INTEGER, day_of_week INTEGER, coord POINT)"
+  );
+#endif // __GNUC__
 }
 
 void MonetDBCtn::insert(const std::string &filename) {
+#ifdef __GNUC__
+
+  if (!_init) {
+    return;
+  }
 
   static const std::string sep = ",";
 
@@ -67,7 +75,8 @@ void MonetDBCtn::insert(const std::string &filename) {
 
       // (user_id INTEGER, time DATETIME, hour_of_day INTEGER, day_of_week INTEGER, coord POINT)
 
-      std::string sql = "INSERT INTO db VALUES ('" + data[0] + "', '" + data[1] + "', " + data[5] + ", " + data[6]
+      std::string sql = "INSERT INTO db VALUES ('" + data[0] + "', " + "(SELECT sys.str_to_timestamp('" + data[1]
+          + "', '%Y-%m-%dT%H:%M:%SZ'))" + ", " + data[5] + ", " + data[6]
           + ", 'POINT( " + data[3] + " " + data[2] + " )')";
 
       update(_dbh, (char *) sql.c_str());
@@ -79,36 +88,33 @@ void MonetDBCtn::insert(const std::string &filename) {
 
   infile.close();
 
+  // update bounding box
+  update(_dbh, (char *) "ALTER TABLE db ADD bbox mbr");
+  update(_dbh, (char *) "UPDATE db SET bbox = mbr(coord)");
 
-
-
-
-
-
-
-
-
-
-  /*char *name;
-  char *age;
-
-  update(_dbh, "CREATE TABLE emp (name VARCHAR(20), age INT)");
-  update(_dbh, "INSERT INTO emp VALUES ('John', 23)");
-  update(_dbh, "INSERT INTO emp VALUES ('Mary', 22)");
-  MapiHdl hdl = query(_dbh, "SELECT * FROM emp");
-
-  while (mapi_fetch_row(hdl)) {
-    name = mapi_fetch_field(hdl, 0);
-    age = mapi_fetch_field(hdl, 1);
-    printf("%s is %s\n", name, age);
-  }
-
-  mapi_close_handle(hdl);*/
-
+#endif // __GNUC__
 }
 
 void MonetDBCtn::query(const Query &query) {
+  TIMER_DECLARE
 
+#ifdef __GNUC__
+
+  TIMER_START
+
+  if (!_init) {
+    TIMER_END
+    TIMER_OUTPUT("query")
+    return;
+  }
+
+  MapiHdl hdl = query_db(_dbh, (char *) query.to_monetdb().c_str());
+  mapi_close_handle(hdl);
+
+  TIMER_END
+  TIMER_OUTPUT("query")
+
+#endif // __GNUC__
 }
 
 void MonetDBCtn::die(Mapi dbh, MapiHdl hdl) {
@@ -129,7 +135,7 @@ void MonetDBCtn::die(Mapi dbh, MapiHdl hdl) {
   exit(-1);
 }
 
-MapiHdl MonetDBCtn::query(Mapi dbh, char *q) {
+MapiHdl MonetDBCtn::query_db(Mapi dbh, char *q) {
   MapiHdl ret = NULL;
 
   if ((ret = mapi_query(dbh, q)) == NULL || mapi_error(dbh) != MOK)
@@ -139,7 +145,7 @@ MapiHdl MonetDBCtn::query(Mapi dbh, char *q) {
 }
 
 void MonetDBCtn::update(Mapi dbh, char *q) {
-  MapiHdl ret = query(dbh, q);
+  MapiHdl ret = query_db(dbh, q);
 
   if (mapi_close_handle(ret) != MOK)
     die(dbh, ret);

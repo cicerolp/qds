@@ -44,9 +44,11 @@ class Query {
     return _group_by == dim;
   };
 
-  std::string to_sql() const;
+  std::string to_postgresql() const;
 
   std::string to_sqlite() const;
+
+  std::string to_monetdb() const;
 
   friend std::ostream &operator<<(std::ostream &os, const Query &query);
 

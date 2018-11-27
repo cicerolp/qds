@@ -216,7 +216,7 @@ void PostGisCtn::query(const Query &query) {
   PGresult* res;
   std::string sql;
 
-  res = PQexecParams(_conn, query.to_sql().c_str(), 0, nullptr, nullptr, nullptr, nullptr, 1);
+  res = PQexecParams(_conn, query.to_postgresql().c_str(), 0, nullptr, nullptr, nullptr, nullptr, 1);
   if (PQresultStatus(res) != PGRES_TUPLES_OK) {
     fprintf(stderr, "SELECT command failed: %s", PQerrorMessage(_conn));
   }

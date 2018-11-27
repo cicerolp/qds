@@ -66,7 +66,7 @@ std::ostream &operator<<(std::ostream &os, const Query &query) {
   return os;
 }
 
-std::string Query::to_sql() const {
+std::string Query::to_postgresql() const {
   std::string where;
 
   for (const auto &constraint : _constraints) {
@@ -84,7 +84,6 @@ std::string Query::to_sql() const {
       std::string region_xmax = std::to_string(mercator_util::tilex2lon(region.x1 + 1, region.z));
       std::string region_ymin = std::to_string(mercator_util::tiley2lat(region.y1 + 1, region.z));
       std::string region_ymax = std::to_string(mercator_util::tiley2lat(region.y0, region.z));
-
 
       where += constraint.first + " && ST_MakeEnvelope(" + region_xmin + ", " + region_ymin + ", " + region_xmax + ", "
           + region_ymax + ")";
@@ -165,3 +164,53 @@ std::string Query::to_sqlite() const {
   return "SELECT COUNT(*) from db WHERE " + where;
 }
 
+std::string Query::to_monetdb() const {
+  std::string where;
+
+  for (const auto &constraint : _constraints) {
+
+    if (!where.empty()) {
+      where += " AND ";
+    }
+
+    // region
+    if (constraint.second.first == "region") {
+
+      auto region = Spatial::parse_region(constraint.second.second);
+
+      std::string region_xmin = std::to_string(mercator_util::tilex2lon(region.x0, region.z));
+      std::string region_xmax = std::to_string(mercator_util::tilex2lon(region.x1 + 1, region.z));
+      std::string region_ymin = std::to_string(mercator_util::tiley2lat(region.y1 + 1, region.z));
+      std::string region_ymax = std::to_string(mercator_util::tiley2lat(region.y0, region.z));
+
+      where += constraint.first + " && ST_MakeEnvelope(" + region_xmin + ", " + region_ymin + ", " + region_xmax + ", "
+          + region_ymax + ")";
+
+      /*where += "Overlaps('POLYGON( ( " + region_xmin + " " + region_ymin + ", " + region_xmax + " " + region_ymin + ", "
+          + region_xmax + " " + region_ymax + ", " + region_xmin + " " + region_ymax + ", " + region_xmin + " "
+          + region_ymin + ") )', " + constraint.first + ") = TRUE";*/
+
+    } else if (constraint.second.first == "values") {
+
+      auto values = Categorical::parse_static(constraint.second.second);
+
+      std::string clausule;
+      for (const auto &v : values) {
+        clausule += std::to_string(v) + ",";
+      }
+
+      where += constraint.first + " IN (" + clausule.substr(0, clausule.size() - 1) + ")";
+
+    } else if (constraint.second.first == "interval") {
+
+      auto interval = Temporal::parse_interval_static(constraint.second.second);
+
+      where +=
+          constraint.first + " >= (SELECT sys.str_to_timestamp('" + std::to_string(interval.bound[0]) + "', '%s')) ";
+      where += "AND " + constraint.first + " < (SELECT sys.str_to_timestamp('" + std::to_string(interval.bound[1])
+          + "', '%s'))";
+    }
+  }
+
+  return "SELECT COUNT(*) from db WHERE " + where + ";";
+}
