@@ -53,6 +53,9 @@ void MonetDBCtn::insert(const std::string &filename) {
   // skip header
   std::getline(infile, line);
 
+  MapiHdl hdl = mapi_prepare(_dbh, "INSERT INTO db VALUES (?, ?, ?, ?, ?)");
+  check(_dbh, hdl);
+
   while (!infile.eof()) {
 
     std::getline(infile, line);
@@ -75,11 +78,25 @@ void MonetDBCtn::insert(const std::string &filename) {
 
       // (user_id INTEGER, time DATETIME, hour_of_day INTEGER, day_of_week INTEGER, coord POINT)
 
-      std::string sql = "INSERT INTO db VALUES ('" + data[0] + "', " + "(SELECT sys.str_to_timestamp('" + data[1]
-          + "', '%Y-%m-%dT%H:%M:%SZ'))" + ", " + data[5] + ", " + data[6]
-          + ", 'POINT( " + data[3] + " " + data[2] + " )')";
+      mapi_param(hdl, 0, (char **) data[0].c_str());
 
-      update(_dbh, (char *) sql.c_str());
+      mapi_param(hdl, 2, (char **) data[5].c_str());
+      mapi_param(hdl, 3, (char **) data[6].c_str());
+
+      std::string date = "(SELECT sys.str_to_timestamp('" + data[1] + "', '%Y-%m-%dT%H:%M:%SZ'))";
+      std::string coord = "'POINT( " + data[3] + " " + data[2] + " )'";
+
+      mapi_param(hdl, 1, (char **) date.c_str());
+      mapi_param(hdl, 4, (char **) coord.c_str());
+
+      int ret = mapi_execute(hdl);
+      check(_dbh, hdl, ret);
+
+      /* std::string sql = "INSERT INTO db VALUES ('" + data[0] + "', " + "(SELECT sys.str_to_timestamp('" + data[1]
+          + "', '%Y-%m-%dT%H:%M:%SZ'))" + ", " + data[5] + ", " + data[6]
+          + ", 'POINT( " + data[3] + " " + data[2] + " )')"; */
+
+      // update(_dbh, (char *) sql.c_str());
 
     } catch (const std::exception &e) {
       std::cerr << "[" << e.what() << "]: [" << line << "]" << std::endl;
@@ -104,7 +121,7 @@ void MonetDBCtn::query(const Query &query) {
 
   if (!_init) {
     TIMER_END
-    TIMER_OUTPUT("query")
+    TIMER_OUTPUT(name())
     return;
   }
 
@@ -112,9 +129,20 @@ void MonetDBCtn::query(const Query &query) {
   mapi_close_handle(hdl);
 
   TIMER_END
-  TIMER_OUTPUT("query")
+  TIMER_OUTPUT(name())
 
 #endif // __GNUC__
+}
+
+void MonetDBCtn::check(Mapi dbh, MapiHdl hdl, int ret, bool fatal) {
+  if (ret != MOK || hdl == NULL || mapi_error(dbh)) {
+    if (hdl) {
+      mapi_explain_result(hdl, stderr);
+    } else {
+      mapi_explain(dbh, stderr);
+    }
+    if (fatal) assert(0);//exit(-1);
+  }
 }
 
 void MonetDBCtn::die(Mapi dbh, MapiHdl hdl) {

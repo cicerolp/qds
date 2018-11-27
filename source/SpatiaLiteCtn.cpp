@@ -282,20 +282,21 @@ void SpatiaLiteCtn::insert(const std::string &filename) {
 }
 
 void SpatiaLiteCtn::query(const Query &query) {
-  Timer timer;
+  TIMER_DECLARE
 
 #ifdef __GNUC__
 
-  timer.start();
+  TIMER_START
 
   if (!_init) {
-    timer.stop();
+    TIMER_END
+    TIMER_OUTPUT(name())
     return;
   }
 
   int ret;
 
-  sqlite3_stmt* stmt;
+  sqlite3_stmt *stmt;
 
   // preparing to populate the table
   ret = sqlite3_prepare_v2(_handle, query.to_sqlite().c_str(), query.to_sqlite().size(), &stmt, NULL);
@@ -303,13 +304,15 @@ void SpatiaLiteCtn::query(const Query &query) {
     // an error occurred
     printf("SELECT SQL error: %s\n", sqlite3_errmsg(_handle));
 
-    timer.stop();
+    TIMER_END
+    TIMER_OUTPUT(name())
     return;
   }
 
   sqlite3_finalize(stmt);
 
-  timer.stop();
+  TIMER_END
+  TIMER_OUTPUT(name())
 
 #endif // __GNUC__
 }

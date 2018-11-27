@@ -21,6 +21,7 @@ class MonetDBCtn : public GeoCtnIntf {
   static void die(Mapi dbh, MapiHdl hdl);
   static MapiHdl query_db(Mapi dbh, char *q);
   static void update(Mapi dbh, char *q);
+  static void check(Mapi dbh, MapiHdl hdl, int ret = MOK, bool fatal = true);
 
  private:
   bool _init{false};

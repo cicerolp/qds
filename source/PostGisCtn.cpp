@@ -209,7 +209,7 @@ void PostGisCtn::query(const Query &query) {
 
   if (!_init) {
     TIMER_END
-    TIMER_OUTPUT("query")
+    TIMER_OUTPUT(name())
     return;
   }
 
@@ -224,7 +224,7 @@ void PostGisCtn::query(const Query &query) {
   PQclear(res);
 
   TIMER_END
-  TIMER_OUTPUT("query")
+  TIMER_OUTPUT(name())
 
 #endif // __GNUC__
 }
