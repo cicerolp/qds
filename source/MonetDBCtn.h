@@ -25,7 +25,7 @@ class MonetDBCtn : public GeoCtnIntf {
  private:
   bool _init{false};
 #ifdef __GNUC__
-
+  Mapi _dbh;
 #endif // __GNUC__
 };
 
