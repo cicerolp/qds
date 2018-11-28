@@ -27,11 +27,7 @@ PostGisCtn::~PostGisCtn() {
 
 // build container
 void PostGisCtn::create() {
-  Timer timer;
-
 #ifdef __GNUC__
-
-  timer.start();
 
   PGresult *res;
   std::string sql;
@@ -56,8 +52,6 @@ void PostGisCtn::create() {
 
   _init = true;
 
-  timer.stop();
-
 #endif // __GNUC__
 
   return;
@@ -65,18 +59,11 @@ void PostGisCtn::create() {
 
 // update container
 void PostGisCtn::insert(const std::string &filename) {
-  duration_t duration;
-
 #ifdef __GNUC__
-
-  Timer timer;
 
   if (!_init) {
     return;
   }
-
-  // insert start
-  timer.start();
 
   PGresult *res;
   std::string sql;
@@ -164,13 +151,6 @@ void PostGisCtn::insert(const std::string &filename) {
   }
   PQclear(res);
 
-  // insert end
-  timer.stop();
-  duration.emplace_back("Insert", timer);
-
-  // clustering start
-  timer.start();
-
   // reorders the table on disk based on the index
   sql = "CLUSTER db USING key_gix;";
   res = PQexec(_conn, sql.c_str());
@@ -179,23 +159,12 @@ void PostGisCtn::insert(const std::string &filename) {
   }
   PQclear(res);
 
-  // clustering end
-  timer.stop();
-  duration.emplace_back("Cluster", timer);
-
-  // analyze start
-  timer.start();
-
   sql = "ANALYZE db;";
   res = PQexec(_conn, sql.c_str());
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     fprintf(stderr, "ANALYZE command failed: %s", PQerrorMessage(_conn));
   }
   PQclear(res);
-
-  // analyze end
-  timer.stop();
-  duration.emplace_back("Analyze", timer);
 
 #endif // __GNUC__
 }
@@ -221,10 +190,20 @@ void PostGisCtn::query(const Query &query) {
     fprintf(stderr, "SELECT command failed: %s", PQerrorMessage(_conn));
   }
 
+  std::cout << query.to_postgresql() << std::endl;
+  std::cout << PQgetvalue(res, 0, 0) << std::endl;
+
+  int count = -1;
+  auto value = PQgetvalue(res, 0, 0);
+
+  if (value != nullptr) {
+    count = std::stoi(value);
+  }
+
   PQclear(res);
 
   TIMER_END
-  TIMER_OUTPUT(name())
+  TIMER_OUTPUT(name(), "output", count)
 
 #endif // __GNUC__
 }

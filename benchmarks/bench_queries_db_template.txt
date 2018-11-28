@@ -1,0 +1,8 @@
+PostgreSQL
+select percentile_cont(0.25) within group (order by hour_of_day) from (select * from db where day_of_week in (6)) as foo;
+ 
+MonetDB
+select quantile(hour_of_day, 0.25) from db where day_of_week in (6);
+
+SQLite
+select percentile(hour_of_day, 50) from db where day_of_week in (6);

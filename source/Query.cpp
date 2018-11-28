@@ -85,8 +85,8 @@ std::string Query::to_postgresql() const {
       std::string region_ymin = std::to_string(mercator_util::tiley2lat(region.y1 + 1, region.z));
       std::string region_ymax = std::to_string(mercator_util::tiley2lat(region.y0, region.z));
 
-      where += constraint.first + " && ST_MakeEnvelope(" + region_xmin + ", " + region_ymin + ", " + region_xmax + ", "
-          + region_ymax + ")";
+      where += constraint.first + " && ST_MakeEnvelope(" + region_xmin + ", " + region_ymin +
+          ", " + region_xmax + ", " + region_ymax + ")";
 
     } else if (constraint.second.first == "values") {
 
@@ -109,6 +109,9 @@ std::string Query::to_postgresql() const {
           + " * INTERVAL '1 second')";
     }
   }
+
+  // return "select percentile_cont(0.25) within group (order by hour_of_day) from (SELECT * from db WHERE " +
+  // where + ") as foo;";
 
   return "SELECT COUNT(*) from db WHERE " + where + ";";
 }
@@ -161,6 +164,7 @@ std::string Query::to_sqlite() const {
     }
   }
 
+  // return "SELECT percentile(hour_of_day, 50) from db WHERE " + where;
   return "SELECT COUNT(*) from db WHERE " + where;
 }
 
@@ -183,8 +187,8 @@ std::string Query::to_monetdb() const {
       std::string region_ymin = std::to_string(mercator_util::tiley2lat(region.y1 + 1, region.z));
       std::string region_ymax = std::to_string(mercator_util::tiley2lat(region.y0, region.z));
 
-      where += "ST_Intersects(ST_MakeEnvelope(" + region_xmin + ", " + region_ymin + ", " + region_xmax + ", " +
-          region_ymax + "), " + constraint.first + ")";
+      where += "ST_Intersects(ST_MakeEnvelope(" + region_xmin + ", " + region_ymin +
+          ", " + region_xmax + ", " + region_ymax + "), " + constraint.first + ")";
 
     } else if (constraint.second.first == "values") {
 
@@ -208,5 +212,6 @@ std::string Query::to_monetdb() const {
     }
   }
 
+  // return "SELECT quantile(hour_of_day, 0.25) from db WHERE " + where + ";";
   return "SELECT COUNT(*) from db WHERE " + where + ";";
 }

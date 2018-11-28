@@ -107,10 +107,8 @@ void MonetDBCtn::insert(const std::string &filename) {
 }
 
 void MonetDBCtn::query(const Query &query) {
-  TIMER_DECLARE
-
 #ifdef __GNUC__
-
+  TIMER_DECLARE
   TIMER_START
 
   if (!_init) {
@@ -120,10 +118,19 @@ void MonetDBCtn::query(const Query &query) {
   }
 
   MapiHdl hdl = query_db(_dbh, (char *) query.to_monetdb().c_str());
+
+  int count = -1;
+  if (mapi_fetch_row(hdl)) {
+    auto field = mapi_fetch_field(hdl, 0);
+    if (field != nullptr) {
+      count = std::stoi(field);
+    }
+  }
+
   mapi_close_handle(hdl);
 
   TIMER_END
-  TIMER_OUTPUT(name())
+  TIMER_OUTPUT(name(), "output", count)
 
 #endif // __GNUC__
 }

@@ -1,0 +1,62 @@
+---
+title: "R Notebook"
+output: 
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+log <- read_delim('/mnt/sdb/Git/nds/cmake-build-release-metrics/benchmarks/bench_queries_db.log', delim = ';', col_names = FALSE)
+```
+
+
+```{r}
+df <- log %>%
+  group_by(X3, X8) %>%
+  summarise(
+    Mean = mean(X7),
+    Min = min(X7),
+    Max = max(X7),
+    Stdv = sd(X7)
+  ) %>% na.omit()
+
+names(df)[names(df) == 'X8'] <- 'database'
+```
+
+```{r}
+quantile((df %>% filter(database == 'MonetDB'))$Mean)
+
+quantile((df %>% filter(database == 'PostgreSQL'))$Mean)
+
+quantile((df %>% filter(database == 'SQLite'))$Mean)
+```
+
+
+```{r}
+df %>%
+  # filter(database == 'MonetDB' | database == 'PostgreSQL') %>%
+  ggplot() +
+  geom_boxplot(aes(x = database, y = Mean, colour = database)) +
+  # coord_flip(ylim = c(0, 100))
+  coord_flip()
+```
+
+```{r}
+df <- read_csv('/mnt/sdb/data/brightkite/data.csv')
+
+
+```
+
+```{r}
+quantile((df %>% filter(day_of_week == 1))$hour_of_day)
+quantile((df %>% filter(day_of_week == 2))$hour_of_day)
+quantile((df %>% filter(day_of_week == 3))$hour_of_day)
+quantile((df %>% filter(day_of_week == 4))$hour_of_day)
+quantile((df %>% filter(day_of_week == 5))$hour_of_day)
+quantile((df %>% filter(day_of_week == 6))$hour_of_day)
+```
+
+
+
