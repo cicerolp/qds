@@ -92,12 +92,6 @@ void MonetDBCtn::insert(const std::string &filename) {
       int ret = mapi_execute(hdl);
       check(_dbh, hdl, ret);
 
-      /* std::string sql = "INSERT INTO db VALUES ('" + data[0] + "', " + "(SELECT sys.str_to_timestamp('" + data[1]
-          + "', '%Y-%m-%dT%H:%M:%SZ'))" + ", " + data[5] + ", " + data[6]
-          + ", 'POINT( " + data[3] + " " + data[2] + " )')"; */
-
-      // update(_dbh, (char *) sql.c_str());
-
     } catch (const std::exception &e) {
       std::cerr << "[" << e.what() << "]: [" << line << "]" << std::endl;
     }

@@ -183,12 +183,8 @@ std::string Query::to_monetdb() const {
       std::string region_ymin = std::to_string(mercator_util::tiley2lat(region.y1 + 1, region.z));
       std::string region_ymax = std::to_string(mercator_util::tiley2lat(region.y0, region.z));
 
-      where += constraint.first + " && ST_MakeEnvelope(" + region_xmin + ", " + region_ymin + ", " + region_xmax + ", "
-          + region_ymax + ")";
-
-      /*where += "Overlaps('POLYGON( ( " + region_xmin + " " + region_ymin + ", " + region_xmax + " " + region_ymin + ", "
-          + region_xmax + " " + region_ymax + ", " + region_xmin + " " + region_ymax + ", " + region_xmin + " "
-          + region_ymin + ") )', " + constraint.first + ") = TRUE";*/
+      where += "ST_Intersects(ST_MakeEnvelope(" + region_xmin + ", " + region_ymin + ", " + region_xmax + ", " +
+          region_ymax + "), " + constraint.first + ")";
 
     } else if (constraint.second.first == "values") {
 
