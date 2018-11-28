@@ -10,8 +10,7 @@ SpatiaLiteCtn::SpatiaLiteCtn(int argc, char *argv[]) {
   // std::string db = "db.sqlite";
 
   // in-memory database
-  ret = sqlite3_open_v2(db.c_str(), &_handle,
-                        SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
+  ret = sqlite3_open_v2(db.c_str(), &_handle, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE, NULL);
   if (ret != SQLITE_OK) {
     printf("cannot open '%s': %s\n", db.c_str(), sqlite3_errmsg(_handle));
     sqlite3_close(_handle);
@@ -20,12 +19,12 @@ SpatiaLiteCtn::SpatiaLiteCtn(int argc, char *argv[]) {
   _cache = spatialite_alloc_connection();
   spatialite_init_ex(_handle, _cache, 0);
 
-  printf("SQLite version: %s\n", sqlite3_libversion());
+  // printf("SQLite version: %s\n", sqlite3_libversion());
 
-  printf("SpatiaLite version: %s\n", spatialite_version());
+  // printf("SpatiaLite version: %s\n", spatialite_version());
 
   initGEOS(notice, log_and_exit);
-  printf("GEOS version %s\n", GEOSversion());
+  // printf("GEOS version %s\n", GEOSversion());
 
   printf("\n\n");
 #endif // __GNUC__
@@ -62,7 +61,7 @@ void SpatiaLiteCtn::create() {
 
   auto curr_path = boost::filesystem::current_path().string();
 
-  ret = sqlite3_load_extension(_handle, (curr_path + "percentile").c_str(), NULL, &err_msg);
+  ret = sqlite3_load_extension(_handle, (curr_path + "/" + "percentile").c_str(), NULL, &err_msg);
   if (ret != SQLITE_OK) {
     // an error occurred
     printf("sqlite3_load_extension() error: %s\n", err_msg);
@@ -84,7 +83,6 @@ void SpatiaLiteCtn::create() {
   }
 
   // now we can create the table
-  // for simplicity we'll define only one column, the primary key
   strcpy(sql, "CREATE TABLE db (");
   strcat(sql, "user_id INTEGER, time DATETIME, hour_of_day INTEGER, day_of_week INTEGER)");
   ret = sqlite3_exec(_handle, sql, NULL, NULL, &err_msg);
