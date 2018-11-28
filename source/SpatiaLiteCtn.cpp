@@ -47,12 +47,29 @@ void SpatiaLiteCtn::create() {
   Timer timer;
 
 #ifdef __GNUC__
-
   int ret;
   char sql[256];
   char *err_msg = NULL;
 
-  timer.start();
+  ret = sqlite3_enable_load_extension(_handle, 1);
+  if (ret != SQLITE_OK) {
+    // an error occurred
+    printf("sqlite3_enable_load_extension() error: %s\n", err_msg);
+    sqlite3_free(err_msg);
+
+    return;
+  }
+
+  auto curr_path = boost::filesystem::current_path().string();
+
+  ret = sqlite3_load_extension(_handle, (curr_path + "percentile").c_str(), NULL, &err_msg);
+  if (ret != SQLITE_OK) {
+    // an error occurred
+    printf("sqlite3_load_extension() error: %s\n", err_msg);
+    sqlite3_free(err_msg);
+
+    return;
+  }
 
   // we are supposing this one is an empty database,
   // so we have to create the Spatial Metadata
@@ -63,7 +80,6 @@ void SpatiaLiteCtn::create() {
     printf("InitSpatialMetadata() error: %s\n", err_msg);
     sqlite3_free(err_msg);
 
-    timer.stop();
     return;
   }
 
@@ -77,7 +93,6 @@ void SpatiaLiteCtn::create() {
     printf("CREATE TABLE 'db' error: %s\n", err_msg);
     sqlite3_free(err_msg);
 
-    timer.stop();
     return;
   }
 
@@ -89,7 +104,6 @@ void SpatiaLiteCtn::create() {
     printf("AddGeometryColumn() error: %s\n", err_msg);
     sqlite3_free(err_msg);
 
-    timer.stop();
     return;
   }
 
@@ -101,30 +115,21 @@ void SpatiaLiteCtn::create() {
     printf("CreateSpatialIndex() error: %s\n", err_msg);
     sqlite3_free(err_msg);
 
-    timer.stop();
     return;
   }
 
   _init = true;
-  timer.stop();
 
 #endif // __GNUC__
 }
 
 // update container
 void SpatiaLiteCtn::insert(const std::string &filename) {
-  duration_t duration;
-
 #ifdef __GNUC__
-
-  Timer timer;
 
   if (!_init) {
     return;
   }
-
-  // insert start
-  timer.start();
 
   int ret;
   char sql[256];
@@ -144,7 +149,6 @@ void SpatiaLiteCtn::insert(const std::string &filename) {
     printf("BEGIN error: %s\n", err_msg);
     sqlite3_free(err_msg);
 
-    timer.stop();
     return;
   }
 
@@ -155,7 +159,6 @@ void SpatiaLiteCtn::insert(const std::string &filename) {
     // an error occurred
     printf("INSERT SQL error: %s\n", sqlite3_errmsg(_handle));
 
-    timer.stop();
     return;
   }
 
@@ -229,7 +232,6 @@ void SpatiaLiteCtn::insert(const std::string &filename) {
         printf("sqlite3_step() error: %s\n", sqlite3_errmsg(_handle));
         sqlite3_finalize(stmt);
 
-        timer.stop();
         return;
       }
 
@@ -251,16 +253,8 @@ void SpatiaLiteCtn::insert(const std::string &filename) {
     printf("COMMIT error: %s\n", err_msg);
     sqlite3_free(err_msg);
 
-    timer.stop();
     return;
   }
-
-  // insert end
-  timer.stop();
-  duration.emplace_back("Insert", timer);
-
-  // analyze start
-  timer.start();
 
   // now we'll optimize the table
   strcpy(sql, "ANALYZE db");
@@ -270,22 +264,15 @@ void SpatiaLiteCtn::insert(const std::string &filename) {
     printf("ANALYZE error: %s\n", err_msg);
     sqlite3_free(err_msg);
 
-    timer.stop();
     return;
   }
-
-  // analyze end
-  timer.stop();
-  duration.emplace_back("Analyze", timer);
 
 #endif // __GNUC__
 }
 
 void SpatiaLiteCtn::query(const Query &query) {
-  TIMER_DECLARE
-
 #ifdef __GNUC__
-
+  TIMER_DECLARE
   TIMER_START
 
   if (!_init) {
@@ -309,10 +296,15 @@ void SpatiaLiteCtn::query(const Query &query) {
     return;
   }
 
+  int count = -1;
+  if (sqlite3_step(stmt) == SQLITE_ROW) {
+    count = sqlite3_column_int(stmt, 0);
+  }
+
   sqlite3_finalize(stmt);
 
   TIMER_END
-  TIMER_OUTPUT(name())
+  TIMER_OUTPUT(name(), "output", count)
 
 #endif // __GNUC__
 }
