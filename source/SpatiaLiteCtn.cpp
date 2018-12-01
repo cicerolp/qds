@@ -42,7 +42,7 @@ SpatiaLiteCtn::~SpatiaLiteCtn() {
 }
 
 // build container
-void SpatiaLiteCtn::create() {
+void SpatiaLiteCtn::create_snap() {
   Timer timer;
 
 #ifdef __GNUC__
@@ -122,7 +122,7 @@ void SpatiaLiteCtn::create() {
 }
 
 // update container
-void SpatiaLiteCtn::insert(const std::string &filename) {
+void SpatiaLiteCtn::insert_snap(const std::string &filename) {
 #ifdef __GNUC__
 
   if (!_init) {
@@ -266,6 +266,22 @@ void SpatiaLiteCtn::insert(const std::string &filename) {
   }
 
 #endif // __GNUC__
+}
+
+void SpatiaLiteCtn::create_on_time() {
+
+}
+
+void SpatiaLiteCtn::insert_on_time(const std::string &filename) {
+
+}
+
+void SpatiaLiteCtn::create_small_twitter() {
+
+}
+
+void SpatiaLiteCtn::insert_small_twitter(const std::string &filename) {
+
 }
 
 void SpatiaLiteCtn::query(const Query &query) {
@@ -530,4 +546,3 @@ void SpatiaLiteCtn::log_and_exit(const char *fmt, ...) {
   exit(1);
 #endif // __GNUC__
 }
-

@@ -75,8 +75,21 @@ std::string Query::to_postgresql() const {
       where += " AND ";
     }
 
-    // region
-    if (constraint.second.first == "region") {
+    if (constraint.second.first == "tile") {
+      // auto region = Spatial::parse_region(constraint.second.second);
+
+      /* uint32_t curr_z = std::min((uint32_t)8, 25 - region.z);
+      uint32_t n = (uint64_t)1 << curr_z;
+
+      uint32_t x_min = region.x0 * n;
+      uint32_t x_max = (region.x1 + 1) * n;
+
+      uint32_t y_min = region.y0 * n;
+      uint32_t y_max = (region.y1 + 1) * n;
+
+      curr_z += region.z;*/
+
+    } else if (constraint.second.first == "region") {
 
       auto region = Spatial::parse_region(constraint.second.second);
 
@@ -110,10 +123,17 @@ std::string Query::to_postgresql() const {
     }
   }
 
-  // return "select percentile_cont(0.25) within group (order by hour_of_day) from (SELECT * from db WHERE " +
-  // where + ") as foo;";
+  // get aggregation clausule
+  auto &aggr = get_aggr().front();
 
-  return "SELECT COUNT(*) from db WHERE " + where + ";";
+  if (aggr.first == "count") {
+    return "SELECT COUNT(*) from db WHERE " + where + ";";
+  } else if (aggr.first == "quantile") {
+    auto parameter = AgrrPDigest::get_parameters(aggr).front();
+
+    return "select percentile_cont(" + std::to_string(parameter) + ") within group (order by " + aggr.second.first
+        + ") from (SELECT * from db WHERE " + where + ") as foo;";
+  }
 }
 
 std::string Query::to_sqlite() const {
@@ -164,8 +184,17 @@ std::string Query::to_sqlite() const {
     }
   }
 
-  // return "SELECT percentile(hour_of_day, 50) from db WHERE " + where;
-  return "SELECT COUNT(*) from db WHERE " + where;
+  // get aggregation clausule
+  auto &aggr = get_aggr().front();
+
+  if (aggr.first == "count") {
+    return "SELECT COUNT(*) from db WHERE " + where;
+  } else if (aggr.first == "quantile") {
+    auto parameter = AgrrPDigest::get_parameters(aggr).front();
+
+    return "SELECT percentile(" + aggr.second.first + ", " + std::to_string(parameter * 100.f)
+        + ") from db WHERE " + where;
+  }
 }
 
 std::string Query::to_monetdb() const {
@@ -212,6 +241,13 @@ std::string Query::to_monetdb() const {
     }
   }
 
-  // return "SELECT quantile(hour_of_day, 0.25) from db WHERE " + where + ";";
-  return "SELECT COUNT(*) from db WHERE " + where + ";";
+  // get aggregation clausule
+  auto &aggr = get_aggr().front();
+
+  if (aggr.first == "count") {
+    return "SELECT COUNT(*) from db WHERE " + where + ";";
+  } else if (aggr.first == "quantile") {
+    auto parameter = AgrrPDigest::get_parameters(aggr).front();
+    return "SELECT quantile(" + aggr.second.first + ", " + std::to_string(parameter) + ") from db WHERE " + where + ";";
+  }
 }

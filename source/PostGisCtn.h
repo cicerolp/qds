@@ -7,11 +7,17 @@ class PostGisCtn : public GeoCtnIntf {
 
   ~PostGisCtn();
 
-  // build container
-  void create() override;
+  // snap
+  void create_snap() override;
+  void insert_snap(const std::string &filename) override;
 
-  // update container
-  void insert(const std::string &filename) override;
+  // on-time
+  void create_on_time() override;
+  void insert_on_time(const std::string &filename) override;
+
+  // small-twitter
+  void create_small_twitter() override;
+  void insert_small_twitter(const std::string &filename) override;
 
   void query(const Query &query) override;
 

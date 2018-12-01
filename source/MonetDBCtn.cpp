@@ -21,7 +21,7 @@ MonetDBCtn::~MonetDBCtn() {
 #endif // __GNUC__
 }
 
-void MonetDBCtn::create() {
+void MonetDBCtn::create_snap() {
 #ifdef __GNUC__
   update(_dbh, (char *) "DROP TABLE IF EXISTS db");
   update(_dbh,
@@ -30,7 +30,7 @@ void MonetDBCtn::create() {
 #endif // __GNUC__
 }
 
-void MonetDBCtn::insert(const std::string &filename) {
+void MonetDBCtn::insert_snap(const std::string &filename) {
 #ifdef __GNUC__
 
   if (!_init) {
@@ -106,6 +106,22 @@ void MonetDBCtn::insert(const std::string &filename) {
 #endif // __GNUC__
 }
 
+void MonetDBCtn::create_on_time() {
+
+}
+
+void MonetDBCtn::insert_on_time(const std::string &filename) {
+
+}
+
+void MonetDBCtn::create_small_twitter() {
+
+}
+
+void MonetDBCtn::insert_small_twitter(const std::string &filename) {
+
+}
+
 void MonetDBCtn::query(const Query &query) {
 #ifdef __GNUC__
   TIMER_DECLARE
@@ -179,3 +195,4 @@ void MonetDBCtn::update(Mapi dbh, char *q) {
   if (mapi_close_handle(ret) != MOK)
     die(dbh, ret);
 }
+

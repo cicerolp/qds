@@ -26,7 +26,7 @@ PostGisCtn::~PostGisCtn() {
 }
 
 // build container
-void PostGisCtn::create() {
+void PostGisCtn::create_snap() {
 #ifdef __GNUC__
 
   PGresult *res;
@@ -58,7 +58,7 @@ void PostGisCtn::create() {
 }
 
 // update container
-void PostGisCtn::insert(const std::string &filename) {
+void PostGisCtn::insert_snap(const std::string &filename) {
 #ifdef __GNUC__
 
   if (!_init) {
@@ -167,6 +167,22 @@ void PostGisCtn::insert(const std::string &filename) {
   PQclear(res);
 
 #endif // __GNUC__
+}
+
+void PostGisCtn::create_on_time() {
+
+}
+
+void PostGisCtn::insert_on_time(const std::string &filename) {
+
+}
+
+void PostGisCtn::create_small_twitter() {
+
+}
+
+void PostGisCtn::insert_small_twitter(const std::string &filename) {
+
 }
 
 void PostGisCtn::query(const Query &query) {
