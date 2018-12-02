@@ -4,7 +4,7 @@
 
 PostGisCtn::PostGisCtn(int argc, char *argv[]) {
 #ifdef __GNUC__
-  std::string conninfo = "user=postgres host=localhost port=5432 dbname=qds";
+  std::string conninfo = "user=postgres host=localhost port=5432 dbname=db";
 
   // make a connection to the database
   _conn = PQconnectdb(conninfo.c_str());
