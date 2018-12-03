@@ -95,21 +95,7 @@ uint32_t SpatialElement::expand(NDS &nds,
 
   return pivots_count;
 }
-void SpatiaLiteCtn::create_on_time() {
 
-}
-
-void SpatiaLiteCtn::insert_on_time(const std::string &filename) {
-
-}
-
-void SpatiaLiteCtn::create_small_twitter() {
-
-}
-
-void SpatiaLiteCtn::insert_small_twitter(const std::string &filename) {
-
-}
 void SpatialElement::query_tile(const spatial_t &tile, uint64_t resolution, bined_ctn &subset) const {
   const spatial_t &value = (*reinterpret_cast<const spatial_t *>(&_el.value));
 
