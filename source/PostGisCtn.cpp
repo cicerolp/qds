@@ -33,7 +33,8 @@ void PostGisCtn::create_snap() {
   std::string sql;
 
   sql += "DROP TABLE IF EXISTS db;";
-  sql += "CREATE TABLE db(user_id INTEGER, time TIMESTAMP, hour_of_day INTEGER, day_of_week INTEGER, coord GEOMETRY(Point, 4326));";
+  sql +=
+      "CREATE TABLE db(user_id INTEGER, time TIMESTAMP, hour_of_day INTEGER, day_of_week INTEGER, coord GEOMETRY(Point, 4326));";
   // spatial index using GIST
   sql += "CREATE INDEX key_gix ON db USING GIST(coord);";
 
@@ -43,7 +44,8 @@ void PostGisCtn::create_snap() {
   }
   PQclear(res);
 
-  sql = "INSERT INTO db (user_id, time, hour_of_day, day_of_week, coord) VALUES ($1, $2, $3, $4, ST_GeomFromText($5, 4326));";
+  sql =
+      "INSERT INTO db (user_id, time, hour_of_day, day_of_week, coord) VALUES ($1, $2, $3, $4, ST_GeomFromText($5, 4326));";
   res = PQprepare(_conn, "stmtname", sql.c_str(), 0, nullptr);
   if (PQresultStatus(res) != PGRES_COMMAND_OK) {
     fprintf(stderr, "PQprepare command failed: %s", PQerrorMessage(_conn));
@@ -117,7 +119,7 @@ void PostGisCtn::insert_snap(const std::string &filename) {
 
       // coord[lon, lat] -> data[3, 2]
       char coord[50];
-      sprintf(coord, "POINT(%f %f)", std::stof(data[3]) , std::stof(data[2]));
+      sprintf(coord, "POINT(%f %f)", std::stof(data[3]), std::stof(data[2]));
 
       paramValues[0] = data[0].c_str();
       paramValues[1] = data[1].c_str();
@@ -138,7 +140,7 @@ void PostGisCtn::insert_snap(const std::string &filename) {
       PQclear(res);
 
     } catch (const std::exception &e) {
-      std::cerr << "[" << e.what() << "]: [" << line <<  "]" << std::endl;
+      std::cerr << "[" << e.what() << "]: [" << line << "]" << std::endl;
     }
   }
 
@@ -170,11 +172,172 @@ void PostGisCtn::insert_snap(const std::string &filename) {
 }
 
 void PostGisCtn::create_on_time() {
+#ifdef __GNUC__
 
+  PGresult *res;
+  std::string sql;
+
+  sql += "DROP TABLE IF EXISTS db;";
+  sql +=
+      "CREATE TABLE db(on_time INTEGER, unique_carrier INTEGER, crs_dep_time TIMESTAMP, origin_airport GEOMETRY(Point, 4326), dep_delay_t REAL);";
+  // spatial index using GIST
+  sql += "CREATE INDEX key_gix ON db USING GIST(origin_airport);";
+
+  res = PQexec(_conn, sql.c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "BEGIN command failed: %s", PQerrorMessage(_conn));
+  }
+  PQclear(res);
+
+  sql =
+      "INSERT INTO db (on_time, unique_carrier, crs_dep_time, origin_airport, dep_delay_t) VALUES ($1, $2, $3, ST_GeomFromText($4, 4326), $5);";
+  res = PQprepare(_conn, "stmtname", sql.c_str(), 0, nullptr);
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "PQprepare command failed: %s", PQerrorMessage(_conn));
+  }
+  PQclear(res);
+
+  _init = true;
+
+#endif // __GNUC__
+
+  return;
 }
 
 void PostGisCtn::insert_on_time(const std::string &filename) {
+#ifdef __GNUC__
 
+  if (!_init) {
+    return;
+  }
+
+  PGresult *res;
+  std::string sql;
+
+  sql = "BEGIN;";
+  res = PQexec(_conn, sql.c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "BEGIN command failed: %s", PQerrorMessage(_conn));
+  }
+  PQclear(res);
+
+  int paramLengths[5];
+  int paramFormats[5] = {0, 0, 0, 0, 0};
+  const char *paramValues[5];
+
+  static const std::string sep = ",";
+
+  // source: https://bravenewmethod.com/2016/09/17/quick-and-robust-c-csv-reader-with-boost/
+  // used to split the file in lines
+  const boost::regex linesregx("\\r\\n|\\n\\r|\\n|\\r");
+
+  // used to split each line to tokens, assuming ',' as column separator
+  const boost::regex fieldsregx(sep + "(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+
+  std::ifstream infile(filename);
+
+  std::string line;
+
+  // skip header
+  std::getline(infile, line);
+
+  while (!infile.eof()) {
+
+    std::getline(infile, line);
+
+    if (line.empty()) {
+      continue;
+    }
+
+    try {
+      // split line to tokens
+      boost::sregex_token_iterator ti(line.begin(), line.end(), fieldsregx, -1);
+      boost::sregex_token_iterator ti_end;
+
+      std::vector<std::string> data(ti, ti_end);
+
+      // "INSERT INTO db (dep_on_time, unique_carrier, crs_dep_time, origin_airport, dep_delay_t) VALUES ($1, $2, $3, ST_GeomFromText($4, 4326), $5);";
+      /*
+      00, arr_on_time
+      01, dep_on_time
+      02, cancelled
+      03, diverted
+      04, unique_carrier
+      05, origin_airport_id
+      06, dest_airport_id
+      07, crs_dep_time
+      08, crs_arr_time
+      09, origin_airport
+      10, origin_airport
+      11, dest_airport
+      12, dest_airport
+      13, dep_delay
+      14, dep_delay_minutes
+      15, arr_delay
+      16, arr_delay_minutes
+      17, actual_elapsed_time
+      18, air_time
+      19, distance
+      */
+
+      // coord[lon, lat] -> data[3, 2]
+      char coord[50];
+      sprintf(coord, "POINT(%f %f)", std::stof(data[10]), std::stof(data[9]));
+
+      paramValues[0] = data[1].c_str();
+      paramValues[1] = data[4].c_str();
+
+      const long epoch = std::stoul(data[7]);
+      std::stringstream ss;
+      ss << std::put_time(std::localtime(&epoch), "%FT%TZ");
+      auto crs_dep_time = ss.str();
+
+      paramValues[2] = crs_dep_time.c_str();
+      paramValues[3] = coord;
+      paramValues[4] = data[13].c_str();
+
+      paramLengths[0] = std::strlen(paramValues[0]);
+      paramLengths[1] = std::strlen(paramValues[1]);
+      paramLengths[2] = std::strlen(paramValues[2]);
+      paramLengths[3] = std::strlen(paramValues[3]);
+      paramLengths[4] = std::strlen(paramValues[4]);
+
+      res = PQexecPrepared(_conn, "stmtname", 5, paramValues, paramLengths, paramFormats, 0);
+      if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "PQexecPrepared command failed: %s", PQerrorMessage(_conn));
+      }
+      PQclear(res);
+
+    } catch (const std::exception &e) {
+      std::cerr << "[" << e.what() << "]: [" << line << "]" << std::endl;
+    }
+  }
+
+  infile.close();
+
+  sql = "COMMIT;";
+  res = PQexec(_conn, sql.c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "COMMIT command failed: %s", PQerrorMessage(_conn));
+  }
+  PQclear(res);
+
+  // reorders the table on disk based on the index
+  sql = "CLUSTER db USING key_gix;";
+  res = PQexec(_conn, sql.c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "CLUSTER command failed: %s", PQerrorMessage(_conn));
+  }
+  PQclear(res);
+
+  sql = "ANALYZE db;";
+  res = PQexec(_conn, sql.c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "ANALYZE command failed: %s", PQerrorMessage(_conn));
+  }
+  PQclear(res);
+
+#endif // __GNUC__
 }
 
 void PostGisCtn::create_small_twitter() {
@@ -198,7 +361,7 @@ void PostGisCtn::query(const Query &query) {
     return;
   }
 
-  PGresult* res;
+  PGresult *res;
   std::string sql;
 
   res = PQexecParams(_conn, query.to_postgresql().c_str(), 0, nullptr, nullptr, nullptr, nullptr, 1);
@@ -206,13 +369,12 @@ void PostGisCtn::query(const Query &query) {
     fprintf(stderr, "SELECT command failed: %s", PQerrorMessage(_conn));
   }
 
-  std::cout << query.to_postgresql() << std::endl;
-  std::cout << PQgetvalue(res, 0, 0) << std::endl;
+  // std::cout << query.to_postgresql() << std::endl;
 
   int count = -1;
-  auto value = PQgetvalue(res, 0, 0);
+  auto value = std::string(PQgetvalue(res, 0, 0));
 
-  if (value != nullptr) {
+  if (!value.empty()) {
     count = std::stoi(value);
   }
 
