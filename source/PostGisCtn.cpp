@@ -256,7 +256,7 @@ void PostGisCtn::insert_on_time(const std::string &filename) {
 
       std::vector<std::string> data(ti, ti_end);
 
-      // "INSERT INTO db (dep_on_time, unique_carrier, crs_dep_time, origin_airport, dep_delay_t) VALUES ($1, $2, $3, ST_GeomFromText($4, 4326), $5);";
+      // "INSERT INTO db (on_time, unique_carrier, crs_dep_time, origin_airport, dep_delay_t) VALUES ($1, $2, $3, ST_GeomFromText($4, 4326), $5);";
       /*
       00, arr_on_time
       01, dep_on_time
