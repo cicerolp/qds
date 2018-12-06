@@ -76,18 +76,44 @@ std::string Query::to_postgresql() const {
     }
 
     if (constraint.second.first == "tile") {
-      // auto region = Spatial::parse_region(constraint.second.second);
+      auto clausule = Spatial::parse_tile(constraint.second.second);
+      auto resolution = clausule.resolution;
+      auto tile = clausule.tile;
 
-      /* uint32_t curr_z = std::min((uint32_t)8, 25 - region.z);
-      uint32_t n = (uint64_t)1 << curr_z;
+      uint32_t curr_z = std::min((int32_t) resolution, 25 - (int32_t) tile.z);
+      uint32_t n = (uint64_t) 1 << curr_z;
 
-      uint32_t x_min = region.x0 * n;
-      uint32_t x_max = (region.x1 + 1) * n;
+      uint32_t x_min = tile.x * n;
+      uint32_t x_max = (tile.x + 1) * n;
 
-      uint32_t y_min = region.y0 * n;
-      uint32_t y_max = (region.y1 + 1) * n;
+      uint32_t y_min = tile.y * n;
+      uint32_t y_max = (tile.y + 1) * n;
 
-      curr_z += region.z;*/
+      curr_z += tile.z;
+
+      std::string envelop;
+
+      for (uint32_t x = x_min; x < x_max; ++x) {
+        for (uint32_t y = y_min; y < y_max; ++y) {
+
+          std::stringstream stream;
+
+          std::string region_xmin = std::to_string(mercator_util::tilex2lon(x, curr_z));
+          std::string region_xmax = std::to_string(mercator_util::tilex2lon(x + 1, curr_z));
+
+          std::string region_ymin = std::to_string(mercator_util::tiley2lat(y + 1, curr_z));
+          std::string region_ymax = std::to_string(mercator_util::tiley2lat(y, curr_z));
+
+          if (!envelop.empty()) {
+            envelop += " OR ";
+          }
+
+          envelop += "ST_MakeEnvelope(" + region_xmin + ", " + region_ymin +
+              ", " + region_xmax + ", " + region_ymax + ")";
+        }
+      }
+
+      where += constraint.first + " && (" + envelop + ")";
 
     } else if (constraint.second.first == "region") {
 
@@ -133,6 +159,8 @@ std::string Query::to_postgresql() const {
 
     return "select percentile_cont(" + std::to_string(parameter) + ") within group (order by " + aggr.second.first
         + ") from (SELECT * from db WHERE " + where + ") as foo;";
+  } else {
+    return std::string();
   }
 }
 
@@ -145,8 +173,53 @@ std::string Query::to_sqlite() const {
       where += " AND ";
     }
 
-    // region
-    if (constraint.second.first == "region") {
+    if (constraint.second.first == "tile") {
+      auto clausule = Spatial::parse_tile(constraint.second.second);
+      auto resolution = clausule.resolution;
+      auto tile = clausule.tile;
+
+      uint32_t curr_z = std::min((int32_t) resolution, 25 - (int32_t) tile.z);
+      uint32_t n = (uint64_t) 1 << curr_z;
+
+      uint32_t x_min = tile.x * n;
+      uint32_t x_max = (tile.x + 1) * n;
+
+      uint32_t y_min = tile.y * n;
+      uint32_t y_max = (tile.y + 1) * n;
+
+      curr_z += tile.z;
+
+      std::string envelop;
+
+      for (uint32_t x = x_min; x < x_max; ++x) {
+        for (uint32_t y = y_min; y < y_max; ++y) {
+
+          std::stringstream stream;
+
+          std::string region_xmin = std::to_string(mercator_util::tilex2lon(x, curr_z));
+          std::string region_xmax = std::to_string(mercator_util::tilex2lon(x + 1, curr_z));
+
+          std::string region_ymin = std::to_string(mercator_util::tiley2lat(y + 1, curr_z));
+          std::string region_ymax = std::to_string(mercator_util::tiley2lat(y, curr_z));
+
+          if (!envelop.empty()) {
+            envelop += " OR ";
+          }
+
+          envelop += "MbrWithin(" + constraint.first + ", BuildMbr(";
+          envelop += region_xmin + "," + region_ymin + ",";
+          envelop += region_xmax + "," + region_ymax + ")) AND ROWID IN (";
+          envelop += "SELECT pkid FROM idx_db_" + constraint.first + " WHERE ";
+          envelop += "xmin >= " + region_xmin + " AND ";
+          envelop += "xmax <= " + region_xmax + " AND ";
+          envelop += "ymin >= " + region_ymin + " AND ";
+          envelop += "ymax <= " + region_ymax + ")";
+        }
+      }
+
+      where += constraint.first + " && (" + envelop + ")";
+
+    } else if (constraint.second.first == "region") {
 
       auto region = Spatial::parse_region(constraint.second.second);
 
@@ -194,6 +267,8 @@ std::string Query::to_sqlite() const {
 
     return "SELECT percentile(" + aggr.second.first + ", " + std::to_string(parameter * 100.f)
         + ") from db WHERE " + where;
+  } else {
+    return std::string();
   }
 }
 
@@ -206,8 +281,47 @@ std::string Query::to_monetdb() const {
       where += " AND ";
     }
 
-    // region
-    if (constraint.second.first == "region") {
+    if (constraint.second.first == "tile") {
+      auto clausule = Spatial::parse_tile(constraint.second.second);
+      auto resolution = clausule.resolution;
+      auto tile = clausule.tile;
+
+      uint32_t curr_z = std::min((int32_t) resolution, 25 - (int32_t) tile.z);
+      uint32_t n = (uint64_t) 1 << curr_z;
+
+      uint32_t x_min = tile.x * n;
+      uint32_t x_max = (tile.x + 1) * n;
+
+      uint32_t y_min = tile.y * n;
+      uint32_t y_max = (tile.y + 1) * n;
+
+      curr_z += tile.z;
+
+      std::string envelop;
+
+      for (uint32_t x = x_min; x < x_max; ++x) {
+        for (uint32_t y = y_min; y < y_max; ++y) {
+
+          std::stringstream stream;
+
+          std::string region_xmin = std::to_string(mercator_util::tilex2lon(x, curr_z));
+          std::string region_xmax = std::to_string(mercator_util::tilex2lon(x + 1, curr_z));
+
+          std::string region_ymin = std::to_string(mercator_util::tiley2lat(y + 1, curr_z));
+          std::string region_ymax = std::to_string(mercator_util::tiley2lat(y, curr_z));
+
+          if (!envelop.empty()) {
+            envelop += " OR ";
+          }
+
+          envelop += "ST_Intersects(ST_MakeEnvelope(" + region_xmin + ", " + region_ymin +
+              ", " + region_xmax + ", " + region_ymax + "), " + constraint.first + ")";
+        }
+      }
+
+      where += constraint.first + " && (" + envelop + ")";
+
+    } else if (constraint.second.first == "region") {
 
       auto region = Spatial::parse_region(constraint.second.second);
 
@@ -249,5 +363,7 @@ std::string Query::to_monetdb() const {
   } else if (aggr.first == "quantile") {
     auto parameter = AgrrPDigest::get_parameters(aggr).front();
     return "SELECT quantile(" + aggr.second.first + ", " + std::to_string(parameter) + ") from db WHERE " + where + ";";
+  } else {
+    return std::string();
   }
 }
