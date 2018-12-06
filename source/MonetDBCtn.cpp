@@ -187,8 +187,6 @@ void MonetDBCtn::insert_on_time(const std::string &filename) {
 
       std::string date = "(SELECT sys.str_to_timestamp('" + crs_dep_time + "', '%Y-%m-%dT%H:%M:%SZ'))";
 
-      mapi_param(hdl, 1, (char **) date.c_str());
-
       mapi_param(hdl, 0, (char **) data[1].c_str());
       mapi_param(hdl, 1, (char **) data[4].c_str());
       mapi_param(hdl, 2, (char **) date.c_str());
@@ -216,11 +214,91 @@ void MonetDBCtn::insert_on_time(const std::string &filename) {
 }
 
 void MonetDBCtn::create_small_twitter() {
-
+#ifdef __GNUC__
+  update(_dbh, (char *) "DROP TABLE IF EXISTS db");
+  update(_dbh, (char *) "CREATE TABLE db (device INTEGER, time TIMESTAMP, coord POINT)");
+#endif // __GNUC__
 }
 
 void MonetDBCtn::insert_small_twitter(const std::string &filename) {
+#ifdef __GNUC__
 
+  if (!_init) {
+    return;
+  }
+
+  static const std::string sep = ",";
+
+  // source: https://bravenewmethod.com/2016/09/17/quick-and-robust-c-csv-reader-with-boost/
+  // used to split the file in lines
+  const boost::regex linesregx("\\r\\n|\\n\\r|\\n|\\r");
+
+  // used to split each line to tokens, assuming ',' as column separator
+  const boost::regex fieldsregx(sep + "(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+
+  std::ifstream infile(filename);
+
+  std::string line;
+
+  // skip header
+  std::getline(infile, line);
+
+  MapiHdl hdl = mapi_prepare(_dbh, "INSERT INTO db VALUES (?, ?, ?, ?, ?)");
+  check(_dbh, hdl);
+
+  while (!infile.eof()) {
+
+    std::getline(infile, line);
+
+    if (line.empty()) {
+      continue;
+    }
+
+    try {
+      // split line to tokens
+      boost::sregex_token_iterator ti(line.begin(), line.end(), fieldsregx, -1);
+      boost::sregex_token_iterator ti_end;
+
+      std::vector<std::string> data(ti, ti_end);
+
+      // update(_dbh, (char *) "CREATE TABLE db (device INTEGER, time TIMESTAMP, coord POINT)");
+      /*
+      00, app
+      01, device
+      02, language
+      03, time
+      04, coord
+      05, coord
+      */
+
+      const long epoch = std::stoul(data[7]);
+      std::stringstream ss;
+      ss << std::put_time(std::localtime(&epoch), "%FT%TZ");
+      auto time = ss.str();
+
+      std::string date = "(SELECT sys.str_to_timestamp('" + time + "', '%Y-%m-%dT%H:%M:%SZ'))";
+
+      mapi_param(hdl, 0, (char **) data[1].c_str());
+      mapi_param(hdl, 1, (char **) date.c_str());
+
+      std::string coord = "'POINT( " + data[5] + " " + data[4] + " )'";
+      mapi_param(hdl, 2, (char **) coord.c_str());
+
+      int ret = mapi_execute(hdl);
+      check(_dbh, hdl, ret);
+
+    } catch (const std::exception &e) {
+      std::cerr << "[" << e.what() << "]: [" << line << "]" << std::endl;
+    }
+  }
+
+  infile.close();
+
+  // update bounding box
+  update(_dbh, (char *) "ALTER TABLE db ADD bbox mbr");
+  update(_dbh, (char *) "UPDATE db SET bbox = mbr(origin_airport)");
+
+#endif // __GNUC__
 }
 
 void MonetDBCtn::query(const Query &query) {

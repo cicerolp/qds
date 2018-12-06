@@ -23,7 +23,7 @@ void run_bench(int argc, char *argv[], const std::string &log, const std::string
   } else if (schema == "on-time") {
     container->create_on_time();
     container->insert_on_time(data);
-  } else if (schema == "small-twitter") {
+  } else if (schema == "twitter") {
     container->create_small_twitter();
     container->insert_small_twitter(data);
   } else {
@@ -79,9 +79,9 @@ int main(int argc, char *argv[]) {
 
   ////////////////////////////////////////////////////////
 
-  // run_bench<PostGisCtn>(argc, argv, log, data, schema);
+  run_bench<PostGisCtn>(argc, argv, log, data, schema);
   run_bench<SpatiaLiteCtn>(argc, argv, log, data, schema);
-  // run_bench<MonetDBCtn>(argc, argv, log, data, schema);
+  run_bench<MonetDBCtn>(argc, argv, log, data, schema);
 
   return 0;
 }
