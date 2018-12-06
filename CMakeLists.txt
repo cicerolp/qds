@@ -69,6 +69,11 @@ set(SRC_LIST
         source/SpatiaLiteCtn.cpp
         source/MonetDBCtn.cpp)
 
+FIND_LIBRARY(PQ_C_LIBRARY NAMES pq)
+FIND_LIBRARY(GEOS_C_LIBRARY NAMES geos_c)
+FIND_LIBRARY(SPATIALITE_LIBRARY NAMES spatialite)
+FIND_LIBRARY(SQLITE_LIBRARY NAMES sqlite3)
+
 find_package(Threads REQUIRED)
 find_package(Boost COMPONENTS serialization program_options regex filesystem REQUIRED)
 
@@ -82,7 +87,8 @@ if(Boost_FOUND)
 
     add_executable(${PROJECT_NAME} ${SRC_LIST} ${HEADERS})
 
-    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${COMMON_LIBRARIES})
+    target_link_libraries(${PROJECT_NAME} LINK_PUBLIC ${COMMON_LIBRARIES}
+            ${SPATIALITE_LIBRARY} ${SQLITE_LIBRARY} ${GEOS_C_LIBRARY} ${PQ_C_LIBRARY})
 endif()
 
 # # cotire
