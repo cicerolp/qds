@@ -73,11 +73,6 @@ chmod +x ./benchmarks/bench_queries_db
 cp ./benchmarks/bench_queries_db ../
 cd $HOMEDIR
 
-
-./bench_queries_db -s snap -i /home/cicerolp/Git/nds-data/logs-nds/brightkite-count-region.log -d /home/cicerolp/data/brightkite/csv/sample.csv > ${TMPDIR}/db_${EXECID}_brightkite-count-region.csv
-
-exit
-
 ## brightkite
 ./bench_queries_db -s snap -i /home/cicerolp/Git/nds-data/logs-nds/brightkite-count-region.log -d /home/cicerolp/data/brightkite/csv/data.csv > ${TMPDIR}/db_${EXECID}_brightkite-count-region.csv
 
