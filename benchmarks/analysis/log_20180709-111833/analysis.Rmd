@@ -1,6 +1,6 @@
 ---
 title: "R Notebook"
-output: html_notebook
+output: 
 ---
 
 ```{r include=FALSE}
@@ -54,20 +54,46 @@ load_hc <- function(dataset) {
 }
 ```
 
+```{r}
+db_brightkite <- read_delim('db_20181207-144925_brightkite-count-region.csv', delim = ';', col_names = FALSE)
+
+db_brightkite <- db_brightkite %>%
+  group_by(X3, X5) %>%
+  summarise(
+    Time = sum(X7),
+    Structure = X8
+  ) %>%
+  group_by(X3) %>%
+  summarise(
+    Max = max(Time),
+    Min = min(Time),
+    Mean = mean(Time),
+    Stdv = sd(Time),
+    Structure = Structure
+  ) %>%
+  mutate(
+    Dataset = 'brightkite'
+  )
+
+unique(db_brightkite$Structure)
+```
+
 ```{r include=FALSE}
 data <- rbind(
   load("brightkite"), load("gowalla"), load("flights"), load("twitter-small"),
-  load_hc("brightkite"), load_hc("gowalla"), load_hc("flights"), load_hc("twitter-small")
+  load_hc("brightkite"), load_hc("gowalla"), load_hc("flights"), load_hc("twitter-small"),
+  db_brightkite
 )
 ```
 
-```{r fig.height=4.4, fig.width=6}
+```{r fig.height=2.6, fig.width=6}
 data$Structure <- as.factor(data$Structure)
-data$Structure <- factor(data$Structure, levels = c("QDS", "Hashedcubes"))
+data$Structure <- factor(data$Structure, levels = c('QDS', 'Hashedcubes', 'SQLite', 'PostgreSQL', 'MonetDB'))
 
 data %>% 
   # filter(Dataset == "brightkite") %>%
-  filter(Mean >= 1) %>%
+  # filter(Mean >= 1.0) %>%
+  # filter(!Structure == 'SQLite') %>%
   ggplot(aes(x = Structure, y = Mean)) + 
     # geom_jitter(aes(colour = Structure), position = position_jitter(width = .05), alpha = 0.5) +
     geom_boxplot(aes(colour = Structure), outlier.alpha = 1.0) + 
@@ -95,15 +121,15 @@ data %>%
       axis.ticks = element_blank(),
       strip.text.y = element_text(size = 8)
     ) +
-    scale_colour_manual(values = c("#377EB8", "#E41A1C")) +
-    scale_y_continuous(breaks = scales::pretty_breaks(n = 15)) +
+    scale_colour_manual(values = c('#377EB8', '#E41A1C', '#984ea3', '#ff7f00', '#4daf4a')) +
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 5)) +
     scale_x_discrete(limits = rev(levels(data$Structure))) +
     # scale_y_continuous(breaks = round(seq(0, 10000, by = 200), 2)) +
-    facet_wrap(. ~  Dataset, ncol = 1, scales = "free_x", strip.position="right") +
-    guides(colour = guide_legend(title = "Performance Comparison of Counting Queries"))
+    facet_wrap(. ~  Dataset, ncol = 2, scales = "free_x", strip.position="right") +
+    guides(colour = guide_legend(title = "Counting Queries"))
     # scale_x_discrete(labels= c("p-digest", "Naive"))
 
-ggsave("query_performance.pdf")
+# ggsave("query_performance.pdf")
 ```
 
 
