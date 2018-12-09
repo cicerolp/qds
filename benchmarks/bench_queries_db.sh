@@ -79,7 +79,7 @@ cd $HOMEDIR
 # push_to_git
 
 ## gowalla
-./bench_queries_db -s snap -i /home/cicerolp/Git/nds-data/logs-nds/gowalla-count-region.log -d /home/cicerolp/data/gowalla/data.csv > ${TMPDIR}/db_${EXECID}_gowalla-count-region.csv
+./bench_queries_db -s snap -i /home/cicerolp/Git/nds-data/logs-nds/gowalla-count-region.log -d /home/cicerolp/data/gowalla/csv/data.csv > ${TMPDIR}/db_${EXECID}_gowalla-count-region.csv
 
 # push_to_git
 
