@@ -55,10 +55,10 @@ load_hc <- function(dataset) {
 ```
 
 ```{r}
-db_brightkite <- read_delim('db_20181207-144925_brightkite-count-region.csv', delim = ';', col_names = FALSE)
-
-db_brightkite <- db_brightkite %>%
-  group_by(X3, X5) %>%
+load_db <- function(file, dataset) {
+  df <- read_delim(file, delim = ";", col_names = FALSE)
+  
+  df %>% group_by(X3, X5) %>%
   summarise(
     Time = sum(X7),
     Structure = X8
@@ -72,28 +72,39 @@ db_brightkite <- db_brightkite %>%
     Structure = Structure
   ) %>%
   mutate(
-    Dataset = 'brightkite'
+    Dataset = dataset
   )
-
-unique(db_brightkite$Structure)
+}
 ```
 
 ```{r include=FALSE}
 data <- rbind(
   load("brightkite"), load("gowalla"), load("flights"), load("twitter-small"),
   load_hc("brightkite"), load_hc("gowalla"), load_hc("flights"), load_hc("twitter-small"),
-  db_brightkite
+  
+  load_db('log_20181209-105507/db_20181209-105507_brightkite-count-region.csv', 'brightkite'),
+  load_db('log_20181209-105507/db_20181209-105507_gowalla-count-region.csv', 'gowalla'),
+  load_db('log_20181209-105507/db_20181209-105507_on_time_performance-count-region.csv', 'flights'),
+  load_db('log_20181209-105507/db_20181209-105507_twitter-small-count-region.csv', 'twitter-small'),
+  
+  
+  load_db('log_20181211-094911/db_20181211-094911_brightkite-count-region.csv', 'brightkite'),
+  load_db('log_20181211-094911/db_20181211-094911_gowalla-count-region.csv', 'gowalla'),
+  load_db('log_20181211-094911/db_20181211-094911_on_time_performance-count-region.csv', 'flights')
+  # load_db('log_20181211-094911/db_20181211-094911_twitter-small-count-region.csv', 'twitter-small')
 )
 ```
 
-```{r fig.height=2.6, fig.width=6}
+```{r fig.height=2.6, fig.width=12}
+# {r fig.height=2.6, fig.width=6}
+
 data$Structure <- as.factor(data$Structure)
 data$Structure <- factor(data$Structure, levels = c('QDS', 'Hashedcubes', 'SQLite', 'PostgreSQL', 'MonetDB'))
 
 data %>% 
   # filter(Dataset == "brightkite") %>%
   # filter(Mean >= 1.0) %>%
-  # filter(!Structure == 'SQLite') %>%
+  # filter(!Structure == 'SQLite' & !Structure == 'PostgreSQL') %>%
   ggplot(aes(x = Structure, y = Mean)) + 
     # geom_jitter(aes(colour = Structure), position = position_jitter(width = .05), alpha = 0.5) +
     geom_boxplot(aes(colour = Structure), outlier.alpha = 1.0) + 
