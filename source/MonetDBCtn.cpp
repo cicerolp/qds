@@ -312,10 +312,11 @@ void MonetDBCtn::query(const Query &query) {
     return;
   }
 
+  int count = -1;
+
   try {
     MapiHdl hdl = query_db(_dbh, (char *) query.to_monetdb().c_str());
-
-    int count = -1;
+    
     if (mapi_fetch_row(hdl)) {
       auto field = mapi_fetch_field(hdl, 0);
       if (field != nullptr) {
