@@ -312,18 +312,23 @@ void MonetDBCtn::query(const Query &query) {
     return;
   }
 
-  MapiHdl hdl = query_db(_dbh, (char *) query.to_monetdb().c_str());
+  try {
+    MapiHdl hdl = query_db(_dbh, (char *) query.to_monetdb().c_str());
 
-  int count = -1;
-  if (mapi_fetch_row(hdl)) {
-    auto field = mapi_fetch_field(hdl, 0);
-    if (field != nullptr) {
-      count = std::stoi(field);
+    int count = -1;
+    if (mapi_fetch_row(hdl)) {
+      auto field = mapi_fetch_field(hdl, 0);
+      if (field != nullptr) {
+        count = std::stoi(field);
+      }
     }
+
+    mapi_close_handle(hdl);
+  } catch (const std::exception &e) {
+    std::cerr << "[" << e.what() << "]: [" << query.to_monetdb() << "]" << std::endl;
   }
 
-  mapi_close_handle(hdl);
-
+  
   TIMER_END
   TIMER_OUTPUT(name(), "output", count)
 
