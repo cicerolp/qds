@@ -147,7 +147,7 @@ data %>%
 ```
 
 
-```{r fig.height=2.6, fig.width=12}
+```{r fig.height=2.6, fig.width=5.7}
 # {r fig.height=2.6, fig.width=6}
 
 data$Structure <- as.factor(data$Structure)
@@ -170,7 +170,7 @@ data %>%
     # guides(colour = FALSE) + 
     theme_bw() +
     theme(
-      plot.title = element_text(hjust = 0.5, size = 11),
+      plot.title = element_text(hjust = 0.5, size = 10),
       axis.title.x = element_text(size = 10),
       axis.title.y = element_text(size = 10),
       legend.justification = "center",
@@ -180,8 +180,8 @@ data %>%
       legend.position = "top",
       # legend.title = element_text(size = 11),
       # legend.title = element_blank(),
-      legend.margin = margin(t = -0.1, b = -0.2, unit='cm'),
-      plot.margin = unit(c(0,0.1,0,-0.9), "lines"),
+      legend.margin = margin(t = -0.1, b = -0.2, r = -0.4, unit='cm'),
+      plot.margin = unit(c(0,0.0,0,-0.9), "lines"),
       axis.text.y = element_blank(),
       axis.ticks = element_blank(),
       strip.text.y = element_text(size = 8)
