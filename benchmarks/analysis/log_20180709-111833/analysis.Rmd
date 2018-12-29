@@ -99,12 +99,14 @@ data <- rbind(
 # {r fig.height=2.6, fig.width=6}
 
 data$Structure <- as.factor(data$Structure)
+# data$Structure <- factor(data$Structure, levels = c('QDS', 'Hashedcubes', 'PostgreSQL', 'MonetDB'))
 data$Structure <- factor(data$Structure, levels = c('QDS', 'Hashedcubes', 'SQLite', 'PostgreSQL', 'MonetDB'))
 
 data %>% 
   # filter(Dataset == "brightkite") %>%
-  # filter(Mean >= 1.0) %>%
-  # filter(!Structure == 'SQLite' & !Structure == 'PostgreSQL') %>%
+  filter(Mean >= 1.0) %>%
+  # & !Structure == 'PostgreSQL'
+  # filter(!Structure == 'SQLite') %>%
   ggplot(aes(x = Structure, y = Mean)) + 
     # geom_jitter(aes(colour = Structure), position = position_jitter(width = .05), alpha = 0.5) +
     geom_boxplot(aes(colour = Structure), outlier.alpha = 1.0) + 
@@ -133,14 +135,65 @@ data %>%
       strip.text.y = element_text(size = 8)
     ) +
     scale_colour_manual(values = c('#377EB8', '#E41A1C', '#984ea3', '#ff7f00', '#4daf4a')) +
-    scale_y_continuous(breaks = scales::pretty_breaks(n = 5)) +
+    # scale_y_continuous(breaks = scales::pretty_breaks(n = 5), trans='log2') +
+    scale_y_continuous(trans='log10', breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x))) +
     scale_x_discrete(limits = rev(levels(data$Structure))) +
     # scale_y_continuous(breaks = round(seq(0, 10000, by = 200), 2)) +
     facet_wrap(. ~  Dataset, ncol = 2, scales = "free_x", strip.position="right") +
-    guides(colour = guide_legend(title = "Counting Queries"))
+    guides(colour = guide_legend(title = "Count Queries"))
     # scale_x_discrete(labels= c("p-digest", "Naive"))
 
 # ggsave("query_performance.pdf")
 ```
 
 
+```{r fig.height=2.6, fig.width=12}
+# {r fig.height=2.6, fig.width=6}
+
+data$Structure <- as.factor(data$Structure)
+# data$Structure <- factor(data$Structure, levels = c('QDS', 'Hashedcubes', 'PostgreSQL', 'MonetDB'))
+data$Structure <- factor(data$Structure, levels = c('QDS', 'Hashedcubes', 'SQLite', 'PostgreSQL', 'MonetDB'))
+
+data %>% 
+  # filter(Dataset == "brightkite") %>%
+  # filter(Mean >= 1.0) %>%
+  # & !Structure == 'PostgreSQL'
+  # filter(!Structure == 'SQLite') %>%
+  ggplot(aes(x = Structure, y = Mean)) + 
+    # geom_jitter(aes(colour = Structure), position = position_jitter(width = .05), alpha = 0.5) +
+    geom_boxplot(aes(colour = Structure), outlier.alpha = 1.0) + 
+    coord_flip() + 
+    # labs(title = "Performance Comparison of Couting Queries") +
+    labs(title = "") +
+    ylab("Running Time (ms)") +
+    xlab("") +
+    # guides(colour = FALSE) + 
+    theme_bw() +
+    theme(
+      plot.title = element_text(hjust = 0.5, size = 11),
+      axis.title.x = element_text(size = 10),
+      axis.title.y = element_text(size = 10),
+      legend.justification = "center",
+      legend.direction = "horizontal",
+      # legend.text = element_text(angle = 90, hjust = 1),
+      # legend.position = c(0.5, 0.98),
+      legend.position = "top",
+      # legend.title = element_text(size = 11),
+      # legend.title = element_blank(),
+      legend.margin = margin(t = -0.1, b = -0.2, unit='cm'),
+      plot.margin = unit(c(0,0.1,0,-0.9), "lines"),
+      axis.text.y = element_blank(),
+      axis.ticks = element_blank(),
+      strip.text.y = element_text(size = 8)
+    ) +
+    scale_colour_manual(values = c('#377EB8', '#E41A1C', '#984ea3', '#ff7f00', '#4daf4a')) +
+    # scale_y_continuous(breaks = scales::pretty_breaks(n = 5), trans='log2') +
+    scale_y_continuous(trans='log10', breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x))) +
+    scale_x_discrete(limits = rev(levels(data$Structure))) +
+    # scale_y_continuous(breaks = round(seq(0, 10000, by = 200), 2)) +
+    facet_wrap(. ~  Dataset, ncol = 2, scales = "free_x", strip.position="right") +
+    guides(colour = guide_legend(title = "Count Queries"))
+    # scale_x_discrete(labels= c("p-digest", "Naive"))
+
+ggsave("query_performance.png")
+```
