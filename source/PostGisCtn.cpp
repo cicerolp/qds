@@ -508,19 +508,12 @@ void PostGisCtn::query(const Query &query) {
     fprintf(stderr, "SELECT command failed: %s", PQerrorMessage(_conn));
   }
 
-  // std::cout << query.to_postgresql() << std::endl;
-
-  int count = -1;
-  auto value = std::string(PQgetvalue(res, 0, 0));
-
-  if (!value.empty()) {
-    count = std::stoi(value);
-  }
+  auto volatile value = PQgetvalue(res, 0, 0);
 
   PQclear(res);
 
   TIMER_END
-  TIMER_OUTPUT(name(), "output", count)
+  TIMER_OUTPUT(name(), "output")
 
 #endif // __GNUC__
 }

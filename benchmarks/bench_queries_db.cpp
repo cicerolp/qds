@@ -45,11 +45,11 @@ void run_bench(int argc, char *argv[], const std::string &log, const std::string
 
     container->query(Query(line));
 
-    TIMER_INCR_IT
+    // TIMER_INCR_IT
 
     // container->query(Query(line));
 
-    TIMER_INCR_IT
+    // TIMER_INCR_IT
 
     // container->query(Query(line));
 
@@ -79,8 +79,8 @@ int main(int argc, char *argv[]) {
 
   ////////////////////////////////////////////////////////
 
-  // run_bench<PostGisCtn>(argc, argv, log, data, schema);
-  // run_bench<SpatiaLiteCtn>(argc, argv, log, data, schema);
+  run_bench<PostGisCtn>(argc, argv, log, data, schema);
+  run_bench<SpatiaLiteCtn>(argc, argv, log, data, schema);
   run_bench<MonetDBCtn>(argc, argv, log, data, schema);
 
   return 0;

@@ -74,24 +74,18 @@ cp ./benchmarks/bench_queries_db ../
 cd $HOMEDIR
 
 ## brightkite
-# ./bench_queries_db -s snap -i /home/cicerolp/Git/nds-data/logs-nds/brightkite-count-region.log -d /home/cicerolp/data/brightkite/csv/data.csv > 
-${TMPDIR}/db_${EXECID}_brightkite-count-region.csv
-
-# push_to_git
+# ./bench_queries_db -s snap -i /home/cicerolp/Git/nds-data/logs-nds/brightkite-count-region.log -d /home/cicerolp/data/brightkite/csv/data.csv > ${TMPDIR}/db_${EXECID}_brightkite-count-region.csv
 
 ## gowalla
-# ./bench_queries_db -s snap -i /home/cicerolp/Git/nds-data/logs-nds/gowalla-count-region.log -d /home/cicerolp/data/gowalla/csv/data.csv > 
-${TMPDIR}/db_${EXECID}_gowalla-count-region.csv
-
-# push_to_git
+# ./bench_queries_db -s snap -i /home/cicerolp/Git/nds-data/logs-nds/gowalla-count-region.log -d /home/cicerolp/data/gowalla/csv/data.csv > ${TMPDIR}/db_${EXECID}_gowalla-count-region.csv
 
 ## on-time
-# ./bench_queries_db -s on-time -i /home/cicerolp/Git/nds-data/logs-nds/on_time_performance-count-region.log -d /home/cicerolp/data/flights/csv/data.csv > 
-${TMPDIR}/db_${EXECID}_on_time_performance-count-region.csv
-
-# push_to_git
+# ./bench_queries_db -s on-time -i /home/cicerolp/Git/nds-data/logs-nds/on_time_performance-count-region.log -d /home/cicerolp/data/flights/csv/data.csv > ${TMPDIR}/db_${EXECID}_on_time_performance-count-region.csv
 
 ## twitter
-./bench_queries_db -s twitter -i /home/cicerolp/Git/nds-data/logs-nds/twitter-small-count-region.log -d /home/cicerolp/data/twitter/csv/data.csv > ${TMPDIR}/db_${EXECID}_twitter-small-count-region.csv
+#./bench_queries_db -s twitter -i /home/cicerolp/Git/nds-data/logs-nds/twitter-small-count-region.log -d /home/cicerolp/data/twitter/csv/data.csv > ${TMPDIR}/db_${EXECID}_twitter-small-count-region.csv
+
+## percitile on-time
+./bench_queries_db -s on-time -i /home/cicerolp/Git/nds-data/logs-nds/on_time_performance-quantile-0_500-region.log -d /home/cicerolp/data/flights/csv/data.csv > ${TMPDIR}/db_${EXECID}_on_time_performance-quantile-0_500-region.csv
 
 push_to_git

@@ -1,5 +1,4 @@
 #include "stdafx.h"
-#include "types.h"
 #include "MonetDBCtn.h"
 
 MonetDBCtn::MonetDBCtn(int argc, char **argv) {
@@ -312,16 +311,15 @@ void MonetDBCtn::query(const Query &query) {
     return;
   }
 
-  int count = -1;
+  // mapi_export char *mapi_fetch_field(MapiHdl hdl, int fnr);
+  // mapi_export size_t mapi_fetch_field_len(MapiHdl hdl, int fnr);
 
   try {
     MapiHdl hdl = query_db(_dbh, (char *) query.to_monetdb().c_str());
-    
+
     if (mapi_fetch_row(hdl)) {
-      auto field = mapi_fetch_field(hdl, 0);
-      if (field != nullptr) {
-        count = std::stoi(field);
-      }
+      auto volatile size = mapi_fetch_field_len(hdl, 0);
+      auto volatile field = mapi_fetch_field(hdl, 0);
     }
 
     mapi_close_handle(hdl);
@@ -329,9 +327,8 @@ void MonetDBCtn::query(const Query &query) {
     std::cerr << "[" << e.what() << "]: [" << query.to_monetdb() << "]" << std::endl;
   }
 
-  
   TIMER_END
-  TIMER_OUTPUT(name(), "output", count)
+  TIMER_OUTPUT(name(), "output")
 
 #endif // __GNUC__
 }
