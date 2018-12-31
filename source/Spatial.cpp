@@ -55,7 +55,7 @@ tile_t Spatial::parse_tile(const std::string &str) {
   boost::split(tokens, clausule, boost::is_any_of(":"));
 
   // [x]:[y]:[z]:[resolution]
-  return tile_t(std::stoi(tokens[0]), std::stoi(tokens[1]), std::stoi(tokens[2]), std::stoi(tokens[3]));
+  return tile_t(std::stoul(tokens[0]), std::stoul(tokens[1]), std::stoul(tokens[2]), std::stoul(tokens[3]));
 }
 
 region_t Spatial::parse_region(const std::string &str) {
@@ -65,11 +65,11 @@ region_t Spatial::parse_region(const std::string &str) {
   boost::split(tokens, clausule, boost::is_any_of(":"));
 
   // [x0]:[y0]:[x1]:[y1]:[z]
-  return region_t(std::stoi(tokens[0]),
-                  std::stoi(tokens[1]),
-                  std::stoi(tokens[2]),
-                  std::stoi(tokens[3]),
-                  std::stoi(tokens[4]));
+  return region_t(std::stoul(tokens[0]),
+                  std::stoul(tokens[1]),
+                  std::stoul(tokens[2]),
+                  std::stoul(tokens[3]),
+                  std::stoul(tokens[4]));
 }
 
 void Spatial::get_schema_hint(rapidjson::Writer<rapidjson::StringBuffer> &writer) const {
