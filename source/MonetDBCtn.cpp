@@ -295,7 +295,85 @@ void MonetDBCtn::insert_small_twitter(const std::string &filename) {
 
   // update bounding box
   update(_dbh, (char *) "ALTER TABLE db ADD bbox mbr");
-  update(_dbh, (char *) "UPDATE db SET bbox = mbr(origin_airport)");
+  update(_dbh, (char *) "UPDATE db SET bbox = mbr(coord)");
+
+#endif // __GNUC__
+}
+
+void MonetDBCtn::create_gaussian() {
+#ifdef __GNUC__
+  update(_dbh, (char *) "DROP TABLE IF EXISTS db");
+  update(_dbh, (char *) "CREATE TABLE db (gaussian REAL, coord POINT)");
+#endif // __GNUC__
+}
+
+void MonetDBCtn::insert_gaussian(const std::string &filename) {
+#ifdef __GNUC__
+
+  if (!_init) {
+    return;
+  }
+
+  static const std::string sep = ",";
+
+  // source: https://bravenewmethod.com/2016/09/17/quick-and-robust-c-csv-reader-with-boost/
+  // used to split the file in lines
+  const boost::regex linesregx("\\r\\n|\\n\\r|\\n|\\r");
+
+  // used to split each line to tokens, assuming ',' as column separator
+  const boost::regex fieldsregx(sep + "(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+
+  std::ifstream infile(filename);
+
+  std::string line;
+
+  // skip header
+  std::getline(infile, line);
+
+  MapiHdl hdl = mapi_prepare(_dbh, "INSERT INTO db VALUES (?, ?)");
+  check(_dbh, hdl);
+
+  while (!infile.eof()) {
+
+    std::getline(infile, line);
+
+    if (line.empty()) {
+      continue;
+    }
+
+    try {
+      // split line to tokens
+      boost::sregex_token_iterator ti(line.begin(), line.end(), fieldsregx, -1);
+      boost::sregex_token_iterator ti_end;
+
+      std::vector<std::string> data(ti, ti_end);
+
+      // update(_dbh, (char *) "CREATE TABLE db (gaussian REAL, coord POINT)");
+      /*
+      00, x
+      01, y
+      02, z
+      03, t
+      */
+
+      mapi_param(hdl, 0, (char **) data[2].c_str());
+
+      std::string coord = "'POINT( " + data[0] + " " + data[1] + " )'";
+      mapi_param(hdl, 1, (char **) coord.c_str());
+
+      int ret = mapi_execute(hdl);
+      check(_dbh, hdl, ret);
+
+    } catch (const std::exception &e) {
+      std::cerr << "[" << e.what() << "]: [" << line << "]" << std::endl;
+    }
+  }
+
+  infile.close();
+
+  // update bounding box
+  update(_dbh, (char *) "ALTER TABLE db ADD bbox mbr");
+  update(_dbh, (char *) "UPDATE db SET bbox = mbr(coord)");
 
 #endif // __GNUC__
 }
@@ -377,4 +455,3 @@ void MonetDBCtn::update(Mapi dbh, char *q) {
   if (mapi_close_handle(ret) != MOK)
     die(dbh, ret);
 }
-

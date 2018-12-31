@@ -20,6 +20,10 @@ class GeoCtnIntf {
   virtual void create_small_twitter() = 0;
   virtual void insert_small_twitter(const std::string &filename) = 0;
 
+  // gaussian
+  virtual void create_gaussian() = 0;
+  virtual void insert_gaussian(const std::string &filename) = 0;
+
   virtual void query(const Query &query) = 0;
 
   inline virtual std::string name() const;

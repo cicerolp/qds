@@ -19,6 +19,10 @@ class PostGisCtn : public GeoCtnIntf {
   void create_small_twitter() override;
   void insert_small_twitter(const std::string &filename) override;
 
+  // gaussian
+  void create_gaussian() override;
+  void insert_gaussian(const std::string &filename) override;
+
   void query(const Query &query) override;
 
   inline virtual std::string name() const override;

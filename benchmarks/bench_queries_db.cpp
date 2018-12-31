@@ -26,6 +26,9 @@ void run_bench(int argc, char *argv[], const std::string &log, const std::string
   } else if (schema == "twitter") {
     container->create_small_twitter();
     container->insert_small_twitter(data);
+  } else if (schema == "gaussian") {
+    container->create_gaussian();
+    container->insert_gaussian(data);
   } else {
     // invalid schema
     return;

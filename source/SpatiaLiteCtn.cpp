@@ -758,6 +758,228 @@ void SpatiaLiteCtn::insert_small_twitter(const std::string &filename) {
 #endif // __GNUC__
 }
 
+void SpatiaLiteCtn::create_gaussian() {
+  Timer timer;
+
+#ifdef __GNUC__
+  int ret;
+  char sql[256];
+  char *err_msg = NULL;
+
+  ret = sqlite3_enable_load_extension(_handle, 1);
+  if (ret != SQLITE_OK) {
+    // an error occurred
+    printf("sqlite3_enable_load_extension() error: %s\n", err_msg);
+    sqlite3_free(err_msg);
+
+    return;
+  }
+
+  auto curr_path = boost::filesystem::current_path().string();
+
+  ret = sqlite3_load_extension(_handle, (curr_path + "/" + "percentile").c_str(), NULL, &err_msg);
+  if (ret != SQLITE_OK) {
+    // an error occurred
+    printf("sqlite3_load_extension() error: %s\n", err_msg);
+    sqlite3_free(err_msg);
+
+    return;
+  }
+
+  // we are supposing this one is an empty database,
+  // so we have to create the Spatial Metadata
+  strcpy(sql, "SELECT InitSpatialMetadata(1)");
+  ret = sqlite3_exec(_handle, sql, NULL, NULL, &err_msg);
+  if (ret != SQLITE_OK) {
+    // an error occurred
+    printf("InitSpatialMetadata() error: %s\n", err_msg);
+    sqlite3_free(err_msg);
+
+    return;
+  }
+
+  // now we can create the table
+  strcpy(sql, "CREATE TABLE db (");
+  strcat(sql, "gaussian REAL)");
+  ret = sqlite3_exec(_handle, sql, NULL, NULL, &err_msg);
+  if (ret != SQLITE_OK) {
+    // an error occurred
+    printf("CREATE TABLE 'db' error: %s\n", err_msg);
+    sqlite3_free(err_msg);
+
+    return;
+  }
+
+  // ... we'll add a Geometry column of POINT type to the table
+  strcpy(sql, "SELECT AddGeometryColumn('db', 'coord', 4326, 'POINT', 2)");
+  ret = sqlite3_exec(_handle, sql, NULL, NULL, &err_msg);
+  if (ret != SQLITE_OK) {
+    // an error occurred
+    printf("AddGeometryColumn() error: %s\n", err_msg);
+    sqlite3_free(err_msg);
+
+    return;
+  }
+
+  // and finally we'll enable this geo-column to have a Spatial Index based on R*Tree
+  strcpy(sql, "SELECT CreateSpatialIndex('db', 'coord')");
+  ret = sqlite3_exec(_handle, sql, NULL, NULL, &err_msg);
+  if (ret != SQLITE_OK) {
+    // an error occurred
+    printf("CreateSpatialIndex() error: %s\n", err_msg);
+    sqlite3_free(err_msg);
+
+    return;
+  }
+
+  _init = true;
+
+#endif // __GNUC__
+}
+
+void SpatiaLiteCtn::insert_gaussian(const std::string &filename) {
+#ifdef __GNUC__
+
+  if (!_init) {
+    return;
+  }
+
+  int ret;
+  char sql[256];
+  char *err_msg = NULL;
+
+  int blob_size;
+  unsigned char *blob;
+
+  sqlite3_stmt *stmt;
+  gaiaGeomCollPtr geo = NULL;
+
+  // beginning a transaction
+  strcpy(sql, "BEGIN");
+  ret = sqlite3_exec(_handle, sql, NULL, NULL, &err_msg);
+  if (ret != SQLITE_OK) {
+    // an error occurred
+    printf("BEGIN error: %s\n", err_msg);
+    sqlite3_free(err_msg);
+
+    return;
+  }
+
+  // preparing to populate the table
+  strcpy(sql, "INSERT INTO db (gaussian, coord) VALUES (?, ?)");
+  ret = sqlite3_prepare_v2(_handle, sql, strlen(sql), &stmt, NULL);
+  if (ret != SQLITE_OK) {
+    // an error occurred
+    printf("INSERT SQL error: %s\n", sqlite3_errmsg(_handle));
+
+    return;
+  }
+
+  static const std::string sep = ",";
+
+  // source: https://bravenewmethod.com/2016/09/17/quick-and-robust-c-csv-reader-with-boost/
+  // used to split the file in lines
+  const boost::regex linesregx("\\r\\n|\\n\\r|\\n|\\r");
+
+  // used to split each line to tokens, assuming ',' as column separator
+  const boost::regex fieldsregx(sep + "(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+
+  std::ifstream infile(filename);
+
+  std::string line;
+
+  // skip header
+  std::getline(infile, line);
+
+  while (!infile.eof()) {
+
+    std::getline(infile, line);
+
+    if (line.empty()) {
+      continue;
+    }
+
+    try {
+      // split line to tokens
+      boost::sregex_token_iterator ti(line.begin(), line.end(), fieldsregx, -1);
+      boost::sregex_token_iterator ti_end;
+
+      std::vector<std::string> data(ti, ti_end);
+
+      /*
+      00, x
+      01, y
+      02, z
+      03, t
+      */
+
+      // preparing the geometry to insert
+      geo = gaiaAllocGeomColl();
+      geo->Srid = 4326;
+      // lon, lat
+      gaiaAddPointToGeomColl(geo, std::stof(data[0]), std::stof(data[1]));
+
+      // transforming this geometry into the SpatiaLite BLOB format
+      gaiaToSpatiaLiteBlobWkb(geo, &blob, &blob_size);
+
+      // we can now destroy the geometry object
+      gaiaFreeGeomColl(geo);
+
+      // resetting Prepared Statement and bindings
+      sqlite3_reset(stmt);
+      sqlite3_clear_bindings(stmt);
+
+      // (pk, key, value)
+      // binding parameters to Prepared Statement
+      sqlite3_bind_int(stmt, 1, std::stoi(data[2]));
+      sqlite3_bind_blob(stmt, 2, blob, blob_size, free);
+
+      // performing actual row insert
+      ret = sqlite3_step(stmt);
+      if (ret == SQLITE_DONE || ret == SQLITE_ROW);
+      else {
+        // an error occurred
+        printf("sqlite3_step() error: %s\n", sqlite3_errmsg(_handle));
+        sqlite3_finalize(stmt);
+
+        return;
+      }
+
+    } catch (const std::exception &e) {
+      std::cerr << "[" << e.what() << "]: [" << line << "]" << std::endl;
+    }
+  }
+
+  infile.close();
+
+  // we have now to finalize the query [memory cleanup]
+  sqlite3_finalize(stmt);
+
+  // committing the transaction
+  strcpy(sql, "COMMIT");
+  ret = sqlite3_exec(_handle, sql, NULL, NULL, &err_msg);
+  if (ret != SQLITE_OK) {
+    // an error occurred
+    printf("COMMIT error: %s\n", err_msg);
+    sqlite3_free(err_msg);
+
+    return;
+  }
+
+  // now we'll optimize the table
+  strcpy(sql, "ANALYZE db");
+  ret = sqlite3_exec(_handle, sql, NULL, NULL, &err_msg);
+  if (ret != SQLITE_OK) {
+    // an error occurred
+    printf("ANALYZE error: %s\n", err_msg);
+    sqlite3_free(err_msg);
+
+    return;
+  }
+
+#endif // __GNUC__
+}
+
 void SpatiaLiteCtn::query(const Query &query) {
 #ifdef __GNUC__
   TIMER_DECLARE

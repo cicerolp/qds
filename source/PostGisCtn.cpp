@@ -369,7 +369,6 @@ void PostGisCtn::create_small_twitter() {
   _init = true;
 
 #endif // __GNUC__
-
   return;
 }
 
@@ -450,6 +449,142 @@ void PostGisCtn::insert_small_twitter(const std::string &filename) {
       paramLengths[2] = std::strlen(paramValues[2]);
 
       res = PQexecPrepared(_conn, "stmtname", 3, paramValues, paramLengths, paramFormats, 0);
+      if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+        fprintf(stderr, "PQexecPrepared command failed: %s", PQerrorMessage(_conn));
+      }
+      PQclear(res);
+
+    } catch (const std::exception &e) {
+      std::cerr << "[" << e.what() << "]: [" << line << "]" << std::endl;
+    }
+  }
+
+  infile.close();
+
+  sql = "COMMIT;";
+  res = PQexec(_conn, sql.c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "COMMIT command failed: %s", PQerrorMessage(_conn));
+  }
+  PQclear(res);
+
+  // reorders the table on disk based on the index
+  sql = "CLUSTER db USING key_gix;";
+  res = PQexec(_conn, sql.c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "CLUSTER command failed: %s", PQerrorMessage(_conn));
+  }
+  PQclear(res);
+
+  sql = "ANALYZE db;";
+  res = PQexec(_conn, sql.c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "ANALYZE command failed: %s", PQerrorMessage(_conn));
+  }
+  PQclear(res);
+
+#endif // __GNUC__
+}
+
+void PostGisCtn::create_gaussian() {
+#ifdef __GNUC__
+
+  PGresult *res;
+  std::string sql;
+
+  sql += "DROP TABLE IF EXISTS db;";
+  sql +=
+      "CREATE TABLE db(gaussian REAL, coord GEOMETRY(Point, 4326));";
+  // spatial index using GIST
+  sql += "CREATE INDEX key_gix ON db USING GIST(coord);";
+
+  res = PQexec(_conn, sql.c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "BEGIN command failed: %s", PQerrorMessage(_conn));
+  }
+  PQclear(res);
+
+  sql = "INSERT INTO db (gaussian, coord) VALUES ($1, ST_GeomFromText($2, 4326));";
+  res = PQprepare(_conn, "stmtname", sql.c_str(), 0, nullptr);
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "PQprepare command failed: %s", PQerrorMessage(_conn));
+  }
+  PQclear(res);
+
+  _init = true;
+
+#endif // __GNUC__
+  return;
+}
+
+void PostGisCtn::insert_gaussian(const std::string &filename) {
+#ifdef __GNUC__
+
+  if (!_init) {
+    return;
+  }
+
+  PGresult *res;
+  std::string sql;
+
+  sql = "BEGIN;";
+  res = PQexec(_conn, sql.c_str());
+  if (PQresultStatus(res) != PGRES_COMMAND_OK) {
+    fprintf(stderr, "BEGIN command failed: %s", PQerrorMessage(_conn));
+  }
+  PQclear(res);
+
+  int paramLengths[2];
+  int paramFormats[2] = {0, 0};
+  const char *paramValues[2];
+
+  static const std::string sep = ",";
+
+  // source: https://bravenewmethod.com/2016/09/17/quick-and-robust-c-csv-reader-with-boost/
+  // used to split the file in lines
+  const boost::regex linesregx("\\r\\n|\\n\\r|\\n|\\r");
+
+  // used to split each line to tokens, assuming ',' as column separator
+  const boost::regex fieldsregx(sep + "(?=(?:[^\"]*\"[^\"]*\")*(?![^\"]*\"))");
+
+  std::ifstream infile(filename);
+
+  std::string line;
+
+  // skip header
+  std::getline(infile, line);
+
+  while (!infile.eof()) {
+
+    std::getline(infile, line);
+
+    if (line.empty()) {
+      continue;
+    }
+
+    try {
+      // split line to tokens
+      boost::sregex_token_iterator ti(line.begin(), line.end(), fieldsregx, -1);
+      boost::sregex_token_iterator ti_end;
+
+      std::vector<std::string> data(ti, ti_end);
+      /*
+      00, x
+      01, y
+      02, z
+      03, t
+      */
+
+      char coord[50];
+      sprintf(coord, "POINT(%f %f)", std::stof(data[0]), std::stof(data[1]));
+
+      paramValues[0] = data[2].c_str();
+      paramValues[1] = coord;
+
+      paramLengths[0] = std::strlen(paramValues[0]);
+      paramLengths[1] = std::strlen(paramValues[1]);
+
+      res = PQexecPrepared(_conn, "stmtname", 2, paramValues, paramLengths, paramFormats, 0);
       if (PQresultStatus(res) != PGRES_COMMAND_OK) {
         fprintf(stderr, "PQexecPrepared command failed: %s", PQerrorMessage(_conn));
       }
