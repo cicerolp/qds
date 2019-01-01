@@ -1,6 +1,6 @@
 
 #+TITLE: Experiment results
-#+DATE: Tue Jan  1 10:51:27 -04 2019
+#+DATE: Tue Jan  1 10:52:39 -04 2019
 #+AUTHOR: cicerolp
 #+MACHINE: b450
 #+FILE: info.org
@@ -70,7 +70,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2999.718
+cpu MHz		: 2976.570
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -98,7 +98,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2796.685
+cpu MHz		: 2174.694
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -126,7 +126,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2124.544
+cpu MHz		: 2490.663
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -154,7 +154,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2493.530
+cpu MHz		: 2180.209
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -182,7 +182,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 1847.726
+cpu MHz		: 2153.399
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -210,7 +210,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2593.946
+cpu MHz		: 1893.046
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -238,7 +238,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2290.754
+cpu MHz		: 2385.542
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -266,7 +266,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2642.946
+cpu MHz		: 2988.310
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -294,7 +294,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 1936.074
+cpu MHz		: 4304.580
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -322,7 +322,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2575.315
+cpu MHz		: 4309.127
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -350,7 +350,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 1728.198
+cpu MHz		: 2820.072
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -378,7 +378,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 1801.424
+cpu MHz		: 2649.776
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -406,7 +406,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 1987.780
+cpu MHz		: 2379.294
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -434,7 +434,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2424.440
+cpu MHz		: 2462.234
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -462,7 +462,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2653.623
+cpu MHz		: 2132.888
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -490,7 +490,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2543.828
+cpu MHz		: 1919.561
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -516,41 +516,41 @@ power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
 schedutil
 ############################################
 ** CPU FREQUENCY:
-2999718
+2976570
 ############################################
 ** MEM INFO:
 MemTotal:       32937452 kB
-MemFree:        14241824 kB
-MemAvailable:   31620796 kB
-Buffers:         8208104 kB
-Cached:          9342376 kB
+MemFree:        14098304 kB
+MemAvailable:   31655916 kB
+Buffers:         8214088 kB
+Cached:          9508628 kB
 SwapCached:            0 kB
-Active:          1249828 kB
-Inactive:       16779272 kB
-Active(anon):     486600 kB
-Inactive(anon):    14632 kB
-Active(file):     763228 kB
-Inactive(file): 16764640 kB
+Active:          1364592 kB
+Inactive:       16803796 kB
+Active(anon):     453668 kB
+Inactive(anon):    11092 kB
+Active(file):     910924 kB
+Inactive(file): 16792704 kB
 Unevictable:           0 kB
 Mlocked:               0 kB
 SwapTotal:      32942076 kB
 SwapFree:       32942076 kB
-Dirty:                44 kB
+Dirty:              1120 kB
 Writeback:             0 kB
-AnonPages:        478612 kB
-Mapped:           259088 kB
-Shmem:             22620 kB
-KReclaimable:     315592 kB
-Slab:             427068 kB
-SReclaimable:     315592 kB
-SUnreclaim:       111476 kB
+AnonPages:        445712 kB
+Mapped:           248384 kB
+Shmem:             19088 kB
+KReclaimable:     318472 kB
+Slab:             431048 kB
+SReclaimable:     318472 kB
+SUnreclaim:       112576 kB
 KernelStack:        8284 kB
-PageTables:        11880 kB
+PageTables:        11560 kB
 NFS_Unstable:          0 kB
 Bounce:                0 kB
 WritebackTmp:          0 kB
 CommitLimit:    49410800 kB
-Committed_AS:    2841176 kB
+Committed_AS:    2758980 kB
 VmallocTotal:   34359738367 kB
 VmallocUsed:           0 kB
 VmallocChunk:          0 kB
@@ -565,15 +565,15 @@ HugePages_Rsvd:        0
 HugePages_Surp:        0
 Hugepagesize:       2048 kB
 Hugetlb:               0 kB
-DirectMap4k:      576624 kB
-DirectMap2M:    23474176 kB
+DirectMap4k:      590960 kB
+DirectMap2M:    23459840 kB
 DirectMap1G:    10485760 kB
 ############################################
 ** GPU INFO FROM NVIDIA-SMI:
 
 ==============NVSMI LOG==============
 
-Timestamp                           : Tue Jan  1 10:51:27 2019
+Timestamp                           : Tue Jan  1 10:52:39 2019
 Driver Version                      : 415.25
 CUDA Version                        : 10.0
 
@@ -642,15 +642,15 @@ GPU 00000000:08:00.0
         Display Clock Setting       : Not Active
     FB Memory Usage
         Total                       : 1999 MiB
-        Used                        : 132 MiB
-        Free                        : 1867 MiB
+        Used                        : 142 MiB
+        Free                        : 1857 MiB
     BAR1 Memory Usage
         Total                       : 256 MiB
         Used                        : 5 MiB
         Free                        : 251 MiB
     Compute Mode                    : Default
     Utilization
-        Gpu                         : 1 %
+        Gpu                         : 4 %
         Memory                      : 6 %
         Encoder                     : 0 %
         Decoder                     : 0 %
@@ -724,8 +724,8 @@ GPU 00000000:08:00.0
         Min Power Limit             : 52.50 W
         Max Power Limit             : 75.00 W
     Clocks
-        Graphics                    : 139 MHz
-        SM                          : 139 MHz
+        Graphics                    : 367 MHz
+        SM                          : 367 MHz
         Memory                      : 405 MHz
         Video                       : 544 MHz
     Applications Clocks
@@ -752,7 +752,7 @@ GPU 00000000:08:00.0
         Process ID                  : 970
             Type                    : G
             Name                    : /usr/bin/gnome-shell
-            Used GPU Memory         : 61 MiB
+            Used GPU Memory         : 71 MiB
 
 ############################################
 ** LINUX AND GCC VERSIONS:
