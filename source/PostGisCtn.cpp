@@ -519,7 +519,7 @@ void PostGisCtn::create_gaussian() {
 
 void PostGisCtn::insert_gaussian(const std::string &filename) {
 #ifdef __GNUC__
-
+z
   if (!_init) {
     return;
   }
