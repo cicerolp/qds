@@ -79,7 +79,7 @@ cd $HOMEDIR
 # NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_5M.xml -d 10 > ${TMPDIR}/pdigest_${EXECID}_gaussian_5M.csv
 # NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_50M.xml -d 10 > ${TMPDIR}/pdigest_${EXECID}_gaussian_50M.csv
 
-NDS_DATA=${NDSDATADIR} ./bench_queries -i /home/cicerolp/Git/nds-data/logs-nds/gaussian-region.log -x ../xml/gaussian_50M.xml -d 10 > ${TMPDIR}/pdigest_${EXECID}_gaussian_50M.csv
+NDS_DATA=${NDSDATADIR} ./bench_queries -i /home/cicerolp/Git/nds-data/logs-nds/gaussian-lhs-region.log -x ../xml/gaussian_50M.xml -d 10 > ${TMPDIR}/pdigest_${EXECID}_gaussian_50M.csv
 
 
 ########################
@@ -103,7 +103,6 @@ cd $HOMEDIR
 # NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_5M.xml -d 10 > ${TMPDIR}/raw_${EXECID}_gaussian_5M.csv
 # NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_50M.xml -d 10 > ${TMPDIR}/raw_${EXECID}_gaussian_50M.csv
 
-NDS_DATA=${NDSDATADIR} ./bench_queries -i /home/cicerolp/Git/nds-data/logs-nds/gaussian-region.log -x ../xml/gaussian_50M.xml -d 10 > ${TMPDIR}/raw_${EXECID}_gaussian_50M.csv
+NDS_DATA=${NDSDATADIR} ./bench_queries -i /home/cicerolp/Git/nds-data/logs-nds/gaussian-lhs-region.log -x ../xml/gaussian_50M.xml -d 10 > ${TMPDIR}/raw_${EXECID}_gaussian_50M.csv
 
 push_to_git
-
