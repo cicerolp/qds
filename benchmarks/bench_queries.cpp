@@ -20,11 +20,8 @@ void run_bench(const std::string &input) {
       continue;
     }
 
-    for (auto i = 0; i < 3; ++i) {
-      NDSInstances::getInstance().query(Query(line));
-
-      TIMER_INCR_IT
-    }
+    NDSInstances::getInstance().query(Query(line));
+    TIMER_INCR_IT
 
     TIMER_RESET_IT
     TIMER_INCR_ID

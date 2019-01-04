@@ -1,0 +1,212 @@
+---
+title: "R Notebook"
+output: 
+---
+
+Use LHS design to choose centers of each query
+Avoid out-of-bound queries
+
+```{r include=FALSE}
+library(lhs)
+library(tidyverse)
+library(DoE.wrapper)
+```
+
+Generate 2 sizes of width and height
+
+```{r}
+# dfwuni = data.frame( width = 10 / ( 2 ** c(1:2)))
+dfwuni = data.frame(width = c(9, 8, 7, 6, 5, 4, 3, 2, 1))
+dfwuni$height = dfwuni$width
+dfwuni$width
+```
+
+Function: for a given width generates 10 position using LHS desing Note: we limit bouding box [0,0][10,10]
+
+```{r}
+bound = c(0, 10)
+
+flhs = function(w) {
+    wq = w
+    hq = wq # square queries
+
+    d = lhs.design( type= "maximin" , nruns = 10 ,nfactors = 2,
+                   factor.names=list(
+                       x = c(bound[1] + hq / 2, bound[2] - hq / 2),
+                       y = c(bound[1] + wq / 2, bound[2] - wq / 2))
+                   )
+
+    d$width = wq
+    d$height = hq
+    d
+}
+```
+
+Generates queries position for each value of Width.
+
+```{r}
+set.seed(42);
+# dflist = mapply(flhs,dfwuni$width,dfwuni$height)
+
+d8_llw = do.call(rbind, lapply(dfwuni$width,flhs))
+head(d8_llw)
+```
+
+Visualization
+
+```{r fig.height=6, fig.width=6}
+set.seed(42);
+n = 10**4
+x <- runif(n, min = 0, max = 10)
+y <- runif(n, min = 0, max = 10)
+
+data.frame(x, y) %>%
+  ggplot(aes(x, y)) +
+  geom_tile(data = d8_llw, aes(width = width, height = height, 
+                               color = factor(width), fill = factor(width)), 
+            size = 0.5, alpha = 0.1)+
+  # geom_point(alpha = 0.1)  +
+  labs(color = "Query Width " ) +
+  theme(legend.position="bottom") +
+  guides(color = guide_legend(nrow = 1), fill=FALSE)
+```
+
+```{r}
+d = d8_llw
+bbox = data.frame(y0 = d$y - d$height / 2,
+                  x0 = d$x - d$width / 2,
+                  y1 = d$y + d$height / 2,
+                  x1 = d$x + d$width / 2,
+                  width = d$width)
+tail(bbox)
+```
+
+Convert to tiles using Mercator projection
+
+```{r}
+lon2tilex <- function(lon, z) {
+  x <- (lon + 0.0) / 10.0 * (2 ^ z)
+  return(bitwAnd(x, (2 ^ z) - 1))
+}
+
+lat2tiley <- function(lat, z) {
+  y = (lat + 0.0) / 10.0 * (2 ^ z);
+  return(bitwAnd(y, (2 ^ z) - 1))
+}
+
+ bbox <- bbox %>%
+  mutate(
+    tiley0 = lat2tiley(y0, 8),
+    tilex0 = lon2tilex(x0, 8),
+    
+    tiley1 = lat2tiley(y1, 8),
+    tilex1 = lon2tilex(x1, 8)
+  )
+ 
+output <- {}
+ 
+for (row in 1:nrow(bbox)) {
+  output <- c(sprintf("/api/query/dataset=gaussian/aggr=quantile.gaussian.(0.500)/const=coord.region.(%d:%d:%d:%d:8)", 
+                      bbox[row,]$tilex0,
+                      bbox[row,]$tiley0,
+                      bbox[row,]$tilex1, 
+                      bbox[row,]$tiley1), 
+              output)
+}
+```
+
+Write data to file
+
+```{r}
+output
+
+write_lines(output, 'gaussian-lhs-region.log')
+```
+
+```{r}
+bbox <- bbox %>%
+  mutate(
+    id = row_number() - 1
+  )
+```
+
+```{r}
+read_data <- function(type, size) {
+  data <- c()
+  
+  lines <- read_lines(Sys.glob(paste0(type, "*", size, "*")))
+  for (i in 1:length(lines)){
+    if (length(grep("sort_data", lines[i])) != 1 & length(grep("validation", lines[i])) != 1) {
+      data <- c(data, lines[i])
+    }
+  }
+  
+  return (read_delim(paste(data, collapse = "\n"), delim = ";", col_names = FALSE))
+}
+
+load_bp <- function(type, size) {
+  df <- read_data(type, size)
+  
+  df <- df %>%
+    # filter(X3 < 10) %>%
+    group_by(X3, X5) %>%
+    summarise(
+        Time = sum(X7)
+    ) %>% 
+    group_by(X3) %>%
+    summarise(
+      Max = max(Time),
+      Min = min(Time),
+      Mean = mean(Time),
+      Stdv = sd(Time),
+      Stde  = sd(Time) / sqrt(2)
+    ) %>%
+    mutate(
+      Bench = if_else(type == "raw", "Naive", "QDS"),
+      Size = size
+    )
+  
+  return (df)
+}
+
+load_h <- function(type, size) {
+  df <- read_data(type, size)
+  
+  df <- df %>%
+      # filter(X3 < 10) %>%
+      group_by(X3, X8) %>%
+      summarise(
+        Max = max(X7),
+        Min = min(X7),
+        Mean = mean(X7),
+        Stdv = sd(X7),
+        Stde  = sd(X7) / sqrt(2)
+      ) %>%
+      mutate(
+        Bench = if_else(type == "raw", "Naive", "QDS"),
+        Size = size
+      )
+  
+  return (df)
+}
+```
+
+```{r}
+data <- rbind(
+  load_bp("pdigest", "50M"),
+  load_bp("raw", "50M")
+) 
+
+data$Bench <- as.factor(data$Bench)
+
+data$Size <- factor(data$Size, levels = c("50M"))
+
+data$Bench <- factor(data$Bench, levels = c("QDS", "Naive"))
+```
+
+
+```{r}
+data
+```
+
+

@@ -1,0 +1,165 @@
+---
+title: "R Notebook"
+output: 
+---
+
+```{r}
+library("lhs")
+library("scales")
+library("tidyverse")
+library("RColorBrewer")
+```
+
+```{r}
+read_data <- function(type, size) {
+  data <- c()
+  
+  lines <- read_lines(Sys.glob(paste0(type, "*", size, "*")))
+  for (i in 1:length(lines)){
+    if (length(grep("sort_data", lines[i])) != 1 & length(grep("validation", lines[i])) != 1) {
+      data <- c(data, lines[i])
+    }
+  }
+  
+  return (read_delim(paste(data, collapse = "\n"), delim = ";", col_names = FALSE))
+}
+```
+
+
+```{r}
+load_bp <- function(type, size) {
+  df <- read_data(type, size)
+  
+  df <- df %>%
+    # filter(X3 < 10) %>%
+    group_by(X3, X5) %>%
+    summarise(
+        Time = sum(X7)
+    ) %>% 
+    group_by(X3) %>%
+    summarise(
+      Max = max(Time),
+      Min = min(Time),
+      Mean = mean(Time),
+      Stdv = sd(Time)
+    ) %>%
+    mutate(
+      Bench = if_else(type == "raw", "Naive", "QDS"),
+      Size = size
+    )
+  
+  return (df)
+}
+```
+
+
+```{r}
+load_h <- function(type, size) {
+  df <- read_data(type, size)
+  
+  df <- df %>%
+      # filter(X3 < 10) %>%
+      group_by(X3, X8) %>%
+      summarise(
+        Max = max(X7),
+        Min = min(X7),
+        Mean = mean(X7),
+        Stdv = sd(X7)
+      ) %>%
+      mutate(
+        Bench = if_else(type == "raw", "Naive", "QDS"),
+        Size = size
+      )
+  
+  return (df)
+}
+```
+
+```{r}
+data <- rbind(
+  load_bp("pdigest", "50M"),
+  load_bp("raw", "50M")
+) 
+
+data$Bench <- as.factor(data$Bench)
+
+data$Size <- factor(data$Size, levels = c("50M"))
+
+data$Bench <- factor(data$Bench, levels = c("QDS", "Naive"))
+
+data
+```
+
+```{r}
+df <- read_delim('log_20190101-105240/db_20190101-105240_gaussian-quantile-0_500-region.csv', delim = ';', col_names = FALSE)
+
+colnames(df)[colnames(df)=="X8"] <- "Bench"
+colnames(df)[colnames(df)=="X7"] <- "Mean"
+
+df <-df %>%
+  group_by(Bench) %>%
+  mutate(
+    Max = Mean,
+    Min = Mean,
+    Stdv = 0,
+    Size = '50M',
+    X3 = row_number() - 1
+  ) %>%
+  ungroup()
+
+df <- subset(df, select=c(X3, Max, Min, Mean, Stdv, Bench, Size))
+
+df$Bench <- as.factor(df$Bench)
+df$Size <- as.factor(df$Size)
+df$X3 <- as.integer(df$X3)
+
+df
+```
+
+```{r}
+data <- rbind(data, df)
+
+data$Bench <- factor(data$Bench, levels = c("QDS", "Naive", "SQLite", "PostgreSQL", "MonetDB"))
+```
+
+
+```{r fig.height=1.6, fig.width=6}
+data %>%
+  # filter(X3 <= 8) %>%
+  filter(Mean > 0.5) %>%
+  ggplot(aes(x = Bench, y = Mean)) + 
+    geom_boxplot(aes(colour = Bench), outlier.alpha = 1.0) + 
+    coord_flip() +
+    labs(title = "") +
+    # labs(title = "Performance of Quantile (0.5) Computation") +
+    ylab("Running Time (ms)") +
+    xlab("") +
+    # guides(colour = FALSE) + 
+    theme_bw() +
+    theme(
+      plot.title = element_text(hjust = 0.5, size = 11),
+      axis.title.x = element_text(size = 10),
+      axis.title.y = element_text(size = 10),
+      legend.justification = "center",
+      legend.direction = "horizontal",
+      # legend.text = element_text(angle = 90, hjust = 1),
+      # legend.position = c(0.5, 0.98),
+      legend.position = "top",
+      # legend.title = element_text(size = 11),
+      # legend.title = element_blank(),
+      legend.margin = margin(t = -0.1, b = -0.2, unit='cm'),
+      plot.margin = unit(c(0,0.1,0,-0.9), "lines"),
+      axis.text.y = element_blank(),
+      axis.ticks = element_blank(),
+      strip.text.y = element_text(size = 8)
+    ) +
+    scale_colour_manual(values = c('#377EB8', '#E41A1C', '#984ea3', '#ff7f00', '#4daf4a')) +
+    scale_y_continuous(trans='log10', breaks = trans_breaks("log10", function(x) 10^x), labels = trans_format("log10", math_format(10^.x))) +
+    scale_x_discrete(limits = rev(levels(data$Bench))) +
+    facet_wrap(~ Size, scales = "free_x", ncol = 1, strip.position="right") +
+    guides(colour = guide_legend(title = "Quantile Queries"))
+
+ggsave("boxplot.pdf")
+ggsave("boxplot.png")
+```
+

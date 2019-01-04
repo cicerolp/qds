@@ -105,4 +105,4 @@ cd $HOMEDIR
 
 NDS_DATA=${NDSDATADIR} ./bench_queries -i /home/cicerolp/Git/nds-data/logs-nds/gaussian-lhs-region.log -x ../xml/gaussian_50M.xml -d 10 > ${TMPDIR}/raw_${EXECID}_gaussian_50M.csv
 
-push_to_git
+# push_to_git
