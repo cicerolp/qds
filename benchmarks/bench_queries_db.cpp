@@ -46,15 +46,7 @@ void run_bench(int argc, char *argv[], const std::string &log, const std::string
       continue;
     }
 
-    container->query(Query(line));
-
-    // TIMER_INCR_IT
-
-    // container->query(Query(line));
-
-    // TIMER_INCR_IT
-
-    // container->query(Query(line));
+    auto volatile field = container->query(Query(line));
 
     TIMER_RESET_IT
     TIMER_INCR_ID
@@ -81,10 +73,10 @@ int main(int argc, char *argv[]) {
   po::notify(vm);
 
   ////////////////////////////////////////////////////////
-
-  run_bench<PostGisCtn>(argc, argv, log, data, schema);
+  
   run_bench<SpatiaLiteCtn>(argc, argv, log, data, schema);
   run_bench<MonetDBCtn>(argc, argv, log, data, schema);
+  run_bench<PostGisCtn>(argc, argv, log, data, schema);
 
   return 0;
 }
