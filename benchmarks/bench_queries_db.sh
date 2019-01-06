@@ -86,6 +86,6 @@ cd $HOMEDIR
 #./bench_queries_db -s twitter -i /home/cicerolp/Git/nds-data/logs-nds/twitter-small-count-region.log -d /home/cicerolp/data/twitter/csv/data.csv > ${TMPDIR}/db_${EXECID}_twitter-small-count-region.csv
 
 ## percitile gaussian
-./bench_queries_db -s gaussian -i /home/cicerolp/Git/nds-data/logs-nds/gaussian-lhs-region.log -d /run/media/cicerolp/Misc/Data/gaussian_50M/csv/data.csv > ${TMPDIR}/db_${EXECID}_gaussian-quantile-0_500-region.csv
+./bench_queries_db -s gaussian -i /home/cicerolp/Git/nds-data/logs-nds/gaussian-lhs-region.log -d /run/media/cicerolp/Misc/Data/uniform_50M/csv/data.csv > ${TMPDIR}/db_${EXECID}_uniform-quantile-0_500-region.csv
 
 push_to_git
