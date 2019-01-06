@@ -1,6 +1,6 @@
 
 #+TITLE: Experiment results
-#+DATE: Sun Jan  6 11:07:52 -04 2019
+#+DATE: Sun Jan  6 11:17:05 -04 2019
 #+AUTHOR: cicerolp
 #+MACHINE: b450
 #+FILE: info.org
@@ -14,12 +14,11 @@ XDG_MENU_PREFIX=gnome-
 LANG=en_US.UTF-8
 GDM_LANG=en_US.UTF-8
 LESS=-r
-MANAGERPID=816
 DISPLAY=:0
-OLDPWD=/mnt/sdb/Git/nds/benchmarks
-INVOCATION_ID=d6e03e1745cf492ab21698ee654c3e07
+OLDPWD=/home/cicerolp
 EDITOR=/usr/bin/nano
 COLORTERM=truecolor
+DESKTOP_AUTOSTART_ID=10752690b78a14736b15467799678712000000009270007
 USERNAME=cicerolp
 MOZ_PLUGIN_PATH=/usr/lib/mozilla/plugins
 XDG_VTNR=2
@@ -29,32 +28,28 @@ LESS_TERMCAP_se=[0m
 XDG_SESSION_ID=1
 USER=cicerolp
 DESKTOP_SESSION=gnome
-GNOME_TERMINAL_SCREEN=/org/gnome/Terminal/screen/5222f47a_c6dd_4be3_a338_cef659e364e1
+GNOME_TERMINAL_SCREEN=/org/gnome/Terminal/screen/1d9a461a_08d7_4338_b7a8_e4bfc8b66263
 QT_QPA_PLATFORMTHEME=qt5ct
-PWD=/mnt/sdb/Git/nds/benchmarks
+PWD=/home/cicerolp/Git/nds/benchmarks
 HOME=/home/cicerolp
-JOURNAL_STREAM=9:14630
 MOZ_WEBRENDER=1
 XDG_SESSION_TYPE=x11
 XDG_SESSION_DESKTOP=gnome
 LESS_TERMCAP_mb=[01;32m
-DBUS_STARTER_ADDRESS=unix:path=/run/user/1000/bus,guid=d743b46dbb55345703ab995d5c31fd3e
 LESS_TERMCAP_md=[01;32m
 LESS_TERMCAP_me=[0m
 MAIL=/var/spool/mail/cicerolp
 WINDOWPATH=2
-TERM=xterm-256color
-SHELL=/usr/bin/zsh
 VTE_VERSION=5402
-DBUS_STARTER_BUS_TYPE=session
+SHELL=/usr/bin/zsh
+TERM=xterm-256color
 XDG_CURRENT_DESKTOP=GNOME
-GNOME_TERMINAL_SERVICE=:1.111
+GNOME_TERMINAL_SERVICE=:1.189
+SHLVL=3
 XDG_SEAT=seat0
-SHLVL=4
-INSIDE_NAUTILUS_PYTHON=
 GDMSESSION=gnome
 LOGNAME=cicerolp
-DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus,guid=d743b46dbb55345703ab995d5c31fd3e
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
 XDG_RUNTIME_DIR=/run/user/1000
 XAUTHORITY=/run/user/1000/gdm/Xauthority
 LESS_TERMCAP_ue=[0m
@@ -74,7 +69,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 1980.290
+cpu MHz		: 2483.509
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -102,7 +97,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2058.225
+cpu MHz		: 2835.096
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -130,7 +125,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2016.207
+cpu MHz		: 2826.400
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -158,7 +153,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2002.684
+cpu MHz		: 2448.371
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -186,7 +181,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2444.116
+cpu MHz		: 4268.428
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -214,7 +209,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2539.893
+cpu MHz		: 4314.556
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -242,7 +237,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 3743.984
+cpu MHz		: 2336.869
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -270,7 +265,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 4141.448
+cpu MHz		: 2179.451
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -298,7 +293,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 3326.515
+cpu MHz		: 2120.059
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -326,7 +321,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 4066.548
+cpu MHz		: 2203.586
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -354,7 +349,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2011.326
+cpu MHz		: 2127.202
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -382,7 +377,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2117.109
+cpu MHz		: 2128.959
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -410,7 +405,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2124.594
+cpu MHz		: 3193.176
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -438,7 +433,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 1995.220
+cpu MHz		: 3194.661
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -466,7 +461,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2042.471
+cpu MHz		: 2087.412
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -494,7 +489,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2117.970
+cpu MHz		: 2078.512
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -520,41 +515,41 @@ power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
 schedutil
 ############################################
 ** CPU FREQUENCY:
-1980290
+2483509
 ############################################
 ** MEM INFO:
 MemTotal:       32937460 kB
-MemFree:        23113284 kB
-MemAvailable:   31591064 kB
-Buffers:         3532664 kB
-Cached:          5156268 kB
+MemFree:        21330960 kB
+MemAvailable:   30031780 kB
+Buffers:         3535236 kB
+Cached:          5220940 kB
 SwapCached:            0 kB
-Active:          5162712 kB
-Inactive:        4043532 kB
-Active(anon):     517980 kB
-Inactive(anon):     3144 kB
-Active(file):    4644732 kB
-Inactive(file):  4040388 kB
-Unevictable:          16 kB
-Mlocked:              16 kB
+Active:          6652012 kB
+Inactive:        4261804 kB
+Active(anon):    1994940 kB
+Inactive(anon):    11584 kB
+Active(file):    4657072 kB
+Inactive(file):  4250220 kB
+Unevictable:           0 kB
+Mlocked:               0 kB
 SwapTotal:      32942076 kB
 SwapFree:       32942076 kB
-Dirty:              1820 kB
+Dirty:               428 kB
 Writeback:             0 kB
-AnonPages:        517328 kB
-Mapped:           223784 kB
-Shmem:              4000 kB
-KReclaimable:     257148 kB
-Slab:             375024 kB
-SReclaimable:     257148 kB
-SUnreclaim:       117876 kB
-KernelStack:        7952 kB
-PageTables:        10748 kB
+AnonPages:       2157208 kB
+Mapped:           484284 kB
+Shmem:             27856 kB
+KReclaimable:     258016 kB
+Slab:             390120 kB
+SReclaimable:     258016 kB
+SUnreclaim:       132104 kB
+KernelStack:       14016 kB
+PageTables:        24304 kB
 NFS_Unstable:          0 kB
 Bounce:                0 kB
 WritebackTmp:          0 kB
 CommitLimit:    49410804 kB
-Committed_AS:    3067964 kB
+Committed_AS:    6675504 kB
 VmallocTotal:   34359738367 kB
 VmallocUsed:           0 kB
 VmallocChunk:          0 kB
@@ -569,15 +564,15 @@ HugePages_Rsvd:        0
 HugePages_Surp:        0
 Hugepagesize:       2048 kB
 Hugetlb:               0 kB
-DirectMap4k:     1062000 kB
-DirectMap2M:    15648768 kB
+DirectMap4k:     1111152 kB
+DirectMap2M:    15599616 kB
 DirectMap1G:    17825792 kB
 ############################################
 ** GPU INFO FROM NVIDIA-SMI:
 
 ==============NVSMI LOG==============
 
-Timestamp                           : Sun Jan  6 11:07:52 2019
+Timestamp                           : Sun Jan  6 11:17:05 2019
 Driver Version                      : 415.25
 CUDA Version                        : 10.0
 
@@ -646,16 +641,16 @@ GPU 00000000:08:00.0
         Display Clock Setting       : Not Active
     FB Memory Usage
         Total                       : 1999 MiB
-        Used                        : 162 MiB
-        Free                        : 1837 MiB
+        Used                        : 464 MiB
+        Free                        : 1535 MiB
     BAR1 Memory Usage
         Total                       : 256 MiB
         Used                        : 5 MiB
         Free                        : 251 MiB
     Compute Mode                    : Default
     Utilization
-        Gpu                         : 25 %
-        Memory                      : 16 %
+        Gpu                         : 1 %
+        Memory                      : 5 %
         Encoder                     : 0 %
         Decoder                     : 0 %
     Encoder Stats
@@ -713,7 +708,7 @@ GPU 00000000:08:00.0
         Double Bit ECC              : N/A
         Pending                     : N/A
     Temperature
-        GPU Current Temp            : 33 C
+        GPU Current Temp            : 38 C
         GPU Shutdown Temp           : 102 C
         GPU Slowdown Temp           : 99 C
         GPU Max Operating Temp      : N/A
@@ -752,11 +747,19 @@ GPU 00000000:08:00.0
         Process ID                  : 905
             Type                    : G
             Name                    : /usr/lib/Xorg
-            Used GPU Memory         : 77 MiB
+            Used GPU Memory         : 160 MiB
         Process ID                  : 968
             Type                    : G
             Name                    : /usr/bin/gnome-shell
-            Used GPU Memory         : 82 MiB
+            Used GPU Memory         : 93 MiB
+        Process ID                  : 16046
+            Type                    : G
+            Name                    : /usr/lib/firefox/firefox
+            Used GPU Memory         : 133 MiB
+        Process ID                  : 16954
+            Type                    : G
+            Name                    : /usr/lib/electron2/electron2 --type=gpu-process --disable-features=ColorCorrectRendering --no-sandbox --supports-dual-gpus=false --gpu-driver-bug-workarounds=9,27,84 --disable-gl-extensions=GL_KHR_blend_equation_advanced GL_KHR_blend_equation_advanced_coherent --disable-accelerated-video-decode --gpu-vendor-id=0x10de --gpu-device-id=0x1c81 --gpu-driver-vendor=Nvidia --gpu-driver-version=415.25 --gpu-driver-date --service-request-channel-token=AA56D012D767F67859B069A3487A3843
+            Used GPU Memory         : 73 MiB
 
 ############################################
 ** LINUX AND GCC VERSIONS:

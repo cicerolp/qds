@@ -46,7 +46,7 @@ void run_bench(int argc, char *argv[], const std::string &log, const std::string
       continue;
     }
 
-    auto volatile field = container->query(Query(line));
+    container->query(Query(line));
 
     TIMER_RESET_IT
     TIMER_INCR_ID
