@@ -20,7 +20,7 @@ void run_bench(const std::string &input) {
       continue;
     }
 
-    NDSInstances::getInstance().query(Query(line));
+    auto volatile value = NDSInstances::getInstance().query(Query(line));
     TIMER_INCR_IT
 
     TIMER_RESET_IT

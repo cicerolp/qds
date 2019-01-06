@@ -59,36 +59,13 @@ function push_to_git {
 ########################################################################################################################
 
 ########################
-# test p-digest        #
-########################
-
-# setup benchmark
-rm bench_queries
-cd $BUILDIR
-cmake -DCMAKE_BUILD_TYPE="Release" -DNDS_OPTIMIZE_LEAF="OFF" -DENABLE_METRICS="ON" -DNDS_ENABLE_PAYLOAD="ON" -DENABLE_RAW="OFF" -DENABLE_PDIGEST="ON" -DENABLE_GAUSSIAN="OFF" -DNDS_ENABLE_CRS_SIMPLE="ON" ../../
-cmake --build ./ --target bench_queries -- -j 8
-chmod +x ./benchmarks/bench_queries
-cp ./benchmarks/bench_queries ../
-cd $HOMEDIR
-
-# run test
-# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_1M.xml -d 25 > ${TMPDIR}/pdigest_${EXECID}_gaussian_1M.csv
-# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_10M.xml -d 10 > ${TMPDIR}/pdigest_${EXECID}_gaussian_10M.csv
-# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_100M.xml -d 10 > ${TMPDIR}/pdigest_${EXECID}_gaussian_100M.csv
-
-# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_5M.xml -d 10 > ${TMPDIR}/pdigest_${EXECID}_gaussian_5M.csv
-# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_50M.xml -d 10 > ${TMPDIR}/pdigest_${EXECID}_gaussian_50M.csv
-
-NDS_DATA=${NDSDATADIR} ./bench_queries -i /home/cicerolp/Git/nds-data/logs-nds/gaussian-lhs-region.log -x ../xml/gaussian_50M.xml -d 10 > ${TMPDIR}/pdigest_${EXECID}_gaussian_50M.csv
-
-
-########################
 # test raw             #
 ########################
 
 # setup benchmark
 rm bench_queries
 cd $BUILDIR
+rm -rf *
 cmake -DCMAKE_BUILD_TYPE="Release" -DNDS_OPTIMIZE_LEAF="OFF" -DENABLE_METRICS="ON" -DNDS_ENABLE_PAYLOAD="ON" -DENABLE_RAW="ON" -DENABLE_PDIGEST="OFF" -DENABLE_GAUSSIAN="OFF" -DNDS_ENABLE_CRS_SIMPLE="ON" ../../
 cmake --build ./ --target bench_queries -- -j 8
 chmod +x ./benchmarks/bench_queries
@@ -96,13 +73,23 @@ cp ./benchmarks/bench_queries ../
 cd $HOMEDIR
 
 # run test
-# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_1M.xml -d 25 > ${TMPDIR}/raw_${EXECID}_gaussian_1M.csv
-# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_10M.xml -d 10 > ${TMPDIR}/raw_${EXECID}_gaussian_10M.csv
-# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_100M.xml -d 10 > ${TMPDIR}/raw_${EXECID}_gaussian_100M.csv
+NDS_DATA=${NDSDATADIR} ./bench_queries -i /home/cicerolp/Git/nds-data/logs-nds/uniform-lhs-region.log -x /home/cicerolp/Git/nds-data/uniform_50M.xml -d 9 > ${TMPDIR}/raw_${EXECID}_uniform_50M.csv
 
-# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_5M.xml -d 10 > ${TMPDIR}/raw_${EXECID}_gaussian_5M.csv
-# NDS_DATA=${NDSDATADIR} ./bench_queries -i ./logs/gaussian.log -x ../xml/gaussian_50M.xml -d 10 > ${TMPDIR}/raw_${EXECID}_gaussian_50M.csv
+########################
+# test p-digest        #
+########################
 
-NDS_DATA=${NDSDATADIR} ./bench_queries -i /home/cicerolp/Git/nds-data/logs-nds/gaussian-lhs-region.log -x ../xml/gaussian_50M.xml -d 10 > ${TMPDIR}/raw_${EXECID}_gaussian_50M.csv
+# setup benchmark
+rm bench_queries
+cd $BUILDIR
+rm -rf *
+cmake -DCMAKE_BUILD_TYPE="Release" -DNDS_OPTIMIZE_LEAF="OFF" -DENABLE_METRICS="ON" -DNDS_ENABLE_PAYLOAD="ON" -DENABLE_RAW="OFF" -DENABLE_PDIGEST="ON" -DENABLE_GAUSSIAN="OFF" -DNDS_ENABLE_CRS_SIMPLE="ON" ../../
+cmake --build ./ --target bench_queries -- -j 8
+chmod +x ./benchmarks/bench_queries
+cp ./benchmarks/bench_queries ../
+cd $HOMEDIR
 
-# push_to_git
+# run test
+NDS_DATA=${NDSDATADIR} ./bench_queries -i /home/cicerolp/Git/nds-data/logs-nds/uniform-lhs-region.log -x /home/cicerolp/Git/nds-data/uniform_50M.xml -d 9 > ${TMPDIR}/pdigest_${EXECID}_uniform_50M.csv
+
+push_to_git
