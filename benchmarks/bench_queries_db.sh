@@ -83,9 +83,9 @@ cd $HOMEDIR
 # ./bench_queries_db -s on-time -i /home/cicerolp/Git/nds-data/logs-nds/on_time_performance-count-region.log -d /home/cicerolp/data/flights/csv/data.csv > ${TMPDIR}/db_${EXECID}_on_time_performance-count-region.csv
 
 ## twitter
-#./bench_queries_db -s twitter -i /home/cicerolp/Git/nds-data/logs-nds/twitter-small-count-region.log -d /home/cicerolp/data/twitter/csv/data.csv > ${TMPDIR}/db_${EXECID}_twitter-small-count-region.csv
+./bench_queries_db -s twitter -i /home/cicerolp/Git/nds-data/logs-nds/twitter-small-count-region.log -d /home/cicerolp/data/twitter/csv/data.csv > ${TMPDIR}/db_${EXECID}_twitter-small-count-region.csv
 
 ## percitile gaussian
-./bench_queries_db -s gaussian -i /home/cicerolp/Git/nds-data/logs-nds/uniform-lhs-region.log -d /run/media/cicerolp/Misc/Data/uniform_50M/csv/data.csv > ${TMPDIR}/db_${EXECID}_uniform-quantile-0_500-region.csv
+#./bench_queries_db -s gaussian -i /home/cicerolp/Git/nds-data/logs-nds/uniform-lhs-region.log -d /run/media/cicerolp/Misc/Data/uniform_50M/csv/data.csv > ${TMPDIR}/db_${EXECID}_uniform-quantile-0_500-region.csv
 
 push_to_git

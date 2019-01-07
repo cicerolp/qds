@@ -73,10 +73,10 @@ int main(int argc, char *argv[]) {
   po::notify(vm);
 
   ////////////////////////////////////////////////////////
-  
-  run_bench<SpatiaLiteCtn>(argc, argv, log, data, schema);
+
   run_bench<MonetDBCtn>(argc, argv, log, data, schema);
-  run_bench<PostGisCtn>(argc, argv, log, data, schema);
+  // run_bench<PostGisCtn>(argc, argv, log, data, schema);
+  // run_bench<SpatiaLiteCtn>(argc, argv, log, data, schema);
 
   return 0;
 }
