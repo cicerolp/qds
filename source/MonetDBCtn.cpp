@@ -242,7 +242,7 @@ void MonetDBCtn::insert_small_twitter(const std::string &filename) {
   // skip header
   std::getline(infile, line);
 
-  MapiHdl hdl = mapi_prepare(_dbh, "INSERT INTO db VALUES (?, ?, ?, ?, ?)");
+  MapiHdl hdl = mapi_prepare(_dbh, "INSERT INTO db VALUES (?, ?, ?)");
   check(_dbh, hdl);
 
   while (!infile.eof()) {
@@ -270,7 +270,7 @@ void MonetDBCtn::insert_small_twitter(const std::string &filename) {
       05, coord
       */
 
-      const long epoch = std::stoul(data[7]);
+      const long epoch = std::stoul(data[3]);
       std::stringstream ss;
       ss << std::put_time(std::localtime(&epoch), "%FT%TZ");
       auto time = ss.str();
