@@ -1,23 +1,23 @@
 
 #+TITLE: Experiment results
-#+DATE: Sun Jan  6 15:33:22 -04 2019
+#+DATE: Mon Jan  7 19:21:34 -04 2019
 #+AUTHOR: cicerolp
 #+MACHINE: b450
 #+FILE: info.org
  
 * MACHINE INFO:
 ** PEOPLE LOGGED WHEN EXPERIMENT STARTED:
-cicerolp :0           2019-01-06 15:17 (:0)
+cicerolp :0           2019-01-07 18:11 (:0)
 ############################################
 ** ENVIRONMENT VARIABLES:
 XDG_MENU_PREFIX=gnome-
 LANG=en_US.UTF-8
 GDM_LANG=en_US.UTF-8
 LESS=-r
-MANAGERPID=804
+MANAGERPID=799
 DISPLAY=:0
-OLDPWD=/home/cicerolp/Git/nds/benchmarks
-INVOCATION_ID=dc19c73610fa4811845a95a3979c09b1
+OLDPWD=/home/cicerolp/Git/nds
+INVOCATION_ID=b492913cd24541dd976b1c64bca77921
 EDITOR=/usr/bin/nano
 COLORTERM=truecolor
 USERNAME=cicerolp
@@ -29,16 +29,16 @@ LESS_TERMCAP_se=[0m
 XDG_SESSION_ID=1
 USER=cicerolp
 DESKTOP_SESSION=gnome
-GNOME_TERMINAL_SCREEN=/org/gnome/Terminal/screen/86e16b33_d913_40c0_8fa7_27958461f4b8
+GNOME_TERMINAL_SCREEN=/org/gnome/Terminal/screen/c580b101_f79c_4f74_84d7_3715a1e879bc
 QT_QPA_PLATFORMTHEME=qt5ct
 PWD=/home/cicerolp/Git/nds/benchmarks
 HOME=/home/cicerolp
-JOURNAL_STREAM=9:10959
+JOURNAL_STREAM=9:20852
 MOZ_WEBRENDER=1
 XDG_SESSION_TYPE=x11
 XDG_SESSION_DESKTOP=gnome
 LESS_TERMCAP_mb=[01;32m
-DBUS_STARTER_ADDRESS=unix:path=/run/user/1000/bus,guid=b3f34382344a969b532eddc65c325437
+DBUS_STARTER_ADDRESS=unix:path=/run/user/1000/bus,guid=4e22e573a34828d682bfe96c5c33ce77
 LESS_TERMCAP_md=[01;32m
 LESS_TERMCAP_me=[0m
 MAIL=/var/spool/mail/cicerolp
@@ -48,13 +48,13 @@ SHELL=/usr/bin/zsh
 TERM=xterm-256color
 DBUS_STARTER_BUS_TYPE=session
 XDG_CURRENT_DESKTOP=GNOME
-GNOME_TERMINAL_SERVICE=:1.157
+GNOME_TERMINAL_SERVICE=:1.183
 SHLVL=3
 XDG_SEAT=seat0
 INSIDE_NAUTILUS_PYTHON=
 GDMSESSION=gnome
 LOGNAME=cicerolp
-DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus,guid=b3f34382344a969b532eddc65c325437
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus,guid=4e22e573a34828d682bfe96c5c33ce77
 XDG_RUNTIME_DIR=/run/user/1000
 XAUTHORITY=/run/user/1000/gdm/Xauthority
 LESS_TERMCAP_ue=[0m
@@ -74,7 +74,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2162.303
+cpu MHz		: 2843.229
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -88,7 +88,7 @@ cpuid level	: 13
 wp		: yes
 flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate sme ssbd sev ibpb vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif overflow_recov succor smca
 bugs		: sysret_ss_attrs null_seg spectre_v1 spectre_v2 spec_store_bypass
-bogomips	: 7388.22
+bogomips	: 7388.06
 TLB size	: 2560 4K pages
 clflush size	: 64
 cache_alignment	: 64
@@ -102,7 +102,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2172.962
+cpu MHz		: 2827.233
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -116,7 +116,7 @@ cpuid level	: 13
 wp		: yes
 flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate sme ssbd sev ibpb vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif overflow_recov succor smca
 bugs		: sysret_ss_attrs null_seg spectre_v1 spectre_v2 spec_store_bypass
-bogomips	: 7388.22
+bogomips	: 7388.06
 TLB size	: 2560 4K pages
 clflush size	: 64
 cache_alignment	: 64
@@ -130,7 +130,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2185.564
+cpu MHz		: 4208.613
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -144,7 +144,7 @@ cpuid level	: 13
 wp		: yes
 flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate sme ssbd sev ibpb vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif overflow_recov succor smca
 bugs		: sysret_ss_attrs null_seg spectre_v1 spectre_v2 spec_store_bypass
-bogomips	: 7388.22
+bogomips	: 7388.06
 TLB size	: 2560 4K pages
 clflush size	: 64
 cache_alignment	: 64
@@ -158,7 +158,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2376.176
+cpu MHz		: 4241.497
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -172,7 +172,7 @@ cpuid level	: 13
 wp		: yes
 flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate sme ssbd sev ibpb vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif overflow_recov succor smca
 bugs		: sysret_ss_attrs null_seg spectre_v1 spectre_v2 spec_store_bypass
-bogomips	: 7388.22
+bogomips	: 7388.06
 TLB size	: 2560 4K pages
 clflush size	: 64
 cache_alignment	: 64
@@ -186,7 +186,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 3194.520
+cpu MHz		: 3108.643
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -200,7 +200,7 @@ cpuid level	: 13
 wp		: yes
 flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate sme ssbd sev ibpb vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif overflow_recov succor smca
 bugs		: sysret_ss_attrs null_seg spectre_v1 spectre_v2 spec_store_bypass
-bogomips	: 7388.22
+bogomips	: 7388.06
 TLB size	: 2560 4K pages
 clflush size	: 64
 cache_alignment	: 64
@@ -214,7 +214,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 3192.966
+cpu MHz		: 2422.529
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -228,7 +228,7 @@ cpuid level	: 13
 wp		: yes
 flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate sme ssbd sev ibpb vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif overflow_recov succor smca
 bugs		: sysret_ss_attrs null_seg spectre_v1 spectre_v2 spec_store_bypass
-bogomips	: 7388.22
+bogomips	: 7388.06
 TLB size	: 2560 4K pages
 clflush size	: 64
 cache_alignment	: 64
@@ -242,7 +242,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2512.613
+cpu MHz		: 2129.402
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -256,7 +256,7 @@ cpuid level	: 13
 wp		: yes
 flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate sme ssbd sev ibpb vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif overflow_recov succor smca
 bugs		: sysret_ss_attrs null_seg spectre_v1 spectre_v2 spec_store_bypass
-bogomips	: 7388.22
+bogomips	: 7388.06
 TLB size	: 2560 4K pages
 clflush size	: 64
 cache_alignment	: 64
@@ -270,7 +270,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 3122.030
+cpu MHz		: 2119.544
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -284,7 +284,7 @@ cpuid level	: 13
 wp		: yes
 flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate sme ssbd sev ibpb vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif overflow_recov succor smca
 bugs		: sysret_ss_attrs null_seg spectre_v1 spectre_v2 spec_store_bypass
-bogomips	: 7388.22
+bogomips	: 7388.06
 TLB size	: 2560 4K pages
 clflush size	: 64
 cache_alignment	: 64
@@ -298,7 +298,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 4296.377
+cpu MHz		: 3807.791
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -312,7 +312,7 @@ cpuid level	: 13
 wp		: yes
 flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate sme ssbd sev ibpb vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif overflow_recov succor smca
 bugs		: sysret_ss_attrs null_seg spectre_v1 spectre_v2 spec_store_bypass
-bogomips	: 7388.22
+bogomips	: 7388.06
 TLB size	: 2560 4K pages
 clflush size	: 64
 cache_alignment	: 64
@@ -326,7 +326,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 4291.536
+cpu MHz		: 3931.434
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -340,7 +340,7 @@ cpuid level	: 13
 wp		: yes
 flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate sme ssbd sev ibpb vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif overflow_recov succor smca
 bugs		: sysret_ss_attrs null_seg spectre_v1 spectre_v2 spec_store_bypass
-bogomips	: 7388.22
+bogomips	: 7388.06
 TLB size	: 2560 4K pages
 clflush size	: 64
 cache_alignment	: 64
@@ -354,7 +354,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2086.874
+cpu MHz		: 3084.049
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -368,7 +368,7 @@ cpuid level	: 13
 wp		: yes
 flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate sme ssbd sev ibpb vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif overflow_recov succor smca
 bugs		: sysret_ss_attrs null_seg spectre_v1 spectre_v2 spec_store_bypass
-bogomips	: 7388.22
+bogomips	: 7388.06
 TLB size	: 2560 4K pages
 clflush size	: 64
 cache_alignment	: 64
@@ -382,7 +382,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2026.693
+cpu MHz		: 3454.533
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -396,7 +396,7 @@ cpuid level	: 13
 wp		: yes
 flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate sme ssbd sev ibpb vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif overflow_recov succor smca
 bugs		: sysret_ss_attrs null_seg spectre_v1 spectre_v2 spec_store_bypass
-bogomips	: 7388.22
+bogomips	: 7388.06
 TLB size	: 2560 4K pages
 clflush size	: 64
 cache_alignment	: 64
@@ -410,7 +410,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 3788.613
+cpu MHz		: 2426.887
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -424,7 +424,7 @@ cpuid level	: 13
 wp		: yes
 flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate sme ssbd sev ibpb vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif overflow_recov succor smca
 bugs		: sysret_ss_attrs null_seg spectre_v1 spectre_v2 spec_store_bypass
-bogomips	: 7388.22
+bogomips	: 7388.06
 TLB size	: 2560 4K pages
 clflush size	: 64
 cache_alignment	: 64
@@ -438,7 +438,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2289.621
+cpu MHz		: 2559.191
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -452,7 +452,7 @@ cpuid level	: 13
 wp		: yes
 flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate sme ssbd sev ibpb vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif overflow_recov succor smca
 bugs		: sysret_ss_attrs null_seg spectre_v1 spectre_v2 spec_store_bypass
-bogomips	: 7388.22
+bogomips	: 7388.06
 TLB size	: 2560 4K pages
 clflush size	: 64
 cache_alignment	: 64
@@ -466,7 +466,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2787.503
+cpu MHz		: 2210.437
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -480,7 +480,7 @@ cpuid level	: 13
 wp		: yes
 flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate sme ssbd sev ibpb vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif overflow_recov succor smca
 bugs		: sysret_ss_attrs null_seg spectre_v1 spectre_v2 spec_store_bypass
-bogomips	: 7388.22
+bogomips	: 7388.06
 TLB size	: 2560 4K pages
 clflush size	: 64
 cache_alignment	: 64
@@ -494,7 +494,7 @@ model		: 8
 model name	: AMD Ryzen 7 2700X Eight-Core Processor
 stepping	: 2
 microcode	: 0x800820b
-cpu MHz		: 2157.242
+cpu MHz		: 2171.942
 cache size	: 512 KB
 physical id	: 0
 siblings	: 16
@@ -508,7 +508,7 @@ cpuid level	: 13
 wp		: yes
 flags		: fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb hw_pstate sme ssbd sev ibpb vmmcall fsgsbase bmi1 avx2 smep bmi2 rdseed adx smap clflushopt sha_ni xsaveopt xsavec xgetbv1 xsaves clzero irperf xsaveerptr arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif overflow_recov succor smca
 bugs		: sysret_ss_attrs null_seg spectre_v1 spectre_v2 spec_store_bypass
-bogomips	: 7388.22
+bogomips	: 7388.06
 TLB size	: 2560 4K pages
 clflush size	: 64
 cache_alignment	: 64
@@ -520,45 +520,45 @@ power management: ts ttp tm hwpstate cpb eff_freq_ro [13] [14]
 schedutil
 ############################################
 ** CPU FREQUENCY:
-2162303
+2843229
 ############################################
 ** MEM INFO:
 MemTotal:       32937460 kB
-MemFree:        29894680 kB
-MemAvailable:   31525108 kB
-Buffers:          192528 kB
-Cached:          1762544 kB
+MemFree:        28736708 kB
+MemAvailable:   30480180 kB
+Buffers:          569344 kB
+Cached:          1333372 kB
 SwapCached:            0 kB
-Active:          1496088 kB
-Inactive:        1032820 kB
-Active(anon):     578540 kB
-Inactive(anon):    36412 kB
-Active(file):     917548 kB
-Inactive(file):   996408 kB
+Active:          2516616 kB
+Inactive:        1068500 kB
+Active(anon):    1533880 kB
+Inactive(anon):    32068 kB
+Active(file):     982736 kB
+Inactive(file):  1036432 kB
 Unevictable:           0 kB
 Mlocked:               0 kB
 SwapTotal:      32942076 kB
 SwapFree:       32942076 kB
-Dirty:               432 kB
+Dirty:               148 kB
 Writeback:             0 kB
-AnonPages:        573892 kB
-Mapped:           274788 kB
-Shmem:             41120 kB
-KReclaimable:     161064 kB
-Slab:             273948 kB
-SReclaimable:     161064 kB
-SUnreclaim:       112884 kB
-KernelStack:        8496 kB
-PageTables:        12552 kB
+AnonPages:       1682476 kB
+Mapped:           510740 kB
+Shmem:             46860 kB
+KReclaimable:     176724 kB
+Slab:             305248 kB
+SReclaimable:     176724 kB
+SUnreclaim:       128524 kB
+KernelStack:       14524 kB
+PageTables:        25120 kB
 NFS_Unstable:          0 kB
 Bounce:                0 kB
 WritebackTmp:          0 kB
 CommitLimit:    49410804 kB
-Committed_AS:    3003948 kB
+Committed_AS:    7325624 kB
 VmallocTotal:   34359738367 kB
 VmallocUsed:           0 kB
 VmallocChunk:          0 kB
-Percpu:             7680 kB
+Percpu:             7744 kB
 HardwareCorrupted:     0 kB
 AnonHugePages:         0 kB
 ShmemHugePages:        0 kB
@@ -569,15 +569,15 @@ HugePages_Rsvd:        0
 HugePages_Surp:        0
 Hugepagesize:       2048 kB
 Hugetlb:               0 kB
-DirectMap4k:      371824 kB
-DirectMap2M:     6901760 kB
-DirectMap1G:    27262976 kB
+DirectMap4k:      506992 kB
+DirectMap2M:     7815168 kB
+DirectMap1G:    26214400 kB
 ############################################
 ** GPU INFO FROM NVIDIA-SMI:
 
 ==============NVSMI LOG==============
 
-Timestamp                           : Sun Jan  6 15:33:22 2019
+Timestamp                           : Mon Jan  7 19:21:34 2019
 Driver Version                      : 415.25
 CUDA Version                        : 10.0
 
@@ -646,15 +646,15 @@ GPU 00000000:08:00.0
         Display Clock Setting       : Not Active
     FB Memory Usage
         Total                       : 1999 MiB
-        Used                        : 132 MiB
-        Free                        : 1867 MiB
+        Used                        : 442 MiB
+        Free                        : 1557 MiB
     BAR1 Memory Usage
         Total                       : 256 MiB
         Used                        : 5 MiB
         Free                        : 251 MiB
     Compute Mode                    : Default
     Utilization
-        Gpu                         : 3 %
+        Gpu                         : 4 %
         Memory                      : 6 %
         Encoder                     : 0 %
         Decoder                     : 0 %
@@ -713,7 +713,7 @@ GPU 00000000:08:00.0
         Double Bit ECC              : N/A
         Pending                     : N/A
     Temperature
-        GPU Current Temp            : 37 C
+        GPU Current Temp            : 35 C
         GPU Shutdown Temp           : 102 C
         GPU Slowdown Temp           : 99 C
         GPU Max Operating Temp      : N/A
@@ -728,8 +728,8 @@ GPU 00000000:08:00.0
         Min Power Limit             : 52.50 W
         Max Power Limit             : 75.00 W
     Clocks
-        Graphics                    : 139 MHz
-        SM                          : 139 MHz
+        Graphics                    : 151 MHz
+        SM                          : 151 MHz
         Memory                      : 405 MHz
         Video                       : 544 MHz
     Applications Clocks
@@ -749,14 +749,22 @@ GPU 00000000:08:00.0
         Auto Boost                  : N/A
         Auto Boost Default          : N/A
     Processes
-        Process ID                  : 900
+        Process ID                  : 888
             Type                    : G
             Name                    : /usr/lib/Xorg
-            Used GPU Memory         : 66 MiB
-        Process ID                  : 954
+            Used GPU Memory         : 162 MiB
+        Process ID                  : 953
             Type                    : G
             Name                    : /usr/bin/gnome-shell
-            Used GPU Memory         : 63 MiB
+            Used GPU Memory         : 80 MiB
+        Process ID                  : 5449
+            Type                    : G
+            Name                    : /usr/lib/firefox/firefox
+            Used GPU Memory         : 148 MiB
+        Process ID                  : 7047
+            Type                    : G
+            Name                    : /usr/lib/electron2/electron2 --type=gpu-process --disable-features=ColorCorrectRendering --no-sandbox --supports-dual-gpus=false --gpu-driver-bug-workarounds=9,27,84 --disable-gl-extensions=GL_KHR_blend_equation_advanced GL_KHR_blend_equation_advanced_coherent --disable-accelerated-video-decode --gpu-vendor-id=0x10de --gpu-device-id=0x1c81 --gpu-driver-vendor=Nvidia --gpu-driver-version=415.25 --gpu-driver-date --service-request-channel-token=E58720EEE893CFFDBC12FFF282180DB7
+            Used GPU Memory         : 48 MiB
 
 ############################################
 ** LINUX AND GCC VERSIONS:
