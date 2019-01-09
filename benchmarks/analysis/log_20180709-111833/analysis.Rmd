@@ -90,8 +90,8 @@ data <- rbind(
   
   load_db('log_20181211-094911/db_20181211-094911_brightkite-count-region.csv', 'brightkite'),
   load_db('log_20181211-094911/db_20181211-094911_gowalla-count-region.csv', 'gowalla'),
-  load_db('log_20181211-094911/db_20181211-094911_on_time_performance-count-region.csv', 'flights')
-  # load_db('log_20181211-094911/db_20181211-094911_twitter-small-count-region.csv', 'twitter-small')
+  load_db('log_20181211-094911/db_20181211-094911_on_time_performance-count-region.csv', 'flights'),
+  load_db('log_20190107-192939/db_20190107-192939_twitter-small-count-region.csv', 'twitter-small')
 )
 ```
 
