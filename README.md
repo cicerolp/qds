@@ -13,7 +13,7 @@ In recent years sophisticated data structures based on datacubes have been propo
 ### Authors
 - Cícero A. L. Pahins, Nivan Ferreira, and João L. Comba
 
-# How to Build (Linux, Mac and Windows are supported)
+# How to Build (Linux, Mac, and Windows are supported)
 
 - Dependencies: 
     * `Boost 1.62` or later.
@@ -41,11 +41,27 @@ Below are the steps to run a demo that explore various QDS features. Follow them
     * Build `QDS` following the instructions (master branch)
     * Export or set the enviroment variable `NDS_DATA=<QDS_DATA_REPO_DIR>`
     * Hit `./nds -x demo/demo1.xml -x demo/demo2.xml -x demo/demo3.xml -x demo/demo4.xml -x demo/demo5.xml`
-        * The demo needs approximatly 4GB of memory to run
+        * The demo needs approximately 4GB of memory to run
 
 3. QDS Interface
     * Change the current directory to `QDS Interface` root
-    * Type: `npm install` to install all requeriments
+    * Type: `npm install` to install all requirements
     * Type: `ng serve` to deploy the development server
-    * Hit [localhost:4200](http://localhost:4200) to acess the interface
+    * Hit [localhost:4200](http://localhost:4200) to access the interface
         * Only available after you setup QDS server
+
+# Paper's Experiments
+
+* Checkout `exp-queries-20180716-145919` to reproduce the couting queries benchmark of QDS in `brightkite`, `gowalla`, `flights` and `twitter-small` datasets. (Figure 11 of the paper)
+
+* Checkout `exp-queries-db-20181207-142310` to reproduce the counting and quantile(0.5) queries benchmarks of `SQLite`, `PostgreSQL` and `MonetDB` in `brightkite`, `gowalla`, `flights`, `twitter-small` the `synthetic` (used to stress quantile lantency) datasets. (Figures 11 and 13 of the paper)
+
+* Checkout `exp-synthetic-20180719-095432` to reproduce the quantile(0.5) queries benchmark of QDS in the `synthetic` (used to stress quantile lantency) dataset. (Figure 13 of the paper)
+
+* Checkout `exp-info-20180709-142751`to reproduce the overall summary of the relevant information for building QDS (memory usage, number of pivots, building time, etc.) (Tables 1 and 2 of the paper)
+
+* Checkout `exp-pdigest-buffer-20180712-150311` and  `exp-pdigest-buffer-20180714-004727` to reproduce the evaluation of _p-digest_ quantile estimation with respect to pivot size, number of merge operations and queried quantile. (Figure 12 of the paper)
+
+* Checkout `exp-raw-20180715-172517`, `exp-pdigest-buffer-20180712-150311` and  `exp-pdigest-buffer-20180714-004727` to reproduce the compression results for different _p-digest_ configurations. (Table 3 of the paper)
+
+* Checkout to explore `exp-20180220-201221`, `exp-20180220-202148`, `exp-20180224-143217` and `exp-20180612-161348` unpublished experiments.
