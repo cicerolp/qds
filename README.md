@@ -41,7 +41,7 @@ Below are the steps to run a demo that explore various QDS features. Follow them
     * Build `QDS` following the instructions (master branch)
     * Export or set the enviroment variable `NDS_DATA=<QDS_DATA_REPO_DIR>`
     * Hit `./nds -x demo/demo1.xml -x demo/demo2.xml -x demo/demo3.xml -x demo/demo4.xml -x demo/demo5.xml`
-        * The demo needs approximately 4GB of memory to run
+        * The demo needs approximately 16GB of memory during building process.
 
 3. QDS Interface
     * Change the current directory to `QDS Interface` root
