@@ -63,5 +63,3 @@ Below are the steps to run a demo that explore various QDS features. Follow them
 * Checkout `exp-pdigest-buffer-20180712-150311` and  `exp-pdigest-buffer-20180714-004727` to reproduce the evaluation of _p-digest_ quantile estimation with respect to pivot size, number of merge operations and queried quantile. (Figure 12 of the paper)
 
 * Checkout `exp-raw-20180715-172517`, `exp-pdigest-buffer-20180712-150311` and  `exp-pdigest-buffer-20180714-004727` to reproduce the compression results for different _p-digest_ configurations. (Table 3 of the paper)
-
-* Checkout `exp-20180220-201221`, `exp-20180220-202148`, `exp-20180224-143217` and `exp-20180612-161348` to explore unpublished and POC experiments.
