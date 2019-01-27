@@ -31,7 +31,7 @@ In recent years sophisticated data structures based on datacubes have been propo
 
 # How to Run the Demo
 
-Below are the steps to run a demo that explore various QDS features. Follow them in order.
+Below are the steps to run a demo that explore various QDS features.
 
 1. Clone [QDS](https://github.com/cicerolp/qds), [QDS Data](https://github.com/cicerolp/qds-data) and [QDS Interface](https://github.com/cicerolp/qds-interface) repositories.
     * Note that you'll need git-lfs installed to pull the data.
